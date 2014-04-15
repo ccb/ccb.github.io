@@ -1,0 +1,173 @@
+body {
+
+	background: transparent;
+}
+
+
+.container {
+
+	max-width:850px;
+	margin: 0 auto;
+	font-family: 'Avenir Next'
+
+}
+
+
+#masthead {
+
+	padding: 30px 10px;
+	overflow: hidden;
+	position: relative;
+	color:#888;
+	height: 50px; 	
+	margin: 0% 0% 5% 0%;
+	border-bottom: 1px solid #efeeed;
+
+}
+
+
+#masthead header {
+
+	float:left;
+	font-variant: small-caps;
+	font-size: 50px;
+
+}
+
+
+#masthead div {
+
+	float:right;
+	font-size: 20px;
+	text-align: center;
+
+
+}
+
+#masthead div:before {
+
+	content: '';
+	display: inline-block;
+	height: 100%; 
+	vertical-align: middle;
+}
+#masthead nav {
+
+	display: inline-block;
+	vertical-align: middle;
+}
+
+
+#masthead li {
+
+	display: inline;
+	margin: 0 10px;
+
+}
+
+
+#projects {
+
+	padding: 2.5%; 
+	overflow: hidden;
+	background-color: white; 
+}
+
+#projects:after {
+
+	clear:both;
+
+}
+
+.article-container {
+	width: 45%;
+	height: 30%;
+	color: #333 ;
+}
+
+.first {
+
+	float: left;
+
+}
+
+.second {
+
+	float: right;
+}
+
+article img {
+
+	width:40%;
+	height: 40%; 
+	float: left; 
+	padding: 0 5% 0 0; 
+}
+
+article img::after {
+	clear: both; 
+
+}
+/*section::after {
+
+	clear: both; 
+}*/
+
+article {
+
+	font-size: 82.5%;
+	margin: 5% 5% 5% 5%; 
+
+}
+
+article header {
+	font-size: medium;
+	padding: 0 0 3% 0; 
+
+}
+
+article footer {
+	font-size: larger; 
+	display: inline; 
+}
+
+a {
+	text-decoration: none;
+	color: #c0392b;
+}
+
+
+.left {
+
+	float:left;
+	width: 55%
+	height: 55%;
+	padding: 0 0% 0% 5%; 
+}
+
+.right {
+
+	float: right; 
+	width: 55%
+	height: 55%;
+	padding: 0 0% 0% 5%; 
+}
+
+
+.flippable {
+
+	-webkit-transform: rotate(0deg);
+	transition-property: -webkit-transform, color;
+  	transition-duration: .2s, 0.2s;
+  	transition-timing-function: linear, ease-in;
+
+}
+
+.flippable:hover {
+
+
+	-webkit-transform: rotate(180deg);
+	color: red;
+
+}
+
