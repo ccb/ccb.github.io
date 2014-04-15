@@ -96,7 +96,7 @@ body {
 	float: right;
 }
 
-article img {
+.thumbnail {
 
 	width:40%;
 	height: 40%; 
@@ -104,7 +104,7 @@ article img {
 	padding: 0 5% 0 0; 
 }
 
-article img::after {
+.thumbnail::after {
 	clear: both; 
 
 }
@@ -168,6 +168,50 @@ a {
 
 	-webkit-transform: rotate(180deg);
 	color: red;
+
+}
+
+/*Article Pages*/
+
+.main-header-image {
+
+	width: 100%;
+
+	padding: 5% 0; 
+}
+
+.single-column-article {
+
+	font-size: large; 
+
+}
+.single-column-article p {
+
+	padding: 1em 0; 
+
+}
+
+.medium-thumbnail-left {
+
+	float:left;
+	width: 40%;
+	height: 40%;
+	padding: 0 0% 0% 5%; 
+
+
+}
+h2 {
+
+	color: #c0392b;
+	font-size: x-large;
+
+}
+
+.vimeo-container {
+
+	width: 500px; 
+	margin: 0 auto; 
+	padding: 5% 0 5% 0; 
 
 }
 
