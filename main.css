@@ -194,12 +194,18 @@ a {
 .medium-thumbnail-left {
 
 	float:left;
-	width: 40%;
-	height: 40%;
+	width: 25%;
+	height: 25%;
 	padding: 0 0% 0% 5%; 
-
-
 }
+
+.medium-thumbnail-right {
+
+	float:right;
+	height: 25%;
+	padding: 0 5% 0% 0%; 
+}
+
 h2 {
 
 	color: #c0392b;
@@ -212,6 +218,17 @@ h2 {
 	width: 500px; 
 	margin: 0 auto; 
 	padding: 5% 0 5% 0; 
+
+}
+
+#over-header {
+
+	font-size: xx-large;
+	position: absolute;
+	left: 35%;
+	top: 35%;
+	color: white; 
+	width: 20%;
 
 }
 
