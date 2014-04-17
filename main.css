@@ -1,17 +1,22 @@
 body {
 
 	background: transparent;
+	line-height: initial;
 }
 
+::selection {
+
+	color: white; 
+	background: #c0392b;
+}
 
 .container {
 
 	max-width:850px;
 	margin: 0 auto;
-	font-family: 'Avenir Next'
+	font-family: 'Avenir Next';
 
 }
-
 
 #masthead {
 
@@ -83,6 +88,7 @@ body {
 	width: 45%;
 	height: 30%;
 	color: #333 ;
+	display: inline-block;
 }
 
 .first {
@@ -177,12 +183,15 @@ a {
 
 	width: 100%;
 
-	padding: 5% 0; 
+	padding: 0% 0% 5% 0%; 
 }
 
 .single-column-article {
 
 	font-size: large; 
+	margin: 0;
+	padding: 0% 5% 0% 5%; 
+	float: left;
 
 }
 .single-column-article p {
@@ -191,19 +200,34 @@ a {
 
 }
 
-.medium-thumbnail-left {
 
-	float:left;
-	width: 25%;
-	height: 25%;
-	padding: 0 0% 0% 5%; 
+.medium-thumbnail {
+
+	height: 20%;
+
 }
 
-.medium-thumbnail-right {
+.left-with-less-padding {
+	float:left;
+	padding: 0 5% 0% 0%; 
+
+}
+.left-with-padding {
+
+	float:left;
+	padding: 0 5% 3% 0%; 
+
+}
+
+.right-with-less-padding {
 
 	float:right;
-	height: 25%;
-	padding: 0 5% 0% 0%; 
+	padding: 0 0% % 5%%; 
+}
+.right-with-padding {
+
+	float:right;
+	padding: 0 0% 3% 5%%; 
 }
 
 h2 {
@@ -213,11 +237,28 @@ h2 {
 
 }
 
+.outer-container {
+
+	padding: 5% 0% 5% 0%; 
+}
 .vimeo-container {
 
-	width: 500px; 
-	margin: 0 auto; 
-	padding: 5% 0 5% 0; 
+	position: relative;
+	height: 0;
+	width: 100%; 
+	padding-bottom: 57.25%; /* 16:9 */
+	padding-top: 25px; 
+
+}
+
+.vimeo-container iframe {
+
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+
 
 }
 
@@ -225,10 +266,12 @@ h2 {
 
 	font-size: xx-large;
 	position: absolute;
-	left: 35%;
+	left: 60%;
 	top: 35%;
 	color: white; 
 	width: 20%;
 
 }
+
+
 
