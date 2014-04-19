@@ -104,10 +104,9 @@ body {
 
 .thumbnail {
 
-	width:40%;
-	height: 40%; 
-	float: left; 
-	padding: 0 5% 0 0; 
+	width:50%;
+	height: 35%; 
+	float: left;  
 }
 
 .thumbnail::after {
@@ -162,18 +161,19 @@ a {
 
 .flippable {
 
-	-webkit-transform: rotate(0deg);
+/*	-webkit-transform: rotate(0deg);
 	transition-property: -webkit-transform, color;
   	transition-duration: .2s, 0.2s;
-  	transition-timing-function: linear, ease-in;
+  	transition-timing-function: linear, ease-in;*/
+  	color:#888;
 
 }
 
 .flippable:hover {
 
 
-	-webkit-transform: rotate(180deg);
-	color: red;
+	/*-webkit-transform: rotate(180deg);*/
+	color: #c0392b;
 
 }
 
@@ -270,7 +270,19 @@ h2 {
 	top: 35%;
 	color: white; 
 	width: 20%;
+}
 
+.center-frame {
+
+	display: block;
+	margin:  0 auto; 
+
+}
+.small-caps {
+
+	text-transform: uppercase;
+	color: #c0392b;
+	font-size: smaller;
 }
 
 

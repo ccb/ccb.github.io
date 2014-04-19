@@ -1,0 +1,74 @@
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="reset.css">
+	<link rel="stylesheet" type="text/css" href="main.css">
+	<link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+	<title>Chris Burns - Multisurface Systems</title>
+</head>
+<body>
+	<div class="container">
+
+	<div id="masthead" class='lifted'>
+
+		<header> 
+				<a class='flippable' href="index.html" > CCB </a>
+		</header>
+		<div>
+			<nav> 
+				<ul>
+
+					<li> <a href="https://dl.dropboxusercontent.com/u/106814/Resume.pdf" > Resume </a> </li>
+					<li> <a href="#" > Courses </a> </li>
+					<li> <a href="https://github.com/ccb/" class="fa fa-github"></a></li>
+					<li> <a href="mailto:chris.c.burns@gmail.com" class="fa fa-envelope"></a></li>
+
+				</ul>
+			</nav>
+		</div>
+	</div>
+
+	<article class='single-column-article'>
+
+		<div> 
+<!-- 			<img class='main-header-image' src=''></img>
+			<div id='over-header'> Hands Free Visualization </div> -->
+		</div>
+		<div class='outer-container'>
+			<div class='vimeo-container'>
+				<iframe src="http://player.vimeo.com/video/64826975" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe> <p><a href="http://vimeo.com/64826975">Skyhunter Multi-Surface</a> from <a href="http://vimeo.com/user485691">Chris Burns</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
+			</div>
+		</div>
+		
+		<h2> Idea </h2>
+		<p>
+			A multisurface system is name given by researchers to rooms or enviroments that have a collection of different devices all working closely together. Imagine a single room with a large wall display, a digital tabletop and several iPads, if those devices can all work closely together then we might call the whole thing a multisurface system. By working closely together we mean able to work without a great deal of friction and annoyance. To address one of the main problems of working with these systems my colleauges and I in the ASE Lab built MSE-API. This API allows users to move files and content between these devices using their physical position. This means that to send a file, you just need to point at your target device and "flick" the content over. We used the API to build a prototype application which supports the analysis of oil and gas resevoirs and another application to assist in disaster planning. Both of these applications involve an analysis task conducted by several people and a variety of different devices.
+
+		</p>
+		
+		<h2> Tracking & Position </h2>
+		<p>
+			<!-- <img class='medium-thumbnail left-with-padding' src='mrk-towards.gif'></img> -->
+			In order to support the kind of interactions we had in mind, we needed to be able to track both the position and orientation of users. We wanted to avoid using costly tracking systems but still provide robust tracking over a large area, about the size of a room. To do this we used the Microsoft Kinect to track the position of people as they moved throughout the room. Since the interactions we had in mind used a device anyways, we decided to capture the "intended" orientation from the device itself. When the device and user information were intergrated together we were able to support all the gestures we wanted. 
+		</p>
+
+		
+		<h2> Pour, Flick and Pull</h2>
+		<p id="third">
+			In our initial prototypes three gestures were supported: flick, thrown and pull. In a pour gesture a user simply rotates their device while standing over the tabletop, this causes data to be transferred to the tabletop. In a flick gestures a user performs a flick on their device, whichever device they are currently facing will receive the data. Finally a pull gesture allows a user to capture data from a device by pointing it similar to a camera.
+		</p>
+
+		<h2> Continuing</h2>
+		<p>
+			This work is being continued on by my colleauges at the ASE Lab.
+		</p>
+
+
+
+	</article>
+
+	</div>
+
+
+
+</body>
+</html>
