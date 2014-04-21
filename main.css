@@ -26,6 +26,7 @@ body {
 	color:#888;
 	height: 50px;
 	border-bottom: 1px solid #efeeed;
+	margin: 0% 0% 5% 0%;
 }
 
 
@@ -190,6 +191,7 @@ a {
 	margin: 0;
 	padding: 0% 5% 0% 5%; 
 	float: left;
+	width: 100%;
 
 }
 .single-column-article p {
@@ -201,7 +203,7 @@ a {
 
 .medium-thumbnail {
 
-	/*height: 20%;*/
+	height: 20%;
 
 }
 
