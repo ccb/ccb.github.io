@@ -83,12 +83,13 @@ body {
 }
 
 .article-container {
-	width: 50%;
-/*	height: 30%;*/
-	min-width: 350px;
-	min-height: 275px;
+	width: 45%;
+	height: 250px;
+	min-width: 375px;
 	color: #333 ;
 	display: inline-block;
+/*	border-width: 1px;
+	border-style: solid;*/
 }
 
 .first {
