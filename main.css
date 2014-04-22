@@ -288,4 +288,38 @@ h2 {
 }
 
 
+.show-on-desktop {
+
+	visibility: visible;
+}
+
+.show-on-tablet {
+
+	visibility: hidden;
+	display: none;
+
+}
+
+.under-padding {
+
+	padding-bottom: 5%
+}
+
+@media only screen and (device-width: 768px) {
+
+	.show-on-desktop {
+
+		visibility: hidden;
+		display: none;
+	}
+
+	.show-on-tablet {
+
+		visibility: visible;
+		display: block;
+	}
+
+
+}
+
 
