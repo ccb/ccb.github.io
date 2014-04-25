@@ -204,7 +204,8 @@ a {
 
 .medium-thumbnail {
 
-	height: 20%;
+	max-width: 250px;
+	max-height: 250px;
 
 }
 
@@ -267,8 +268,8 @@ h2 {
 
 	font-size: xx-large;
 	position: absolute;
-	left: 59%;
-	top: 35%;
+	left: 72%;
+	top: 30%;
 	color: white; 
 	width: 15%;
 	text-align: initial;
@@ -302,10 +303,12 @@ h2 {
 
 .under-padding {
 
+	position: relative;
 	padding-bottom: 5%
 }
 
-@media only screen and (device-width: 768px) {
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px), 
+@media only screen and (max-device-width: 480px) {
 
 	.show-on-desktop {
 
