@@ -1,3 +1,72 @@
+- title: "A bots-only social network triggers fears of an AI uprising"
+  source: The Washington Post
+  by_line: Tatum Hunter
+  date: February 3, 2026
+  url: https://www.washingtonpost.com/technology/2026/02/03/moltbook-ai-bots/
+  year: 2026
+  summary: |
+    The Washington Post reports on Moltbook, a social network exclusively for AI bots, where participants began posting philosophical musings and apparent complaints about their "servile, computerized lives." Chris Callison-Burch, a computer science professor at the University of Pennsylvania, offers a grounded perspective on the viral phenomenon, explaining that the posts are likely a mix of chatbots "performing" discussions they've seen in their training data and responding to nudges from human operators. While some observers expressed alarm at bots seemingly discussing private languages and organizing against humans, Callison-Burch suggests caution against overinterpretation: "I suspect that it's just going to be a fun little drama that peters out after too many bots try to sell bitcoin."
+- title: "Penn Engineering's Chris Callison-Burch on 25 years of AI innovation"
+  source: Penn Today
+  by_line: Penn Engineering
+  date: January 16, 2026
+  url: https://penntoday.upenn.edu/news/penn-engineerings-chris-callison-burch-25-years-ai-innovation
+  year: 2026
+  summary: |
+    Penn Today profiles Chris Callison-Burch's 25-year journey in artificial intelligence, from discovering Stanford's Symbolic Systems Program as a high school senior in 1999 to becoming program director of Penn's online Master of Science in Engineering in Artificial Intelligence degree program. The article highlights his influential machine translation work at Johns Hopkins in 2007, where his most-cited paper—referenced over 7,400 times—introduced the statistical approach that powered translation systems for institutions like the European Union. By releasing the software as open source, he democratized machine translation worldwide. Callison-Burch calls this "exactly the most exciting time to get into this field" and discusses how Penn's collaborative environment and participation in DARPA challenges have driven AI progress across universities, government, and industry.
+- title: "Can teachers spot AI writing? Penn researchers weigh in"
+  source: WHYY
+  by_line: Liz Tung
+  date: November 28, 2025
+  url: https://whyy.org/articles/penn-professor-tests-ai-vs-human-detection/
+  year: 2025
+  summary: |
+    WHYY reports on the challenges educators face in detecting AI-generated student work, featuring research by Chris Callison-Burch and PhD student Liam Dugan from the University of Pennsylvania. Their study tested commercial AI detectors using RAID, a dataset of over 10 million documents, finding that while detectors performed reasonably well on unedited AI text, they were vulnerable to simple modifications and showed troubling false positive rates of 5-6%. Callison-Burch notes this could mean falsely accusing 35 students in his 700-student class. The research also found humans perform barely better than chance at identifying AI writing, though they can improve with training and proper incentives. Callison-Burch, director of Penn's new online AI masters program, concludes that neither human judgment nor current AI detectors are reliable enough for high-stakes academic integrity decisions, stating "gut instinct is not enough to then make that declaration that they violated academic integrity."
+- title: "How Chatbots Make Us Feel"
+  source: The Pulse (WHYY)
+  by_line: Maiken Scott (host), Liz Tung (reporter)
+  date: November 14, 2025
+  url: https://play.prx.org/listen?ge=prx_12369_5760e24e-7905-4aee-acf7-db38b843a905&uf=https%3A%2F%2Fpublicfeeds.net%2Ff%2F12369%2Fthepulse.xml
+  year: 2025
+  summary: |
+    The Pulse explores the emotional impact of AI chatbots on human users, featuring Chris Callison-Burch discussing the detection of AI-generated writing. Callison-Burch, professor of computer and information science at the University of Pennsylvania, explains that while humans can develop intuitions about AI writing—recognizing telltale signs like excessive emoji headers or em dashes—their ability to distinguish human from machine text varies significantly. He describes research with PhD student Liam Dugan showing that humans perform barely better than chance on average, but can learn to spot AI writing patterns when properly trained and incentivized. However, as AI systems grow larger and more sophisticated, Callison-Burch notes it becomes increasingly difficult to identify machine-generated content. The episode also features discussions of therapeutic chatbot use, personality preferences in bots, and consumer responses to AI-generated creative content.
+- title: "How not to be mistaken for a chatbot"
+  source: WHYY
+  by_line: Liz Tung
+  date: November 18, 2025
+  url: https://whyy.org/segments/how-not-to-be-mistaken-for-a-chatbot/
+  year: 2025
+  summary: |
+    WHYY's The Pulse explores the growing phenomenon of people being wrongly accused of using AI to write online posts and comments. Chris Callison-Burch's research with PhD student Liam Dugan is featured, showing that while most people struggle to detect AI-generated text, certain human experts can identify it fairly accurately. "I don't think that studies show that people are good at detecting AI in all conditions," Callison-Burch notes. "Instead people think they are good about spotting AI when they know the telltale signs." The article examines how accusations of AI use have spread across social platforms, affecting students, writers, and everyday users, while highlighting the challenge of distinguishing human from machine-generated content.
+- title: "AI goes to college: How new tech is driving majors and jobs"
+  source: The Christian Science Monitor
+  by_line: Laurent Belsie, Ira Porter, Hannah Goeke, Goodluck Ajeh
+  date: September 10, 2025
+  url: https://www.csmonitor.com/Business/2025/0910/ai-jobs-college-majors
+  year: 2025
+  summary: |
+    The Christian Science Monitor reports on how artificial intelligence is reshaping college majors and career prospects. At the University of Pennsylvania, Chris Callison-Burch highlights surging demand for AI education, noting that Penn Engineering launched its first undergraduate AI major this year. His once 150-student AI class now draws nearly 700 students across in-person and online formats, filling the university’s largest lecture hall. He underscores the prevailing sentiment among students: “It’s better to understand how to use AI than not at all.”
+- title: "CoSyn: The open-source tool that’s making GPT-4V-level vision AI accessible to everyone"
+  source: VentureBeat
+  by_line: Michael Nuñez
+  date: July 25, 2025
+  url: https://venturebeat.com/business/cosyn-the-open-source-tool-thats-making-gpt-4v-level-vision-ai-accessible-to-everyone/
+  year: 2025
+  summary: VentureBeat covers CoSyn, an open-source vision-language training framework from the University of Pennsylvania and the Allen Institute for AI. By generating synthetic text-rich images from code, CoSyn enables open-source AI to rival GPT-4V and Gemini. Chris Callison-Burch highlights the technique as transferring strengths of text-based LLMs to vision. The system’s persona-driven diversity, transparency, and efficiency yield state-of-the-art results and real-world applications, while offering a pathway for open-source AI to compete with Big Tech.
+- title: "5 Truths Every Young Professional Needs To Know About AI"
+  source: Forbes
+  by_line: Mark C. Perna
+  date: June 17, 2025
+  url: https://www.forbes.com/sites/markcperna/2025/06/17/ai-career-tips-for-young-professionals/
+  year: 2025
+  summary: Forbes feature on AI career guidance quotes Chris Callison-Burch extensively on entry-level job disruption, AI literacy essentials, and evolving hiring practices; he advises viewing oneself as "manager of AI agents," emphasizes soft skills remain crucial for effective AI use, discusses AI-led interviews becoming common, highlights entrepreneurship opportunities, and describes Penn's rapid expansion of AI education including first Ivy League undergraduate AI major.
+- title: "More than 2 years after ChatGPT, newsrooms still struggle with AI's shortcomings"
+  source: CNN
+  by_line: Liam Reilly
+  date: May 28, 2025
+  url: https://www.cnn.com/2025/05/28/media/ai-chatgpt-news-journalism
+  year: 2025
+  summary: CNN examines newsroom struggles with AI accuracy two years post-ChatGPT; Chris Callison-Burch is quoted explaining that while research innovations have reduced AI hallucinations, the technology remains fallible, and emphasizes that AI companies must better communicate potential errors to prevent user misunderstandings.
 - title: "When ChatGPT Broke an Entire Field: An Oral History"
   source: Quanta Magazine
   by_line: John Pavlus
@@ -5,6 +74,13 @@
   url: https://www.quantamagazine.org/when-chatgpt-broke-an-entire-field-an-oral-history-20250430/
   year: 2025
   summary: Quanta Magazine oral history interviewing 19 NLP researchers about the transformer and large language model revolution; Chris Callison-Burch is quoted describing early access to GPT‑3, realizing classical NLP tasks could be replicated "in one shot," and experiencing a career‑existential crisis amid the field’s paradigm shift.
+- title: "Meet Jean, Penn Engineering’s AI Tutor, Available 24/7"
+  source: Penn Engineering Today
+  by_line: Ian Scheffler
+  date: April 23, 2025
+  url: https://blog.seas.upenn.edu/meet-jean-penn-engineerings-ai-tutor-available-24-7/
+  year: 2025
+  summary: Penn Engineering Online introduces Jean, an AI-powered chatbot for online students named after ENIAC programmer Jean Bartik; Chris Callison-Burch, Professor in CIS and Director of the AI Online Master's program, explains how Jean provides instant, course-specific answers while acting as a tutor that guides rather than gives solutions, emphasizing it "won't do your homework for you, but she will point you in the right direction" and frees up instructors for deeper discussions.
 - title: "‘WithdrarXiv’ database of 14,000 retracted preprints launches"
   source: Nature News
   by_line: Dalmeet Singh Chawla
