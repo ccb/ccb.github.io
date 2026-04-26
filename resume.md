@@ -5,13 +5,14 @@ active_tab: CV
 ---
 
 {% capture mark_pre_tenure %}False{% endcapture %}
+{% assign citation_threshold = 100 %}
 
 <h1>Chris Callison-Burch: CV</h1>
 <p class="text-muted">
 (Last updated {{ site.time | date: "%B %d, %Y" }})<br/>
 </p>
 
-<h2>Education</h2>
+<h2 id="education">Education</h2>
 <table class="table"> 
   <tbody>
   {% for degree in site.data.education %}
@@ -34,7 +35,7 @@ active_tab: CV
 </table>
 
 
-<h2>Professional Appointments</h2>
+<h2 id="professional-appointments">Professional Appointments</h2>
 
 <table class="table"> 
   <tbody>
@@ -47,9 +48,13 @@ active_tab: CV
   </tbody>
 </table>
 
-<h2>Publications</h2>
+<h2 id="publications">Publications</h2>
 
-My publications have been cited more than 31,000 times. I have an h-index of 71.
+{% assign gs = site.data.bibliometrics.google_scholar %}
+{% assign s2 = site.data.bibliometrics.semantic_scholar %}
+{% assign gs_cites_thousands = gs.total_citations | divided_by: 1000 %}
+{% assign s2_cites_thousands = s2.total_citations | divided_by: 1000 %}
+My publications have been cited more than {{ gs_cites_thousands }},000 times on [Google Scholar](https://scholar.google.com/citations?user=nv-MV58AAAAJ&hl=en) ({{ s2_cites_thousands }},000 on [Semantic Scholar](https://www.semanticscholar.org/author/Chris-Callison-Burch/1763608)). I have an h-index of {{ gs.h_index }} (Google Scholar) / {{ s2.h_index }} (Semantic Scholar), and an i10-index of {{ gs.i10_index }}.
 
 <!--
 According to Google Scholar, [my publications have been cited more than 25,000 times](https://scholar.google.com/citations?user=nv-MV58AAAAJ&hl=en), with 12,000 of those citations coming since after I got tenure in 2017.  I have an h-index of 61 (46 post tenure).  [My Semantic Scholar profile](https://www.semanticscholar.org/author/Chris-Callison-Burch/1763608) has an automatically ranked list of my most influential publications. Here is a filtered list of [my most influential publications since getting tenure](https://www.semanticscholar.org/author/Chris-Callison-Burch/1763608?year%5B0%5D=2017&year%5B1%5D=2030&sort=influence). 
@@ -65,7 +70,7 @@ According to Google Scholar, [my publications have been cited more than 25,000 t
 
 <!-- print the publication type -->
 {%if publication_type == "conference" %}
-<h3>Conference papers</h3>
+<h3 id="conference-papers">Conference papers</h3>
 <!--
 <p>The most prominent publication venues for natural language processing research are conferences organized by the Association for Computational Linguistics.  The top-tier conferences are: ACL, EMNLP, and NAACL. COLING, AACL, and EACL are very strong venues as well.  Our conferences require full-paper submissions, and have a rigorous double-blind reviewing process.  Most of our conferences have <a href="https://aclweb.org/aclwiki/Conference_acceptance_rates">acceptance rates</a> of around 25%, with conferences now regularly receiving thousands of paper submissions each year.</p> 
 -->
@@ -85,16 +90,16 @@ According to Google Scholar, [my publications have been cited more than 25,000 t
 
 
 {% elsif publication_type == "journal" %}
-<h3>Journal articles</h3>
+<h3 id="journal-articles">Journal articles</h3>
 {% elsif publication_type == "chapter" %}
-<h3>Book chapters</h3>
+<h3 id="book-chapters">Book chapters</h3>
 {% elsif publication_type == "workshop" %}
-<h3>Workshop papers</h3>
+<h3 id="workshop-papers">Workshop papers</h3>
 <!--
 <p>NLP workshops are usually peer reviewed, but they have more generous acceptance rates than the main ACL conferences.  Workshops are good venues to present work to special interest groups.</p> 
 -->
 {% elsif publication_type == "thesis" %}
-<h3>Theses</h3>
+<h3 id="theses">Theses</h3>
 {% endif %}
 
 
@@ -142,8 +147,9 @@ According to Google Scholar, [my publications have been cited more than 25,000 t
 	<b> {{ publication.award }}.</b>
 	{% endif %}
 
-  {% if publication.highly_cited %}
-  <b> {{ publication.highly_cited }} citations.</b>
+  {% assign cite = site.data.citation_cache[publication.id] %}
+  {% if cite.citation_count and cite.citation_count >= citation_threshold %}
+  <b> {{ cite.citation_count }} citations.</b>
   {% endif %}
 
   {% if publication.page_count %}
@@ -164,7 +170,7 @@ According to Google Scholar, [my publications have been cited more than 25,000 t
 
 
 
-<h2>Invited Talks and Panels</h2>
+<h2 id="invited-talks">Invited Talks and Panels</h2>
 
 <ol>
     {% for talk in site.data.talks %}
@@ -187,21 +193,21 @@ According to Google Scholar, [my publications have been cited more than 25,000 t
 
 
 
-<h2>Grants</h2>
+<h2 id="grants">Grants</h2>
 
 <!-- {% assign grant_status = "current,pending,past" | split: "," %} -->
-{% assign grant_status = "current,past" | split: "," %}
+{% assign grant_status = "current,pending,past" | split: "," %}
 {% for status in grant_status %}
 
 <!-- print the grant status -->
 {%if status == "current" %}
-<h3>Current grants</h3>
+<h3 id="current-grants">Current grants</h3>
 {% elsif status == "pending" %}
-<h3>Pending grants</h3>
+<h3 id="pending-grants">Pending grants</h3>
 {% elsif status == "past" %}
-<h3>Past grants</h3>
+<h3 id="past-grants">Past grants</h3>
 {% else %}
-<h3>Other</h3>
+<h3 id="other-grants">Other</h3>
 {% endif %}
 
 
@@ -242,7 +248,7 @@ According to Google Scholar, [my publications have been cited more than 25,000 t
 
 
 
-<h2>Teaching</h2>
+<h2 id="teaching">Teaching</h2>
 
 <!--
 Since I got tenure in 2017, I have dedicated more of my focus to teaching.  At that time, I analyzed my teaching reviews and found a substantial anti-correlation between class size and student reviews of course and instructor quality.  I gave myself the task of understanding how I could scale my classes, while still maintaining the course quality that I was able to initially achieve in my small (<100 student) courses.  I am proud that I successfully improved my teaching quality even in semesters when I am teaching courses with >500 students enrolled.  Since 2019, I have consistently received teaching scores that fall between very good and excellent.  
@@ -261,7 +267,7 @@ Since joining Penn I have taught 3970 students, 3500 of which I have taught sinc
  -->
 
 
-<h3>Teaching Reviews</h3>
+<h3 id="teaching-reviews">Teaching Reviews</h3>
 You can read my full teaching reviews [here](teaching-reviews.pdf).  Below are the summary statistics. 
 
 
@@ -332,7 +338,7 @@ You can read my full teaching reviews [here](teaching-reviews.pdf).  Below are t
   {% endfor %}
   </tbody>
 </table>
-<h2>Awards</h2>
+<h2 id="awards">Awards</h2>
 <ul>
 {% for award in site.data.awards %}
 <li>{{award.award}} - {{award.description}} ({{award.date | date: '%Y'}})</li>
@@ -358,9 +364,9 @@ You can read my full teaching reviews [here](teaching-reviews.pdf).  Below are t
   {% endfor %}
 </ul>
 
-<h2>Graduate Student Supervision</h2>
+<h2 id="graduate-student-supervision">Graduate Student Supervision</h2>
 
-<h3>Current PhD Students</h3>
+<h3 id="current-phd-students">Current PhD Students</h3>
 
 <ol>
     {% for student in site.data.students %}
@@ -377,7 +383,7 @@ You can read my full teaching reviews [here](teaching-reviews.pdf).  Below are t
   {% endfor %}
 </ol>
 
-<h3>PhDs Graduated</h3>
+<h3 id="phds-graduated">PhDs Graduated</h3>
 
 <ol>
     {% for student in site.data.students_graduated %}
@@ -416,7 +422,7 @@ You can read my full teaching reviews [here](teaching-reviews.pdf).  Below are t
 </ol>
 
 
-<h3>Postdocs</h3>
+<h3 id="postdocs">Postdocs</h3>
 
 <ol>
     {% for student in site.data.past_postdocs %}
@@ -444,7 +450,7 @@ You can read my full teaching reviews [here](teaching-reviews.pdf).  Below are t
   {% endfor %}
 </ol>
 
-<h3>Master's Students</h3>
+<h3 id="masters-students">Master's Students</h3>
 
 
 <ol>
@@ -476,7 +482,7 @@ You can read my full teaching reviews [here](teaching-reviews.pdf).  Below are t
 
 
 <!--
-<h2>Thesis Committees</h2>
+<h2 id="thesis-committees">Thesis Committees</h2>
 
 <ol>
     {% for student in site.data.thesis_committees %}
@@ -495,10 +501,10 @@ You can read my full teaching reviews [here](teaching-reviews.pdf).  Below are t
 
 
 <!--
-<h2>Undergraduate and Masters Advising</h2>
+<h2 id="undergraduate-and-masters-advising">Undergraduate and Masters Advising</h2>
 
 
-<h3>Independent Studies and RAships </h3>
+<h3 id="independent-studies">Independent Studies and RAships </h3>
 
   {% for semester in site.data.past_research_assistants %}
 <h4>{{ semester.semester }}</h4>
@@ -510,7 +516,7 @@ You can read my full teaching reviews [here](teaching-reviews.pdf).  Below are t
   {% endfor %}
 
 
-<h3>Team Projects </h3>
+<h3 id="team-projects">Team Projects </h3>
 
 {% for item in site.data.past_team_projects %}
 <h4>{{ item.semester }} </h4>
@@ -535,7 +541,7 @@ You can read my full teaching reviews [here](teaching-reviews.pdf).  Below are t
 
 
 
-<h2>Academic Service</h2>
+<h2 id="academic-service">Academic Service</h2>
 
 Service to professional associations: 
 <ul>
@@ -556,7 +562,7 @@ University Service:
 </ul>
 
 
-<h2>Press</h2>
+<h2 id="press">Press</h2>
 
 
 <ol>
