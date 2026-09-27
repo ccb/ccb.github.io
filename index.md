@@ -6,11 +6,11 @@ img_link: assets/img/CCB.jpeg
 caption: |
  <b>Email:</b> ccb@upenn.edu<br />
  <b>Office:</b> AGH 420<br />
- <b>Office Hours:</b> Wednesdays 3:30-4:30 in AGH 431 (Spring 2026)<br />
+ <b>Office Hours:</b> Wednesdays 3:30-5pm in AGH 431 (Fall 2026)<br />
 active_tab: main_page 
 keep_sidebar: true 
 ---
-Chris Callison-Burch is a Professor of Computer and Information Science at the University of Pennsylvania. His course on Artificial Intelligence has one of the highest enrollments at the university with over 500 students taking the class each Fall. 
+Chris Callison-Burch is the Raj and Neera Singh Professor of Artificial Intelligence at the University of Pennsylvania. His course on Artificial Intelligence has one of the highest enrollments at the university with over 500 students taking the class each Fall. 
 
 He is best known for his research into natural language processing.  His current research is focused on applications of large language models to long-standing challenges in artificial intelligence.
 

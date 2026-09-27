@@ -1,3 +1,261 @@
+-
+   title: The Media Bias Detector&colon; A Framework for Annotating and Analyzing the News
+   authors: Samar Haider, Amir Tohidi, Jenny S. Wang, Timothy Dörr, David M. Rothschild, Chris Callison-Burch, Duncan J. Watts
+   venue: Science Advances
+   type: journal
+   year: 2026
+   url: https://www.science.org/doi/10.1126/sciadv.aea7456
+   page_count:
+   id: media-bias-detector-science-advances
+   doi: 10.1126/sciadv.aea7456
+   anthology_id: null
+   featured: true
+   award:
+   data: https://github.com/Watts-Lab/media-bias-detector
+   code: https://github.com/Watts-Lab/media-bias-detector
+   website: https://mediabiasdetector.seas.upenn.edu
+   press:
+   abstract: |
+     News organizations introduce bias into their coverage via the choices they make about which topics to cover (or ignore) and how to frame the issues they do decide to cover. Here, we introduce the Media Bias Detector, a scalable computational framework that integrates large language models (LLMs) with near-real-time news scraping to extract structured annotations, including political lean, tone, topics, article type, and major events, across hundreds of articles per day. We quantify these dimensions of coverage at the sentence level, the article level, and the publisher level, expanding the ways in which researchers can analyze selection and framing bias in the modern news landscape. We also release an interactive web platform for convenient exploration of these data and an accompanying dataset covering more than 140,000 articles published in 2024 by 10 prominent publishers. Last, we present some results derived from this dataset that illustrate how the MBD can uncover correlates of bias in news coverage.
+   bibtex: |
+      @article{haider2026mediabiasdetector,
+        title={The Media Bias Detector: A Framework for Annotating and Analyzing the News},
+        author={Haider, Samar and Tohidi, Amir and Wang, Jenny S. and D{\"o}rr, Timothy and Rothschild, David M. and Callison-Burch, Chris and Watts, Duncan J.},
+        journal={Science Advances},
+        volume={12},
+        number={37},
+        pages={eaea7456},
+        year={2026},
+        month={September},
+        publisher={American Association for the Advancement of Science},
+        doi={10.1126/sciadv.aea7456},
+        url={https://doi.org/10.1126/sciadv.aea7456}
+      }
+-
+   title: Building Auditable AI Text Detectors with Sparse Autoencoders
+   authors: Liam Dugan, Callum Stuart McDougall, Matthew Denton, Philip Pham, Christine Kaeser-Chen, Chris Callison-Burch
+   venue: EMNLP
+   type: conference
+   year: 2026
+   url: https://openreview.net/forum?id=6uk8iny9FB
+   page_count:
+   id: auditable-ai-text-detectors
+   doi: null
+   anthology_id: null
+   featured: true
+   award:
+   data:
+   code:
+   website:
+   press:
+   abstract: |
+     AI-generated text detectors are increasingly deployed in consequential settings—peer review, education, admissions, journalism, and content moderation—where their outputs directly affect individuals. Yet the strongest detectors are fine-tuned neural classifiers whose decisions are opaque, while transparent alternatives (stylometric and linguistic-feature classifiers) underperform them by wide margins. We present a pipeline that converts a fine-tuned neural detector into a classifier that operates on human-readable concepts. We accomplish this by training sparse autoencoders (SAEs) directly on a detector's residual stream, assigning auto-interpretation labels to each SAE feature, and retaining only features whose generated descriptions pass a global fidelity threshold. We then train a lightweight classifier on just the interpretable features. We find that our SAEs recover latent concepts that correspond to highly specific and predictive linguistic "tells" of AI-generated text. Classifiers built on these extracted features are not only highly interpretable but exhibit stronger performance on out-of-distribution texts than either neural or stylometric alternatives.
+   bibtex: |
+      @inproceedings{dugan2026auditable,
+        title={Building Auditable AI Text Detectors with Sparse Autoencoders},
+        author={Liam Dugan and Callum Stuart McDougall and Matthew Denton and Philip Pham and Christine Kaeser-Chen and Chris Callison-Burch},
+        booktitle={Proceedings of the 2026 Conference on Empirical Methods in Natural Language Processing ({EMNLP})},
+        year={2026},
+        address={Budapest, Hungary},
+        month={November}
+      }
+-
+   title: EviStreams&colon; Human-in-the-Loop AI Data Extraction for Systematic Reviews in Medicine
+   authors: Sai Karthik Kosuri, Ankita Shashikant Bhosale, Michael Glick, Alonso Carrasco-Labra, Chris Callison-Burch
+   venue: EMNLP
+   type: demo
+   year: 2026
+   url: https://www.cis.upenn.edu/~ccb/publications/evistreams.pdf
+   page_count: 11
+   id: evistreams
+   doi: null
+   anthology_id: null
+   featured: false
+   award:
+   data:
+   code:
+   website: https://evistreams.com/demo
+   press:
+   abstract: |
+     Systematic reviews underpin clinical guidelines, yet their data-extraction step is a major expert-labor bottleneck bound by a protocolized workflow: two reviewers extract each study independently, an adjudicator resolves disagreements, and the team keeps an auditable record of how every value was produced. Large language models can assist with extraction, but that assistance must fit established review protocols and preserve reproducibility. We present EviStreams, a live, open-source, no-code web platform that puts review teams in control of AI-assisted extraction at three key stages: program design (a structured decomposition approved before any code runs), field specification (typed field definitions calibrated from a pilot), and extracted predictions (reviewer-blinded dual review with adjudication). Working through a form builder, a domain expert defines typed fields rather than prompts, runs extraction over uploaded PDFs, inspects every value alongside the supporting passage it came from, and resolves a reviewer-blinded dual review into an auditable consensus export. An evaluation across four clinical corpora and three frontier model families, released with the system, shows that extraction quality is shaped far more by the field specification than by the choice of model. EviStreams is live at https://evistreams.com/demo and released under Apache-2.0.
+   bibtex: |
+      @inproceedings{kosuri2026evistreams,
+        title={EviStreams: Human-in-the-Loop AI Data Extraction for Systematic Reviews in Medicine},
+        author={Sai Karthik Kosuri and Ankita Shashikant Bhosale and Michael Glick and Alonso Carrasco-Labra and Chris Callison-Burch},
+        booktitle={Proceedings of the 2026 Conference on Empirical Methods in Natural Language Processing ({EMNLP}): System Demonstrations},
+        year={2026},
+        address={Budapest, Hungary},
+        month={November}
+      }
+-
+   title: Autorubric&colon; A Unifying Framework for Rubric-Based LLM Evaluation on Non-Verifiable Tasks
+   authors: Delip Rao, Chris Callison-Burch
+   venue: COLM
+   type: conference
+   year: 2026
+   url: https://www.cis.upenn.edu/~ccb/publications/autorubric.pdf
+   page_count: 60
+   id: autorubric
+   doi: 10.48550/arXiv.2603.00077
+   anthology_id: null
+   featured: true
+   award:
+   data:
+   code: https://github.com/delip/autorubric
+   website: https://autorubric.org
+   press:
+   abstract: |
+     Rubric-based LLM judges have become indispensable for evaluating and optimizing systems on non-verifiable tasks, where success cannot be reduced to exact programmatic checks. Yet the underlying judges remain vulnerable to position bias, stochastic inconsistency, criterion conflation, forced judgments under uncertainty, and model-dependent calibration. Rubrics structure evaluation but do not eliminate these failures; they add consequential choices about criterion design, scale types, weighting, aggregation, abstention, calibration, and reliability measurement. Despite extensive research across LLM evaluation, educational measurement, and psychometrics, the relevant methods remain scattered across papers and partial implementations. Researchers therefore pay a reinvention tax, repeatedly rebuilding evaluation machinery instead of accumulating knowledge on a common substrate. We introduce Autorubric, an open-source framework that makes rubric and judge choices explicit, reusable, and auditable. Through a unified API, it supports atomic evaluation of mixed criterion types alongside configurable bias mitigations, calibration, ensembling, abstention, and psychometric diagnostics. Evaluations spanning college chemistry grading, deep-research systems, and CHARM-100---a new mixed-criterion chatbot benchmark---reveal criterion-specific failures, systematic judge-family differences, and configuration effects that do not support a universal mitigation stack. We further demonstrate how per-criterion scores and explanations can support agent skill revision and reward modeling for reinforcement learning. By providing shared infrastructure from measurement through optimization, Autorubric gives the community a common basis for comparing methods, reproducing evaluation choices, and accumulating evidence across studies.
+   bibtex: |
+      @inproceedings{rao2026autorubric,
+        title={Autorubric: A Unifying Framework for Rubric-Based LLM Evaluation on Non-Verifiable Tasks},
+        author={Delip Rao and Chris Callison-Burch},
+        booktitle={Conference on Language Modeling ({COLM})},
+        year={2026},
+        address={San Francisco, CA},
+        month={October},
+        url={https://arxiv.org/abs/2603.00077}
+      }
+-
+   title: FineInstructions&colon; Scaling Synthetic Instructions to Pre-Training Scale
+   authors: Ajay Patel, Colin Raffel, Chris Callison-Burch
+   venue: COLM
+   type: conference
+   year: 2026
+   url: https://arxiv.org/abs/2601.22146
+   page_count:
+   id: fineinstructions
+   doi: 10.48550/arXiv.2601.22146
+   anthology_id: null
+   featured: true
+   award:
+   data: https://huggingface.co/fineinstructions
+   code:
+   website: https://huggingface.co/fineinstructions
+   press:
+   abstract: |
+      Due to limited supervised training data, large language models (LLMs) are typically pre-trained via a self-supervised "predict the next word" objective on a vast amount of unstructured text data. To make the resulting model useful to users, it is further trained on a far smaller amount of "instruction-tuning" data comprised of supervised training examples of instructions and responses. To overcome the limited amount of supervised data, we propose a procedure that can transform the knowledge in internet-scale pre-training documents into billions of synthetic instruction and answer training pairs. The resulting dataset, called FineInstructions, uses ~18M instruction templates created from real user-written queries and prompts. These instruction templates are matched to and instantiated with human-written source documents from unstructured pre-training corpora. With "supervised" synthetic training data generated at this scale, an LLM can be pre-trained from scratch solely with the instruction-tuning objective, which is far more in-distribution with the expected downstream usage of LLMs (responding to user prompts). We conduct controlled token-for-token training experiments and find pre-training on FineInstructions outperforms standard pre-training and other proposed synthetic pre-training techniques on standard benchmarks measuring free-form response quality. Our resources can be found at https://huggingface.co/fineinstructions .
+   bibtex: |
+      @inproceedings{patel2026fineinstructions,
+        title={FineInstructions: Scaling Synthetic Instructions to Pre-Training Scale},
+        author={Ajay Patel and Colin Raffel and Chris Callison-Burch},
+        booktitle={Conference on Language Modeling ({COLM})},
+        year={2026},
+        address={San Francisco, CA},
+        month={October},
+        url={https://arxiv.org/abs/2601.22146}
+      }
+-
+   title: When Verification Fails&colon; How Compositionally Infeasible Claims Escape Rejection
+   authors: Muxin Liu, Delip Rao, Grace Kim, Chris Callison-Burch
+   venue: COLM
+   type: conference
+   year: 2026
+   url: https://arxiv.org/abs/2604.10990
+   page_count:
+   id: when-verification-fails
+   html_page: publications/papers/when-verification-fails/
+   doi: 10.48550/arXiv.2604.10990
+   anthology_id: null
+   award:
+   data:
+   code:
+   website:
+   press:
+   abstract: |
+      Scientific claim verification, the task of determining whether claims are entailed by scientific evidence, is fundamental to establishing discoveries in evidence while preventing misinformation. This process involves evaluating each asserted constraint against validated evidence. Under the Closed-World Assumption (CWA), a claim is accepted if and only if all asserted constraints are positively supported. We show that existing verification benchmarks cannot distinguish models enforcing this standard from models applying a simpler shortcut called salient-constraint checking, which applies CWA's rejection criterion only to the most salient constraint and accepts when that constraint is supported. Because existing benchmarks construct infeasible claims by perturbing a single salient element they are insufficient at distinguishing between rigorous claim verification and simple salient-constraint reliance. To separate the two, we construct compositionally infeasible claims where the salient constraint is supported but a non-salient constraint is contradicted. Across model families and modalities, models that otherwise saturate existing benchmarks consistently over-accept these claims, confirming the prevalence of such shortcut reasoning. Via model context interventions, we show that different models and prompting strategies occupy distinct positions on a shared ROC curve, indicating that the gap between model families reflects differences in verification threshold rather than underlying reasoning ability, and that the compositional inference bottleneck is a structural property of current verification behavior that strategy guidance alone cannot overcome.
+   bibtex: |
+      @inproceedings{liu2026verification,
+        title={When Verification Fails: How Compositionally Infeasible Claims Escape Rejection},
+        author={Muxin Liu and Delip Rao and Grace Kim and Chris Callison-Burch},
+        booktitle={Conference on Language Modeling ({COLM})},
+        year={2026},
+        address={San Francisco, CA},
+        month={October},
+        url={https://arxiv.org/abs/2604.10990}
+      }
+-
+   title: BibTeX Citation Hallucinations in Scientific Publishing Agents&colon; Evaluation and Mitigation
+   authors: Delip Rao, Chris Callison-Burch
+   venue: COLM
+   type: conference
+   year: 2026
+   url: https://arxiv.org/abs/2604.03159
+   page_count:
+   id: bibtex-citation-hallucinations
+   doi: 10.48550/arXiv.2604.03159
+   anthology_id: null
+   award:
+   data:
+   code: https://github.com/delip/clibib
+   website:
+   press:
+   abstract: |
+      Large language models with web search are increasingly used in scientific publishing agents, yet they still produce BibTeX entries with pervasive field-level errors. Prior evaluations tested base models without search, which does not reflect current practice. We construct a benchmark of 931 papers across four scientific domains and three citation tiers -- popular, low-citation, and recent post-cutoff -- designed to disentangle parametric memory from search dependence, with version-aware ground truth accounting for multiple citable versions of the same paper. Three search-enabled frontier models (GPT-5, Claude Sonnet-4.6, Gemini-3 Flash) generate BibTeX entries scored on nine fields and a six-way error taxonomy, producing ~23,000 field-level observations. Overall accuracy is 83.6%, but only 50.9% of entries are fully correct; accuracy drops 27.7pp from popular to recent papers, revealing heavy reliance on parametric memory even when search is available. Field-error co-occurrence analysis identifies two failure modes: wholesale entry substitution (identity fields fail together) and isolated field error. We evaluate clibib, an open-source tool for deterministic BibTeX retrieval from the Zotero Translation Server with CrossRef fallback, as a mitigation mechanism. In a two-stage integration where baseline entries are revised against authoritative records, accuracy rises +8.0pp to 91.5%, fully correct entries rise from 50.9% to 78.3%, and regression rate is only 0.8%. An ablation comparing single-stage and two-stage integration shows that separating search from revision yields larger gains and lower regression (0.8% vs. 4.8%), demonstrating that integration architecture matters independently of model capability. We release the benchmark, error taxonomy, and clibib tool to support evaluation and mitigation of citation hallucinations in LLM-based scientific writing.
+   bibtex: |
+      @inproceedings{rao2026bibtex,
+        title={BibTeX Citation Hallucinations in Scientific Publishing Agents: Evaluation and Mitigation},
+        author={Delip Rao and Chris Callison-Burch},
+        booktitle={Conference on Language Modeling ({COLM})},
+        year={2026},
+        address={San Francisco, CA},
+        month={October},
+        url={https://arxiv.org/abs/2604.03159}
+      }
+-
+   title: Learning Human-Perceived Fakeness in AI-Generated Videos via Multimodal LLMs
+   authors: Xingyu Fu, Siyi Liu, Yinuo Xu, Pan Lu, Guangqiuse Hu, Tianbo Yang, Taran Anantasagar, Christopher Shen, Yikai Mao, Yuanzhe Liu, Keyush Shah, Chung Un Lee, Yejin Choi, James Zou, Dan Roth, Chris Callison-Burch
+   venue: COLM
+   type: conference
+   year: 2026
+   url: https://arxiv.org/abs/2509.22646
+   page_count:
+   id: deeptrace-reward
+   doi: 10.48550/arXiv.2509.22646
+   anthology_id: null
+   award:
+   data: https://huggingface.co/datasets/DeepTraceReward/RewardData
+   code:
+   website: https://deeptracereward.github.io/
+   press:
+   abstract: |
+      Can humans identify AI-generated (fake) videos and provide grounded reasons? While video generation models have advanced rapidly, a critical dimension -- whether humans can detect deepfake traces within a generated video, i.e., spatiotemporal grounded visual artifacts that reveal a video as machine generated -- has been largely overlooked. We introduce DeeptraceReward, the first fine-grained, spatially- and temporally- aware benchmark that annotates human-perceived fake traces for video generation reward. The dataset comprises 4.3K detailed annotations across 3.3K high-quality generated videos. Each annotation provides a natural-language explanation, pinpoints a bounding-box region containing the perceived trace, and marks precise onset and offset timestamps. We consolidate these annotations into 9 major categories of deepfake traces that lead humans to identify a video as AI-generated, and train multimodal language models (LMs) as reward models to mimic human judgments and localizations. On DeeptraceReward, our 7B reward model outperforms GPT-5 by 34.7% on average across fake clue identification, grounding, and explanation. Interestingly, we observe a consistent difficulty gradient: binary fake v.s. real classification is substantially easier than fine-grained deepfake trace detection; within the latter, performance degrades from natural language explanations (easiest), to spatial grounding, to temporal labeling (hardest). By foregrounding human-perceived deepfake traces, DeeptraceReward provides a rigorous testbed and training signal for socially aware and trustworthy video generation.
+   bibtex: |
+      @inproceedings{fu2026deeptracereward,
+        title={Learning Human-Perceived Fakeness in AI-Generated Videos via Multimodal LLMs},
+        author={Fu, Xingyu and Liu, Siyi and Xu, Yinuo and Lu, Pan and Hu, Guangqiuse and Yang, Tianbo and Anantasagar, Taran and Shen, Christopher and Mao, Yikai and Liu, Yuanzhe and Shah, Keyush and Lee, Chung Un and Choi, Yejin and Zou, James and Roth, Dan and Callison-Burch, Chris},
+        booktitle={Conference on Language Modeling ({COLM})},
+        year={2026},
+        address={San Francisco, CA},
+        month={October},
+        url={https://arxiv.org/abs/2509.22646}
+      }
+- title: "Reliable and Responsible Foundation Models: A Comprehensive Survey"
+  authors: Xinyu Yang, Junlin Han, Rishi Bommasani, Jinqi Luo, Wenjie Qu, Wangchunshu Zhou, Adel Bibi, Xiyao Wang, Jaehong Yoon, Elias Stengel-Eskin, Shengbang Tong, Lingfeng Shen, Rafael Rafailov, Runjia Li, Zhaoyang Wang, Yiyang Zhou, Chenhang Cui, Yu Wang, Wenhao Zheng, Huichi Zhou, Jindong Gu, Zhaorun Chen, Peng Xia, Tony Lee, Thomas Zollo, Vikash Sehwag, Jixuan Leng, Jiuhai Chen, Yuxin Wen, Huan Zhang, Zhun Deng, Linjun Zhang, Pavel Izmailov, Pang Wei Koh, Yulia Tsvetkov, Andrew Wilson, Jiaheng Zhang, James Zou, Cihang Xie, Hao Wang, Philip Torr, Julian McAuley, David Alvarez-Melis, Florian Tramèr, Kaidi Xu, Suman Jana, Chris Callison-Burch, Rene Vidal, Filippos Kokkinos, Mohit Bansal, Beidi Chen, Huaxiu Yao
+  venue: Transactions on Machine Learning Research (TMLR)
+  type: journal
+  year: 2026
+  url: https://arxiv.org/abs/2602.08145
+  page_count:
+  id: reliable-responsible-foundation-models
+  doi: 10.48550/arXiv.2602.08145
+  anthology_id: null
+  award:
+  data:
+  code:
+  website:
+  press:
+  abstract: |
+    Foundation models, including Large Language Models (LLMs), Multimodal Large Language Models (MLLMs), Image Generative Models (i.e, Text-to-Image Models and Image-Editing Models), and Video Generative Models, have become essential tools with broad applications across various domains such as law, medicine, education, finance, science, and beyond. As these models see increasing real-world deployment, ensuring their reliability and responsibility has become critical for academia, industry, and government. This survey addresses the reliable and responsible development of foundation models. We explore critical issues, including bias and fairness, security and privacy, uncertainty, explainability, and distribution shift. Our research also covers model limitations, such as hallucinations, as well as methods like alignment and Artificial Intelligence-Generated Content (AIGC) detection. For each area, we review the current state of the field and outline concrete future research directions. Additionally, we discuss the intersections between these areas, highlighting their connections and shared challenges. We hope our survey fosters the development of foundation models that are not only powerful but also ethical, trustworthy, reliable, and socially responsible.
+  bibtex: |
+    @article{yang2026reliable,
+      title = {Reliable and Responsible Foundation Models: A Comprehensive Survey},
+      author = {Yang, Xinyu and Han, Junlin and Bommasani, Rishi and Luo, Jinqi and Qu, Wenjie and Zhou, Wangchunshu and Bibi, Adel and Wang, Xiyao and Yoon, Jaehong and Stengel-Eskin, Elias and Tong, Shengbang and Shen, Lingfeng and Rafailov, Rafael and Li, Runjia and Wang, Zhaoyang and Zhou, Yiyang and Cui, Chenhang and Wang, Yu and Zheng, Wenhao and Zhou, Huichi and Gu, Jindong and Chen, Zhaorun and Xia, Peng and Lee, Tony and Zollo, Thomas and Sehwag, Vikash and Leng, Jixuan and Chen, Jiuhai and Wen, Yuxin and Zhang, Huan and Deng, Zhun and Zhang, Linjun and Izmailov, Pavel and Koh, Pang Wei and Tsvetkov, Yulia and Wilson, Andrew and Zhang, Jiaheng and Zou, James and Xie, Cihang and Wang, Hao and Torr, Philip and McAuley, Julian and Alvarez-Melis, David and Tram{\`e}r, Florian and Xu, Kaidi and Jana, Suman and Callison-Burch, Chris and Vidal, Rene and Kokkinos, Filippos and Bansal, Mohit and Chen, Beidi and Yao, Huaxiu},
+      journal = {Transactions on Machine Learning Research},
+      year = {2026},
+      url = {https://arxiv.org/abs/2602.08145},
+    }
+
 - title: "LLMs and Corpora"
   authors: Chris Callison-Burch
   venue: International Encyclopedia of Language and Linguistics, 3rd Edition (Elsevier). Editors Hilary Nesi and Petar Milin. Section editors Luke Collins and Michaela Mahlberg
@@ -116,6 +374,7 @@
    url: https://arxiv.org/abs/2503.08600
    page_count: 15
    id: nsf-scify
+   html_page: publications/papers/nsf-scify/
    doi: pending
    anthology_id: null
    data:
@@ -141,7 +400,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/claim-verification-reasoning-trace-analysis.pdf
    page_count:
    id: claim-verification-reasoning-trace-analysis
-   doi: null
+   doi: 10.48550/arXiv.2604.01657
    anthology_id: null
    award:
    data:
@@ -168,7 +427,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/thinkncheck-grounded-claim-verification.pdf
    page_count:
    id: thinkncheck-grounded-claim-verification
-   doi: null
+   doi: 10.48550/arXiv.2604.01652
    anthology_id: null
    award:
    data:
@@ -187,60 +446,6 @@
         url={https://www.cis.upenn.edu/~ccb/publications/thinkncheck-grounded-claim-verification.pdf}
       }
 -
-   title: Autorubric&colon; A Unified Framework for Rubric-Based LLM Evaluation
-   authors: Delip Rao, Chris Callison-Burch
-   venue: arXiv
-   type: preprint
-   year: 2026
-   url: https://arxiv.org/abs/2603.00077
-   page_count: 43
-   id: autorubric
-   doi: 10.48550/arXiv.2603.00077
-   anthology_id: null
-   featured: true
-   award:
-   data:
-   code:
-   website:
-   press:
-   abstract: |
-     Rubric-based evaluation with large language models (LLMs) has become standard practice for assessing text generation at scale, yet the underlying techniques are scattered across papers with inconsistent terminology and partial solutions. We present a unified framework: each identified technique is paired with its realization in Autorubric, an open-source Python framework proposed in this paper. Autorubric supports binary, ordinal, and nominal criteria with configurable weights; single-judge and multi-judge ensemble evaluation with majority, weighted, unanimous, and any-vote aggregation; few-shot calibration with verdict-balanced sampling; and mitigations for position bias (option shuffling), verbosity bias (length penalties), and criterion conflation (per-criterion atomic evaluation with natural language explanations). The framework provides reliability metrics drawn from psychometrics (Cohen's kappa, weighted kappa, correlation coefficients, and distribution-level tests) alongside production infrastructure including response caching, checkpointing with resumable runs, multi-provider rate limiting, and cost tracking. We evaluate Autorubric on three benchmarks spanning educational assessment, deep research evaluation, and chatbot quality assessment, demonstrating that it produces results consistent with published benchmarks while exercising the framework's key capabilities: per-criterion binary evaluation with few-shot calibration (RiceChem), multi-judge ensemble evaluation across judge models (ResearcherBench), and mixed criterion types combining binary, ordinal, and nominal scales (CHARM-100). We also contribute CHARM-100, a 100-sample chatbot evaluation dataset with per-sample ground truth labels across all three criterion types, designed to stress-test rubric evaluation frameworks on heterogeneous criteria.
-   bibtex: |
-      @misc{rao2026autorubric,
-        title={Autorubric: A Unified Framework for Rubric-Based LLM Evaluation},
-        author={Delip Rao and Chris Callison-Burch},
-        year={2026},
-        eprint={2603.00077},
-        archivePrefix={arXiv},
-        primaryClass={cs.CL}
-      }
--
-   title: Reliable and Responsible Foundation Models&colon; A Comprehensive Survey
-   authors: Xinyu Yang, Junlin Han, Rishi Bommasani, Jinqi Luo, Wenjie Qu, Wangchunshu Zhou, Adel Bibi, Xiyao Wang, Jaehong Yoon, Elias Stengel-Eskin, Shengbang Tong, Lingfeng Shen, Rafael Rafailov, Runjia Li, Zhaoyang Wang, Yiyang Zhou, Chenhang Cui, Yu Wang, Wenhao Zheng, Huichi Zhou, Jindong Gu, Zhaorun Chen, Peng Xia, Tony Lee, Thomas Zollo, Vikash Sehwag, Jixuan Leng, Jiuhai Chen, Yuxin Wen, Huan Zhang, Zhun Deng, Linjun Zhang, Pavel Izmailov, Pang Wei Koh, Yulia Tsvetkov, Andrew Wilson, Jiaheng Zhang, James Zou, Cihang Xie, Hao Wang, Philip Torr, Julian McAuley, David Alvarez-Melis, Florian Tramer, Kaidi Xu, Suman Jana, Chris Callison-Burch, Rene Vidal, Filippos Kokkinos, Mohit Bansal, Beidi Chen, Huaxiu Yao
-   venue: TMLR
-   type: journal
-   year: 2026
-   url: https://arxiv.org/abs/2602.08145
-   page_count:
-   id: reliable-responsible-foundation-models
-   doi: 10.48550/arXiv.2602.08145
-   anthology_id: null
-   award:
-   data:
-   code:
-   website:
-   press:
-   abstract: |
-     Foundation models, including Large Language Models (LLMs), Multimodal Large Language Models (MLLMs), Image Generative Models (i.e, Text-to-Image Models and Image-Editing Models), and Video Generative Models, have become essential tools with broad applications across various domains such as law, medicine, education, finance, science, and beyond. As these models see increasing real-world deployment, ensuring their reliability and responsibility has become critical for academia, industry, and government. This survey addresses the reliable and responsible development of foundation models. We explore critical issues, including bias and fairness, security and privacy, uncertainty, explainability, and distribution shift. Our research also covers model limitations, such as hallucinations, as well as methods like alignment and Artificial Intelligence-Generated Content (AIGC) detection. For each area, we review the current state of the field and outline concrete future research directions. Additionally, we discuss the intersections between these areas, highlighting their connections and shared challenges. We hope our survey fosters the development of foundation models that are not only powerful but also ethical, trustworthy, reliable, and socially responsible.
-   bibtex: |
-      @article{yang2026reliable,
-        title={Reliable and Responsible Foundation Models: A Comprehensive Survey},
-        author={Xinyu Yang and Junlin Han and Rishi Bommasani and Jinqi Luo and Wenjie Qu and Wangchunshu Zhou and Adel Bibi and Xiyao Wang and Jaehong Yoon and Elias Stengel-Eskin and Shengbang Tong and Lingfeng Shen and Rafael Rafailov and Runjia Li and Zhaoyang Wang and Yiyang Zhou and Chenhang Cui and Yu Wang and Wenhao Zheng and Huichi Zhou and Jindong Gu and Zhaorun Chen and Peng Xia and Tony Lee and Thomas Zollo and Vikash Sehwag and Jixuan Leng and Jiuhai Chen and Yuxin Wen and Huan Zhang and Zhun Deng and Linjun Zhang and Pavel Izmailov and Pang Wei Koh and Yulia Tsvetkov and Andrew Wilson and Jiaheng Zhang and James Zou and Cihang Xie and Hao Wang and Philip Torr and Julian McAuley and David Alvarez-Melis and Florian Tram\`{e}r and Kaidi Xu and Suman Jana and Chris Callison-Burch and Rene Vidal and Filippos Kokkinos and Mohit Bansal and Beidi Chen and Huaxiu Yao},
-        journal={Transactions on Machine Learning Research (TMLR)},
-        year={2026},
-        url={https://arxiv.org/abs/2602.08145}
-      }
--
    title: Probabilistic Soundness Guarantees in LLM Reasoning Chains
    authors: Weiqiu You, Anton Xue, Shreya Havaldar, Delip Rao, Helen Jin, Chris Callison-Burch, Eric Wong
    venue: EMNLP
@@ -249,6 +454,7 @@
    url: https://arxiv.org/abs/2507.12948
    page_count: 18
    id: probabilistic-soundness-guarantees-in-reasoning-chains
+   html_page: publications/papers/probabilistic-soundness-guarantees-in-reasoning-chains/
    doi: 10.18653/v1/2025.emnlp-main.382
    anthology_id: 2025.emnlp-main.382
    award:
@@ -299,32 +505,6 @@
         note         = {Accepted to EMNLP 2025; arXiv preprint},
       }
 -
-   title: Learning Human-Perceived Fakeness in AI-Generated Videos via Multimodal LLMs
-   authors: Xingyu Fu, Siyi Liu, Yinuo Xu, Pan Lu, Guangqiuse Hu, Tianbo Yang, Taran Anantasagar, Christopher Shen, Yikai Mao, Yuanzhe Liu, Keyush Shah, Chung Un Lee, Yejin Choi, James Zou, Dan Roth, Chris Callison-Burch
-   venue: NeurIPS Workshop on Generative and Protective AI for Content Creation (GenProCC)
-   type: workshop
-   year: 2025
-   url: https://arxiv.org/abs/2509.22646
-   page_count:
-   id: deeptrace-reward
-   doi: 10.48550/arXiv.2509.22646
-   anthology_id: null
-   award:
-   data:
-   code:
-   website: https://deeptracereward.github.io/
-   press:
-   abstract: |
-      Can humans identify AI-generated (fake) videos and provide grounded reasons? While video generation models have advanced rapidly, a critical dimension -- whether humans can detect deepfake traces within a generated video, i.e., spatiotemporal grounded visual artifacts that reveal a video as machine generated -- has been largely overlooked. We introduce DeeptraceReward, the first fine-grained, spatially- and temporally- aware benchmark that annotates human-perceived fake traces for video generation reward. The dataset comprises 4.3K detailed annotations across 3.3K high-quality generated videos. Each annotation provides a natural-language explanation, pinpoints a bounding-box region containing the perceived trace, and marks precise onset and offset timestamps. We consolidate these annotations into 9 major categories of deepfake traces that lead humans to identify a video as AI-generated, and train multimodal language models (LMs) as reward models to mimic human judgments and localizations. On DeeptraceReward, our 7B reward model outperforms GPT-5 by 34.7% on average across fake clue identification, grounding, and explanation. Interestingly, we observe a consistent difficulty gradient: binary fake v.s. real classification is substantially easier than fine-grained deepfake trace detection; within the latter, performance degrades from natural language explanations (easiest), to spatial grounding, to temporal labeling (hardest). By foregrounding human-perceived deepfake traces, DeeptraceReward provides a rigorous testbed and training signal for socially aware and trustworthy video generation.
-   bibtex: |
-      @inproceedings{fu2025deeptracereward,
-        title={Learning Human-Perceived Fakeness in AI-Generated Videos via Multimodal LLMs},
-        author={Fu, Xingyu and Liu, Siyi and Xu, Yinuo and Lu, Pan and Choi, Yejin and Zou, James and Roth, Dan and Callison-Burch, Chris},
-        booktitle={NeurIPS 2025 Workshop on Generative and Protective AI for Content Creation (GenProCC)},
-        year={2025},
-        url={https://arxiv.org/abs/2509.22646}
-      }
--
    title: Comparing Collective Behavior of LLM and Human Groups
    authors: Anna B. Stephenson, Andrew Zhu, Chris Callison-Burch, Jan Kulveit
    venue: NeurIPS Workshop on Algorithmic Collective Action (ACA); PersonaLLM&colon; Workshop on LLM Persona Modeling @ NeurIPS
@@ -359,6 +539,7 @@
    url: https://arxiv.org/abs/2502.14846
    page_count: 59
    id: cosyn
+   html_page: publications/papers/cosyn/
    doi: 10.18653/v1/2025.acl-long.855
    anthology_id: 2025.acl-long.855
    featured: true
@@ -1132,7 +1313,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/clin-continual-learning-from-interactions.pdf
    page_count: 23
    id: clin-continual-learning-from-interactions
-   doi: null
+   doi: 10.48550/arXiv.2310.10134
    anthology_id: null
    data: 
    code: 
@@ -1395,6 +1576,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/bistable-images-with-vlms.pdf
    page_count: 22
    id: bistable-images-with-vlms
+   html_page: publications/papers/bistable-images-with-vlms/
    doi: 10.18653/v1/2024.cmcl-1.2
    anthology_id: 2024.cmcl-1.2
    award: Best paper award at the Workshop on Cognitive Modeling and Computational Linguistics (CMCL)
@@ -1613,7 +1795,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/labyrinth-ai-gm.pdf
    page_count: 26
    id: labyrinth-ai-gm
-   doi: null
+   doi: 10.48550/arXiv.2409.06949
    anthology_id: null
    data: 
    code: 
@@ -2987,7 +3169,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/synthbio.pdf
    page_count: 24
    id: synthbio
-   doi: null
+   doi: 10.48550/arXiv.2111.06467
    anthology_id: null
    data: https://storage.googleapis.com/gem-benchmark/SynthBio.json
    abstract: NLP researchers need more, higher-quality text datasets. Human-labeled datasets are expensive to collect, while datasets collected via automatic retrieval from the web such as WikiBio are noisy and can include undesired biases. Moreover, data sourced from the web is often included in datasets used to pretrain models, leading to inadvertent cross-contamination of training and test sets. In this work we introduce a novel method for efficient dataset curation&colon; we use a large language model to provide seed generations to human raters, thereby changing dataset authoring from a writing task to an editing task. We use our method to curate SynthBio - a new evaluation set for WikiBio - composed of structured attribute lists describing fictional individuals, mapped to natural language biographies. We show that our dataset of fictional biographies is less noisy than WikiBio, and also more balanced with respect to gender and nationality.
@@ -3411,7 +3593,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/resolving-pronouns-in-twitter-streams.pdf
    page_count: 6
    id: resolving-pronouns-in-twitter-streams
-   doi: null
+   doi: 10.18653/v1/2020.crac-1.14
    anthology_id: 2020.crac-1.14
    abstract: Many people live-tweet televised events like Presidential debates and popular TV-shows and discuss people or characters in the event. Naturally, many tweets make pronominal reference to these people/characters. We propose an algorithm for resolving personal pronouns that make reference to people involved in an event, in tweet streams collected during the event.
    bibtex: |
@@ -4974,7 +5156,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/callhome-egyptian-arabic-speech-translations.pdf
    page_count: 5
    id: callhome-egyptian-arabic-speech-translations
-   doi: null
+   doi: 10.18653/v1/2014.iwslt-papers.13
    anthology_id: 2014.iwslt-papers.13
    figures:
       -
@@ -5421,7 +5603,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/ppdb-multilingual.pdf
    page_count: 8
    id: ppdb-multilingual
-   doi: null
+   doi: 10.18653/v1/L14-1520
    anthology_id: L14-1520
    figures:
       -
@@ -5467,7 +5649,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/american-local-news-corpus.pdf
    page_count: 4
    id: american-local-news-corpus
-   doi: null
+   doi: 10.18653/v1/L14-1698
    anthology_id: L14-1698
    figures:
       -
@@ -5513,7 +5695,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/arabic-dialect-corpus-2.pdf
    page_count: 5
    id: arabic-dialect-corpus-2
-   doi: null
+   doi: 10.18653/v1/L14-1510
    anthology_id: L14-1510
    figures:
       -
@@ -5616,7 +5798,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/improved-speech-to-speech-translation.pdf
    page_count: 7
    id: improved-speech-to-speech-translation
-   doi: null
+   doi: 10.18653/v1/2013.iwslt-papers.14
    anthology_id: 2013.iwslt-papers.14
    figures:
       -
@@ -5920,7 +6102,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/monolingual-word-aligner.pdf
    page_count: 6
    id: monolingual-word-aligner
-   doi: null
+   doi: 10.18653/v1/P13-2123
    anthology_id: P13-2123
    figures:
       -
@@ -5957,7 +6139,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/parma.pdf
    page_count: 6
    id: parma
-   doi: null
+   doi: 10.18653/v1/P13-2012
    anthology_id: P13-2012
    figures:
       -
@@ -6033,7 +6215,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/bitexts-from-common-crawl.pdf
    page_count: 10
    id: bitexts-from-common-crawl
-   doi: null
+   doi: 10.18653/v1/P13-1135
    anthology_id: P13-1135
    figures:
       -
@@ -6102,7 +6284,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/ppdb.pdf
    page_count: 7
    id: ppdb
-   doi: null
+   doi: 10.18653/v1/N13-1092
    anthology_id: N13-1092
    figures:
       -
@@ -6151,7 +6333,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/supervised-bilingual-lexicon-induction.pdf
    page_count: 6
    id: supervised-bilingual-lexicon-induction
-   doi: null
+   doi: 10.18653/v1/N13-1056
    anthology_id: N13-1056
    figures:
       -
@@ -6200,7 +6382,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/answer-extraction-as-sequence-tagging.pdf
    page_count: 10
    id: answer-extraction-as-sequence-tagging
-   doi: null
+   doi: 10.18653/v1/N13-1106
    anthology_id: N13-1106
    figures:
       -
@@ -6402,7 +6584,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/using-categorial-grammar-to-label-translation-rules.pdf
    page_count: 10
    id: using-categorial-grammar-to-label-translation-rules
-   doi: null
+   doi: 10.18653/v1/W12-3127
    anthology_id: W12-3127
    figures:
       -
@@ -6460,7 +6642,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/joshua-4.0.pdf
    page_count: 9
    id: joshua-4
-   doi: null
+   doi: 10.18653/v1/W12-3134
    anthology_id: W12-3134
    figures:
       -
@@ -6611,7 +6793,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/monolingual-distributional-similarity-for-text-to-text-generation.pdf
    page_count: 9
    id: monolingual-distributional-similarity-for-text-to-text-generation
-   doi: null
+   doi: 10.18653/v1/S12-1034
    anthology_id: S12-1034
    figures:
       -
@@ -6672,7 +6854,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/machine-translation-of-arabic-dialects.pdf
    page_count: 11
    id: machine-translation-of-arabic-dialects
-   doi: null
+   doi: 10.18653/v1/N12-1006
    anthology_id: N12-1006
    figures:
       -
@@ -6741,7 +6923,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/toward-statistical-machine-translation-without-parallel-corpora.pdf
    page_count: 11
    id: toward-statistical-machine-translation-without-parallel-corpora
-   doi: null
+   doi: 10.18653/v1/E12-1014
    anthology_id: E12-1014
    figures:
       -
@@ -7481,7 +7663,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/semantically-informed-syntactic-machine-translation.pdf
    page_count: 10
    id: semantically-informed-syntactic-machine-translation
-   doi: null
+   doi: 10.18653/v1/2010.amta-papers.7
    anthology_id: 2010.amta-papers.7
    figures:
       -
@@ -7544,7 +7726,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/transliterating-from-all-languages.pdf
    page_count: 8
    id: transliterating-from-all-languages
-   doi: null
+   doi: 10.18653/v1/2010.amta-papers.12
    anthology_id: 2010.amta-papers.12
    figures:
       -
@@ -8121,7 +8303,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/hiero-grammar-extraction-with-suffix-arrays.pdf
    page_count: 10
    id: hiero-grammar-extraction-with-suffix-arrays
-   doi: null
+   doi: 10.2478/v10108-010-0013-7
    anthology_id: null
    figures:
       -
@@ -9349,7 +9531,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/compact-data-structure-for-searchable-translation-memories.pdf
    page_count: 
    id: compact-data-structure-for-searchable-translation-memories
-   doi: null
+   doi: 10.18653/v1/2005.eamt-1.9
    anthology_id: 2005.eamt-1.9
    figures:
       -
@@ -9427,7 +9609,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/iwslt05-report.pdf
    page_count: 
    id: iwslt05-report
-   doi: null
+   doi: 10.18653/v1/2005.iwslt-1.8
    anthology_id: 2005.iwslt-1.8
    figures:
       -
@@ -9603,7 +9785,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/improved-smt-through-editing.pdf
    page_count: 
    id: improved-smt-through-editing
-   doi: null
+   doi: 10.18653/v1/2004.eamt-1.4
    anthology_id: 2004.eamt-1.4
    figures:
       -
@@ -9650,6 +9832,7 @@
    id: statistical-natural-language-processing-chapter
    doi: null
    anthology_id: null
+   skip_scholar: true  # generic title collides with Manning & Schütze textbook on Scholar/S2
    figures:
       -
          img: figures/statistical-natural-language-processing-chapter/statistical-natural-language-processing-chapter-figure-1.jpg
@@ -9861,7 +10044,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/multi-engine-mt-with-language-models.pdf
    page_count: 
    id: multi-engine-mt-with-language-models
-   doi: null
+   doi: 10.18653/v1/2001.mtsummit-papers.12
    anthology_id: 2001.mtsummit-papers.12
    figures:
       -
@@ -9898,7 +10081,7 @@
    url: https://www.cis.upenn.edu/~ccb/publications/secondary-benefits-of-user-feedback-in-mt.pdf
    page_count: 
    id: secondary-benefits-of-user-feedback-in-mt
-   doi: null
+   doi: 10.18653/v1/2001.mtsummit-road.3
    anthology_id: 2001.mtsummit-road.3
    figures:
       -

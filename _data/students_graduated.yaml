@@ -1,4 +1,72 @@
 -
+   name: Samar Haider
+   advisors: Chris Callison-Burch and Duncan Watts
+   degree: PhD Student
+   pic: samar_haider.jpg
+   institution: University of Pennsylvania
+   start_year: 2020
+   graduation_date: August 2026
+   homepage: https://samarh.github.io
+   linkedin: https://www.linkedin.com/in/samarhaider/
+   thesis_title: A Computational Approach to News Production
+   thesis_link: dissertations/samar-haider-thesis.pdf
+   thesis_slides: dissertations/samar-haider-thesis-slides.pdf
+   defense_video: https://youtu.be/sLPF7Cgavp0
+   current_position: Postdoctoral Fellow
+   current_employer: Northwestern Innovation Institute, Northwestern University
+   gender: male
+-
+   name: Ajay Patel 
+   advisors: Chris Callison-Burch
+   degree: PhD Student   
+   pic: ajay_patel.jpg
+   institution: University of Pennsylvania
+   start_year: 2020
+   graduation_date: November 2025
+   homepage: https://ajayp.app
+   linkedin: https://www.linkedin.com/in/ajay-patel-ab876795/
+   thesis_title: Leveraging Synthetic Data from Large Language Models to Steer and Enhance Model Learning
+   thesis_link: dissertations/ajay-patel-thesis.pdf
+   thesis_slides: dissertations/ajay-patel-thesis-slides.pdf
+   defense_video: https://youtu.be/Z31NVDzm_X0
+   current_position: Postdoctoral Researcher
+   current_employer: The Wharton School, University of Pennsylvania
+   gender: male
+-
+   name: Bryan Li 
+   advisors: Chris Callison-Burch
+   degree: PhD Student   
+   pic: bryan_li.jpg
+   institution: University of Pennsylvania
+   start_year: 2020
+   graduation_date: October 2025
+   homepage: https://manestay.github.io
+   linkedin: 
+   thesis_title: Towards Multilingual Evaluations of Knowledge for Large Language Models
+   thesis_link: dissertations/bryan-li-thesis.pdf
+   thesis_slides: dissertations/bryan-li-thesis-slides.pdf
+   defense_video: https://youtu.be/BPw99V53s0Y
+   current_position: Research Scientist
+   current_employer: Google
+   gender: male
+-
+   name: Aditya Kashyap 
+   advisors: Chris Callison-Burch and Mary Regina Boland
+   degree: PhD Student
+   pic: aditya_kashyap.jpg
+   institution: University of Pennsylvania
+   start_year: 2019
+   graduation_date: January 2025
+   homepage: 
+   linkedin: https://www.linkedin.com/in/aditya-kashyap-962476142/
+   thesis_title: Applying Language Models to Patient Health Records&colon; Acronym Expansion, Long Document Classification and Explainable Predictions 
+   thesis_link: dissertations/aditya-kashyap-thesis.pdf
+   thesis_slides: dissertations/aditya-kashyap-thesis-slides.pdf
+   defense_video: https://youtu.be/fL2BGk4HH0Y
+   current_position: Applied NLP Engineer
+   current_employer: Vitruvia Labs
+   gender: male
+-
    name: Veronica Qing Lyu 
    advisors: Chris Callison-Burch and Marianna Apidianaki
    degree: PhD Student
@@ -10,10 +78,10 @@
    linkedin:
    thesis_title: Faithful and Useful Explanations by Large Language Models
    thesis_link: dissertations/veronica-qing-lyu-thesis.pdf
-   thesis_slidse: dissertations/veronica-qing-lyu-thesis-slides.pdf
+   thesis_slides: dissertations/veronica-qing-lyu-thesis-slides.pdf
    defense_video: https://www.youtube.com/watch?v=30CHTv67w_E
-   current_position: Researcher
-   current_employer: Databricks
+   current_position: Research Scientist
+   current_employer: Databricks Mosaic Research
    gender: female
 -
    name: Harry Li Zhang 
@@ -28,7 +96,7 @@
    linkedin:
    thesis_title: Structured Event Reasoning with Large Language Models
    thesis_link: dissertations/harry-li-zhang-thesis.pdf
-   thesis_slidse: dissertations/harry-li-zhang-thesis-slides.pdf
+   thesis_slides: dissertations/harry-li-zhang-thesis-slides.pdf
    defense_video:
    current_position: Assistant Professor
    current_employer: Drexel University
@@ -41,11 +109,11 @@
    start_year: 2015
    advisors: Chris Callison-Burch and Doug Eck
    graduation_date: September 2022
-   homepage:
+   homepage: https://www.daphnei.com
    linkedin:
    thesis_title: Understanding the Limitations of Using Large Language Models for Text Generation
    thesis_link: dissertations/daphne-ippolito-thesis.pdf
-   thesis_slidse: dissertations/daphne-ippolito-thesis-slides.pdf
+   thesis_slides: dissertations/daphne-ippolito-thesis-slides.pdf
    defense_video: https://youtu.be/OgxdHSIUARI?t=1615
    current_position: Assistant Professor
    current_employer: Carnegie Mellon University 
@@ -77,8 +145,8 @@
    linkedin: https://www.linkedin.com/in/annecocos/
    thesis_title: Paraphrase-based Models of Lexical Semantics
    thesis_link: dissertations/anne-cocos-thesis.pdf
-   current_position: Senior Research Scientist 
-   current_employer:  Netflix
+   current_position: Research Manager
+   current_employer: Netflix
    gender: female
 -
    name: Courtney Napoles
@@ -91,8 +159,8 @@
    linkedin: https://www.linkedin.com/in/cnapoles/
    thesis_title: Monolingual Sentence Rewriting as Machine Translation&colon; Generation and Evaluation
    thesis_link: dissertations/courtney-napoles-thesis.pdf
-   current_position: Engineering Director, NLP/ML/AI 
-   current_employer: Grammarly 
+   current_position: Technical Product Manager, Office of the CTO
+   current_employer: Bloomberg
    gender: female
 -
    name: Juri Ganitkevitch
@@ -104,7 +172,7 @@
    graduation_date: February 2018
    thesis_title: Large-Scale Paraphrase Extraction and Applications
    thesis_link: dissertations/juri-ganitkevitch-thesis.pdf
-   current_position: Chief Scientist & Co-Founder 
+   current_position: Co-Founder
    current_employer: Espresso AI 
    linkedin: https://www.linkedin.com/in/juri-ganitkevitch-294a4b32
    gender: male
@@ -118,7 +186,7 @@
    graduation_date: July 2017
    thesis_title: Compositional Lexical Semantics in Natural Language Inference
    thesis_link: dissertations/ellie-pavlick-thesis.pdf
-   current_position: Assistant Professor 
+   current_position: Briger Family Distinguished Associate Professor of Computer Science
    current_employer: Brown University 
    homepage: https://cs.brown.edu/people/epavlick/
    linkedin: https://www.linkedin.com/in/ellie-pavlick-tobochnik-982829b6/
@@ -131,7 +199,7 @@
    graduation_date: July 2014
    thesis_title: Using Comparable Corpora to Augment Low Resource Statistical Machine Translation Models
    thesis_link: dissertations/ann-irvine-thesis.pdf
-   current_position: Chief Data Scientist & VP of Product Management
+   current_position: Chief Data & Analytics Officer
    current_employer: Resilience
    linkedin: https://www.linkedin.com/in/ann-irvine-b5b39677/
    gender: female
@@ -154,7 +222,7 @@
    advisors: Chris Callison-Burch
    graduation_date: April 2012
    thesis_title: Crowdsourcing Annotation for Machine Learning in Natural Language Processing Tasks
-   current_position: Senior Applied Scientist
+   current_position: Applied Science Manager
    current_employer: Amazon  
    thesis_link: dissertations/omar-zaidan-thesis.pdf
    linkedin: https://www.linkedin.com/in/ozaidan/
