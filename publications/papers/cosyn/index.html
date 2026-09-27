@@ -1,0 +1,507 @@
+---
+layout: paper
+title: "Scaling Text-Rich Image Understanding via Code-Guided Synthetic Multimodal Data Generation"
+authors_html: >-
+  Yue Yang<sup>*1</sup>, Ajay Patel<sup>*1</sup>, Matt Deitke<sup>2</sup>, Tanmay Gupta<sup>2</sup>,
+  Luca Weihs<sup>2</sup>, Andrew Head<sup>1</sup>, Mark Yatskar<sup>1</sup>,
+  <span class="me">Chris Callison-Burch</span><sup>1</sup>, Ranjay Krishna<sup>2</sup>,
+  Aniruddha Kembhavi<sup>2</sup>, Christopher Clark<sup>2</sup>
+affiliations: "<sup>1</sup>University of Pennsylvania, <sup>2</sup>Allen Institute for AI"
+authornote: "* Equal contribution. Correspondence: {yueyang1, ajayp}@seas.upenn.edu"
+venue: "ACL"
+year: 2025
+links:
+  pdf: "https://www.cis.upenn.edu/~ccb/publications/cosyn.pdf"
+  arxiv: "https://arxiv.org/abs/2502.14846"
+  data: "https://huggingface.co/datasets/allenai/CoSyn-400K"
+  website: "https://yueyang1996.github.io/cosyn/"
+  doi: "10.18653/v1/2025.acl-long.855"
+abstract: >-
+  Reasoning about images with rich text, such as charts and documents, is a critical application of
+  vision-language models (VLMs). However, VLMs often struggle in these domains due to the scarcity of
+  diverse text-rich vision-language data. To address this challenge, we present CoSyn, a framework that
+  leverages the coding capabilities of text-only large language models (LLMs) to automatically create
+  synthetic text-rich multimodal data. Given input text describing a target domain (e.g., "nutrition
+  fact labels"), CoSyn prompts an LLM to generate code (Python, HTML, LaTeX, etc.) for rendering
+  synthetic images. With the underlying code as textual representations of the synthetic images, CoSyn
+  can generate high-quality instruction-tuning data, again relying on a text-only LLM. Using CoSyn, we
+  constructed a dataset comprising 400K images and 2.7M rows of vision-language instruction-tuning data.
+  Comprehensive experiments on seven benchmarks demonstrate that models trained on our synthetic data
+  achieve state-of-the-art performance among competitive open-source models, including Llama 3.2, and
+  surpass proprietary models such as GPT-4V and Gemini 1.5 Flash. Furthermore, CoSyn can produce
+  synthetic pointing data, enabling VLMs to ground information within input images, showcasing its
+  potential for developing multimodal agents capable of acting in real-world environments.
+bibtex: |
+  @inproceedings{yang-etal-2025-cosyn,
+      title = "Scaling Text-Rich Image Understanding via Code-Guided Synthetic Multimodal Data Generation",
+      author = "Yang, Yue and Patel, Ajay and Deitke, Matt and Gupta, Tanmay and Weihs, Luca and Head, Andrew and Yatskar, Mark and Callison-Burch, Chris and Krishna, Ranjay and Kembhavi, Aniruddha and Clark, Christopher",
+      booktitle = "Proceedings of the Association for Computational Linguistics: ACL 2025",
+      month = jul, year = "2025", address = "Vienna, Austria",
+      publisher = "Association for Computational Linguistics",
+      url = "https://arxiv.org/abs/2502.14846"
+  }
+og_image: "figures/teaser.svg"
+---
+
+<p><em>Senior Area Chair Highlight Award, ACL 2025.</em></p>
+
+<figure class="fig">
+  <img src="figures/teaser.svg" alt="CoSyn teaser: given a novel task such as answering questions about nutrition facts, code-guided generation produces targeted synthetic data that boosts VLM performance">
+  <figcaption><span class="lab">Figure 1.</span> Given a novel task (e.g., answering questions about nutrition facts), our code-guided generation system can produce targeted synthetic data to enhance the performance of VLMs on that specific task.</figcaption>
+</figure>
+
+<h2>Introduction</h2>
+
+<p>Instruction-tuned vision-language models (VLMs) have shown strong performance across a range of multimodal tasks (Radford et al., 2021; OpenAI, 2023; Liu et al., 2023). However, these tasks typically focus on general image understanding over natural images rather than the specialized reasoning required for <em>text-rich</em> images such as charts, documents, diagrams, signs, labels, and screenshots. Understanding and reasoning over text-rich images is crucial for many applications, including analyzing scientific literature and figures (Asai et al., 2024), improving accessibility for users with visual impairments (Gurari et al., 2018), and enabling agentic workflows in real-world environments (Xie et al., 2024). Effectively interpreting these structured visual formats requires both textual comprehension and spatial reasoning, which current models struggle with due to the limited availability of high-quality, realistic, and diverse vision-language datasets (Methani et al., 2020).</p>
+
+<p>To address these challenges, and inspired by the fact that text-rich images are typically rendered from code, we develop <strong>CoSyn</strong> (<strong>Co</strong>de-Guided <strong>Syn</strong>thetic data generation), a flexible framework for generating diverse synthetic text-rich multimodal data for vision-language instruction tuning. As illustrated in Figure 2, CoSyn can generate multimodal data for various target domains from a short natural language query, such as <em>book covers</em>. CoSyn leverages text-only LLMs, which excel at code generation, to produce both data and code that render diverse text-rich images using 11 supported rendering tools (e.g., Python, HTML, LaTeX). Grounded in the underlying code representation of the images, textual instructions are also generated by the text-only LLM to create vision-language instruction-tuning datasets.</p>
+
+<p>Using this framework, we construct <strong>CoSyn-400K</strong> (Figure 3), a large-scale and diverse synthetic vision-language instruction-tuning dataset tailored for text-rich image understanding. We comprehensively evaluate the effectiveness of training on CoSyn-generated data across seven text-rich VQA benchmarks. Our model achieves state-of-the-art performance among competitive open-source models and surpasses proprietary models such as GPT-4V and Gemini 1.5. Notably, training on CoSyn synthetic data enables sample-efficient learning, achieving stronger performance with less data. In addition, CoSyn can synthesize chain-of-thought (CoT) reasoning data (Wei et al., 2022), improving performance on tasks requiring multi-hop reasoning. A fine-grained analysis of question types in ChartQA (Masry et al., 2022) reveals that training on CoSyn-400K results in stronger generalization to human-written questions. In contrast, models trained solely on existing academic datasets often overfit to biased training data, overperforming on templated or machine-generated questions but struggling with more realistic, human-asked queries.</p>
+
+<p>We then identify a key limitation of open-source VLMs: they struggle to generalize to out-of-domain tasks they were not trained on. As shown in Figure 1, we introduce <strong>NutritionQA</strong>, a novel benchmark for understanding photos of nutrition labels, with practical applications like aiding users with visual impairments. Open-source VLMs perform poorly on this novel task, even after training on millions of images. However, by training on CoSyn-400K, our model adapts strongly to this novel domain in a zero-shot setting with significantly less training data. Remarkably, by generating just 7K in-domain synthetic nutrition-label examples with CoSyn for fine-tuning, our model surpasses most open VLMs trained on millions of images. This highlights CoSyn's data efficiency and ability to help VLMs adapt to new domains through targeted synthetic data generation.</p>
+
+<p>Finally, beyond the standard VQA task, we use CoSyn to generate synthetic <em>pointing</em> training data, which is particularly useful in agentic tasks. The pointing data enables VLMs to retrieve coordinates for specific elements in a screenshot given a query like "Point to the Checkout button" (Deitke et al., 2024). Our model trained on synthetic pointing data achieves state-of-the-art performance on the ScreenSpot click-prediction benchmark (Baechler et al., 2024). Overall, our work demonstrates that synthetic data is a promising solution for advancing vision-language models in understanding text-rich images and unlocking their potential as multimodal digital assistants for real-world applications.</p>
+
+<h2>Related Work</h2>
+
+<h3>Vision-Language Models</h3>
+<p>Tsimpoukelli et al. (2021) first demonstrated that pre-trained, frozen language models can be extended to process visual inputs. Prior works fuse vision and language modalities using different strategies, such as cross-attention mechanisms (Alayrac et al., 2022) and Q-Former (Li et al., 2023). More recent architectures have converged on using MLP layers to project visual features into the language space (Liu et al., 2023). However, these architectures are often imbalanced, with the language backbone substantially larger than the visual encoder. As a result, without high-quality image-text data, models may over-rely on language priors, leading to hallucinations in their responses (Bai et al., 2024). Our work addresses this issue by generating high-quality multimodal data for text-rich images.</p>
+
+<h3>Text-Rich Image Understanding</h3>
+<p>Chart understanding and text-rich image understanding continue to challenge state-of-the-art models, as naturally occurring vision-language data that can support training for such images is still scarce (Kahou et al., 2017; Kafle et al., 2018; Xu et al., 2023; Mukhopadhyay et al., 2024). In addition to charts and plots, a number of datasets address other kinds of text-rich images such as documents, infographics, diagrams, figures, and screenshots (Siegel et al., 2016; Mathew et al., 2021, 2022; Baechler et al., 2024; Roberts et al., 2024). Many of these benchmarks are limited in size and scope, diversity of visualization types, and question types, making them suitable for evaluation but not for training data that could lead to generalized performance.</p>
+
+<figure class="fig">
+  <img src="figures/system.svg" alt="Overview of the CoSyn system: query selects pipelines, personas drive topic generation, data is synthesized into code, code renders the image and provides context for instruction-tuning data">
+  <figcaption><span class="lab">Figure 2.</span> Overview of our <strong>Co</strong>de-Guided <strong>Syn</strong>thetic data generation system (<strong>CoSyn</strong>), which has 20 generation pipelines based on 11 render tools. Given a user query (e.g., "book cover"), CoSyn selects the appropriate pipelines and starts by generating diverse topics conditioned on personas, then synthesizes detailed data for code generation. The code renders the image and is also fed as context for an LLM to construct instruction-tuning data.</figcaption>
+</figure>
+
+<h3>Synthetic Data for VLMs</h3>
+<p>Generating synthetic images with annotations grounded in known source representations has been widely used in domains with limited vision-language data (Richter et al., 2016; Johnson et al., 2017; Cascante-Bonilla et al., 2022; Chen et al., 2024). This approach has been applied to chart and plot VQA, typically using a limited, small set of chart types and by instantiating handcrafted question templates (Kahou et al., 2017; Kafle et al., 2018; Methani et al., 2020; Chaudhry et al., 2020). Following this, Li and Tajbakhsh (2023) and Carbune et al. (2024) explored using text-only LLMs to generate annotations from tables or text descriptions associated with charts to train VLMs. Other recent approaches, similar to our procedure, explore generating data and code to render synthetic charts (Han et al., 2023; He et al., 2024; Xia et al., 2024). Molmo (Deitke et al., 2024) releases a synthetic text-rich image dataset, PixMo-docs, but smaller in scale and diversity than ours. These works generate synthetic data that is still highly limited in terms of the diversity of topics, figure types, and rendering pipelines, which is important for generalizing to out-of-distribution tasks. We expand the scope beyond charts to encompass a wider range of diverse text-rich images.</p>
+
+<h2>Problem Formulation</h2>
+
+<p>Given a text query $q$ about an image type (e.g., <em>flow charts</em>), our goal is to create a synthetic multimodal dataset $\mathcal{D}_q = \{(I, T)\}$, where $I$ is the image and $T$ is the textual instruction-tuning data (e.g., question-answer pairs). $\mathcal{D}_q$ is used to train a VLM to improve its ability to understand images related to $q$. The core idea of our approach is using code $C$ as the intermediate representation to bridge the image and text. The overall generation process can be decomposed as follows:</p>
+
+$$ P(I, T \mid q) = P_{\text{LM}}(C \mid q) \cdot P(I \mid C) \cdot P_{\text{LM}}(T \mid C) $$
+
+<p>where $P_{\text{LM}}(C \mid q)$ represents prompting a language model to generate code $C$, which is executed to render the image $P(I \mid C)$. $P_{\text{LM}}(T \mid C)$ uses code $C$ (without the image) as context for an LLM to generate the textual instruction-tuning data.</p>
+
+<h2>The CoSyn System</h2>
+
+<p>Figure 2 illustrates the workflow of CoSyn. The system takes a language input, such as "generate a dataset of book covers," and outputs a multimodal dataset. Based on the input query, CoSyn selects one of 20 generation pipelines built on 11 rendering tools. The process starts with topic generation, conditioned on a sampled persona that guides the style and content. Next, the system generates data content and converts it into code, which is then executed to render synthetic images. Finally, using the code as context, we prompt the LLM to generate corresponding textual instructions.</p>
+
+<h3>Rendering Tools</h3>
+<p>We integrate various rendering tools to generate diverse types of images, forming the foundation of CoSyn's ability for text-rich image generation. For example, Matplotlib, Plotly, and Vega-Lite are used to create different types of charts. LaTeX and HTML are used for documents and tables, while Mermaid and Graphviz generate diagrams. We use SVG and Asymptote to create vector graphics and math-related content. For specialized tasks, we rely on Lilypond to generate music sheets and RDKit for chemical structures. We implement customized functions for each tool to execute LLM-generated code and obtain the corresponding rendered images. These tools collectively enable CoSyn to produce a wide range of high-quality, text-rich synthetic images.</p>
+
+<figure class="fig">
+  <img src="figures/dataset.svg" alt="CoSyn-400K dataset composition: nine categories of text-rich images totaling 2.7M instruction-tuning rows">
+  <figcaption><span class="lab">Figure 3.</span> Our CoSyn-400K dataset consists of 9 categories of text-rich images with 2.7M instruction-tuning rows. More qualitative examples, along with question-answer annotations, are available in the appendix figures below.</figcaption>
+</figure>
+
+<h3>Pipelines</h3>
+<p>We design 20 pipelines based on 11 rendering tools.<sup class="fn"><a href="#fn1" id="fnref1">1</a></sup> Each pipeline follows the same procedure: (1) <em>Topic generation</em> to define the theme of the synthetic example, (2) <em>Data generation</em> to populate the detailed contents, (3) <em>Code generation</em> to create executable code that renders the image, and (4) <em>Instruction generation</em> conditioned on the code to produce instructions, including questions, answers, and explanations for chain-of-thought reasoning. Each stage is controlled by a prompt customized for the image category and rendering tool.</p>
+
+<h3>Using Personas to Enhance Diversity</h3>
+<p>LLMs often struggle to generate diverse synthetic data using sampling parameters alone (Yu et al., 2023), with biases leading to repetitive outputs across different runs. Recent work (Ge et al., 2024) shows that incorporating personas in prompts can improve diversity by enabling models to generate from varied perspectives. CoSyn adopts personas to enhance diversity during the topic-generation stage. Each persona is a short sentence describing a personality or identity. For example, as shown in the middle of Figure 2, we sample a persona "<em>a sci-fi novelist who likes alien worlds</em>," which results in a topic of "<em>a novel about Extraterrestrial Flora &amp; Fauna</em>" for generating the book-cover image. We use the 200K personas released by Ge et al. (2024).</p>
+
+<h3>Implementation Details</h3>
+<p>CoSyn is built on the DataDreamer library (Patel et al., 2024), which supports robust multi-stage synthetic data generation pipelines that are easy to maintain, reproduce, and extend. DataDreamer documents the prompts and parameters used at each generation stage and implements several efficient techniques, such as parallel generation and response caching, to optimize performance. For the data and code generation stages, we use Claude-3.5-Sonnet, which performs well on coding tasks (Anthropic, 2024). For instruction-tuning data generation, we select GPT-4o-mini for its cost efficiency.</p>
+
+<h3>CoSyn-400K</h3>
+<p>As shown in Figure 3, we use CoSyn to generate a large-scale synthetic dataset of 400K images across nine categories: charts, documents, math problems, tables, diagrams, vector graphics, music sheets, electrical circuits, and chemical structures. Since CoSyn is controlled via language inputs, it can easily generate diverse, fine-grained image types by varying the input queries. For instance, we use over 100 queries to generate document data covering <em>receipts</em>, <em>resumes</em>, <em>meal plans</em>, etc. This ensures that our dataset covers a broad range of domains.</p>
+
+<h2>Experimental Setup</h2>
+
+<p>Our experiments aim to verify the value of our synthetic data in the supervised fine-tuning stage of training vision-language models.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><strong>Table 1. Results on 7 text-rich benchmarks.</strong> The best-performing open-source model is <strong>bold</strong>, and the second-best is <u>underlined</u>. Models with <sup>&dagger;</sup> denote open data and code for multimodal training. Models with <sup>*</sup> are zero-shot models (not trained on instances from any evaluation dataset). Proprietary models are shown in gray for reference.</caption>
+  <thead>
+    <tr>
+      <th>Model</th><th>ChartQA</th><th>DocVQA</th><th>InfoVQA</th><th>TableVQA</th><th>AI2D</th><th>TextVQA</th><th>ScreenQA</th><th>Average</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="color:#888"><td>GPT-4V</td><td>78.1</td><td>87.2</td><td>75.1</td><td>60.5</td><td>89.4</td><td>78.0</td><td>41.6</td><td>72.8</td></tr>
+    <tr style="color:#888"><td>Gemini 1.5 Flash</td><td>85.4</td><td>89.9</td><td>75.3</td><td>72.6</td><td>91.7</td><td>78.7</td><td>40.1</td><td>76.2</td></tr>
+    <tr style="color:#888"><td>Claude-3 Opus</td><td>80.8</td><td>89.3</td><td>55.6</td><td>70.0</td><td>88.1</td><td>67.5</td><td>39.8</td><td>70.2</td></tr>
+    <tr><td>PaliGemma-3B<sup>&dagger;</sup></td><td>71.4</td><td>84.8</td><td>47.8</td><td>46.4</td><td>73.3</td><td>76.5</td><td>32.2</td><td>61.8</td></tr>
+    <tr><td>BLIP-3-4B<sup>&dagger;</sup></td><td>60.0</td><td>61.4</td><td>31.5</td><td>24.3</td><td>74.2</td><td>71.0</td><td>26.2</td><td>49.8</td></tr>
+    <tr><td>Cambrian-7B<sup>&dagger;</sup></td><td>73.3</td><td>77.8</td><td>41.6</td><td>40.6</td><td>73.0</td><td>71.7</td><td>44.4</td><td>64.2</td></tr>
+    <tr><td>LLaVA-1.5-7B<sup>&dagger;*</sup></td><td>17.8</td><td>28.1</td><td>25.8</td><td>33.1</td><td>55.5</td><td>58.2</td><td>17.6</td><td>33.7</td></tr>
+    <tr><td>LLaVA-Next-8B<sup>&dagger;</sup></td><td>69.5</td><td>78.2</td><td>43.8</td><td>43.9</td><td>71.6</td><td>65.3</td><td>34.2</td><td>58.1</td></tr>
+    <tr><td>LLaVA-OneVision-7B<sup>&dagger;</sup></td><td>80.0</td><td>87.5</td><td><u>68.8</u></td><td>64.6</td><td><u>81.4</u></td><td><u>78.3</u></td><td>46.3</td><td>72.4</td></tr>
+    <tr><td>Pixtral-12B</td><td>81.8</td><td><strong>90.7</strong></td><td>50.8</td><td><strong>67.0</strong></td><td>79.0</td><td>75.7</td><td>39.4</td><td>69.2</td></tr>
+    <tr><td>Llama 3.2 11B</td><td><u>83.4</u></td><td>88.4</td><td>63.6</td><td>51.1</td><td><strong>91.9</strong></td><td>73.1</td><td><strong>87.7</strong></td><td><u>77.0</u></td></tr>
+    <tr style="background:#f4f4f4"><td><strong>Ours (7B)</strong><sup>&dagger;</sup></td><td><strong>86.3</strong></td><td><u>90.0</u></td><td><strong>70.5</strong></td><td><u>65.8</u></td><td><strong>91.9</strong></td><td><strong>82.0</strong></td><td><u>80.1</u></td><td><strong>80.9</strong></td></tr>
+    <tr style="background:#f4f4f4"><td><strong>Ours (7B zero-shot)</strong><sup>&dagger;*</sup></td><td>80.8</td><td>82.9</td><td>59.8</td><td>64.9</td><td>83.9</td><td>72.7</td><td>78.1</td><td>74.7</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Model Architecture</h3>
+<p>We follow the same image preprocessing and architecture as Molmo (Deitke et al., 2024), which uses an MLP layer to connect the vision encoder and a pretrained LLM. We choose OpenAI's CLIP (ViT-L/14 336px) (Radford et al., 2021) as the vision backbone and Mistral-7B (Jiang et al., 2023) as the language model.</p>
+
+<h3>Training Process</h3>
+<p>We adopt Molmo's two-stage training strategy: (1) <em>pre-training</em> on dense captions from PixMo-Cap, and (2) <em>supervised fine-tuning</em> on three categories of datasets:</p>
+<ul>
+  <li><strong>Evaluation datasets.</strong> We evaluate on seven text-rich benchmarks: ChartQA (Masry et al., 2022), DocVQA (Mathew et al., 2021), InfographicVQA (Mathew et al., 2022), TableVQA-Bench (Kim et al., 2024), AI2 Diagrams (Kembhavi et al., 2016), TextVQA (Singh et al., 2019), and ScreenQA (Baechler et al., 2024), using their official metrics. In total, we have 138K training images from the evaluation datasets.<sup class="fn"><a href="#fn2" id="fnref2">2</a></sup></li>
+  <li><strong>Auxiliary datasets.</strong> Additional academic datasets for fine-tuning: VQAv2, GQA, OK-VQA, OCR-VQA, A-OKVQA, ScienceQA, TabMWP, ST-VQA, TallyQA, DVQA, FigureQA, and PlotQA (around 1M training images).</li>
+  <li><strong>Synthetic datasets.</strong> Our CoSyn-400K: 400K text-rich images across 9 categories.</li>
+</ul>
+<p>Our best-performing model uses all three categories. We also trained a zero-shot model using only auxiliary and synthetic data without any examples from the evaluation datasets, which still exhibits competitive benchmark performance (last row of Table 1).</p>
+
+<h3>Baselines and Implementation</h3>
+<p>We compare recent open-source VLMs of similar scale (~7B): PaliGemma-3B (Beyer et al., 2024), BLIP-3-4B (Xue et al., 2024), Cambrian-7B (Tong et al., 2024), LLaVA-1.5-7B (Liu et al., 2023), LLaVA-Next-8B (Liu et al., 2024), LLaVA-OneVision-7B (Li et al., 2024), Pixtral-12B (Agrawal et al., 2024), and Llama 3.2 V (Meta, 2024). We also include proprietary models: GPT-4V, Gemini-1.5-Flash (Gemini Team, 2024), and Claude-3 Opus (Anthropic, 2024). We train our model on TPU v3-128 with a batch size of 32; the best model is trained for 60K steps, taking about 30 hours, retaining the checkpoints with the highest validation performance.</p>
+
+<h2>Results</h2>
+
+<h3>Main Results</h3>
+<p>Table 1 compares our model's performance with both open and closed models across seven text-rich benchmarks. On average, our 7B model achieves the highest performance, surpassing the second-best model (Llama 3.2 11B) by 3.9%. Notably, our model ranks first in four of the seven datasets and second in the remaining three. More surprisingly, our zero-shot model (last row of Table 1) outperforms most open and closed models without exposure to any training instances from the evaluation datasets. In contrast, these competing models often rely on benchmark training data and are thus not true zero-shot models. This demonstrates that the capabilities learned from our synthetic data transfer effectively to downstream tasks.</p>
+
+<h3>Analysis</h3>
+
+<figure class="fig">
+  <img src="figures/bar_ablation.svg" alt="Bar chart: ablation of training data selection showing average score over seven benchmarks for combinations of auxiliary, synthetic, and evaluation data">
+  <figcaption><span class="lab">Figure 4.</span> <strong>Ablation on training-data selection.</strong> Aux, Syn, and Eval stand for auxiliary, synthetic, and evaluation datasets. We report the average score over seven benchmarks. The full breakdown per benchmark is in Table 5.</figcaption>
+</figure>
+
+<p><strong>Synthetic data boosts performance.</strong> Figure 4 presents an ablation on the choice of supervised fine-tuning data. In the zero-shot setting, when the model is trained on auxiliary datasets alone (over 1M training images not directly from the evaluation tasks), it fails to generalize effectively, with a substantial gap of 14.1% below GPT-4V. However, using only 400K synthetic samples achieves performance comparable to GPT-4V, and our best zero-shot model surpasses GPT-4V when jointly training synthetic and auxiliary data. Under the supervised setting, training with in-domain data alone yields strong performance; adding 1M auxiliary samples provides a modest 1.4% improvement, while incorporating synthetic data results in a more significant 3.6% boost.</p>
+
+<figure class="fig">
+  <img src="figures/nutrition.svg" alt="Scatter plot: zero-shot NutritionQA performance versus number of training examples; models on the upper-left are more data-efficient">
+  <figcaption><span class="lab">Figure 5.</span> <strong>Zero-shot performance on NutritionQA.</strong> The x-axis denotes the number of training examples used for the instruction-tuning stage. Models on the upper-left side demonstrate better data efficiency.</figcaption>
+</figure>
+
+<p><strong>Zero-shot generalization on a novel task.</strong> Vision-language models typically rely on in-domain data to perform well. When encountering a novel task, such as answering questions about nutrition labels (Figure 1), models that have not seen similar examples during training may struggle. CoSyn, however, enables controllable data generation: given the task name as input, it can generate task-specific data to fine-tune the model. To validate this, we annotated a small evaluation set, <strong>NutritionQA</strong>, with 100 examples of questions about photos of nutrition labels; some questions require multi-hop reasoning. Despite being trained on millions of images, open-source VLMs are not data-efficient and perform poorly on this novel task compared to GPT-4V. Without synthetic data, our model (Eval + Aux) achieves results similar to open models, but when trained on 400K synthetic samples it matches GPT-4V. More impressively, using CoSyn to generate just 7K synthetic nutrition-label samples and fine-tuning on that data alone outperforms most open-source VLMs on NutritionQA (Figure 5). Code-guided synthetic data is thus an effective and efficient method for adapting VLMs to new domains.</p>
+
+<figure class="fig">
+  <img src="figures/cot_bar.svg" alt="Bar chart comparing short-answer and chain-of-thought prompting across benchmarks">
+  <figcaption><span class="lab">Figure 6.</span> <strong>Ablation of using Chain-of-Thought reasoning.</strong> "Short Answer" prompts the model to output the answer as briefly as possible. "+ CoT" provides chain-of-thought reasoning before giving the final answer. Full results are in Table 4.</figcaption>
+</figure>
+
+<p><strong>Synthetic data for chain-of-thought reasoning.</strong> Existing text-rich datasets such as ChartQA are typically annotated with short answers. However, questions like "Compute the mean of the data in the plot" require step-by-step reasoning. Models trained only with short-answer supervision may fail to learn proper plot comprehension and instead overfit to annotation biases. CoSyn-400K includes explanation text alongside the short answer: each instruction-tuning example is a (<em>question</em>, <em>explanation</em>, <em>short answer</em>) triplet, enabling models to learn CoT reasoning. During fine-tuning we design two prompt templates:</p>
+
+<blockquote>
+  <p><strong>CoT Prompt:</strong> &lt;Question&gt; Provide reasoning steps and then give the short answer. &lt;Explanation&gt; Answer: &lt;Answer&gt;</p>
+  <p><strong>Short Answer Prompt:</strong> &lt;Question&gt; Answer with as few words as possible. &lt;Answer&gt;</p>
+</blockquote>
+
+<p>These prompts allow VLMs to switch between answering styles and perform CoT reasoning when necessary. Figure 6 shows that incorporating CoT reasoning improves performance on ChartQA, TableVQA, and NutritionQA, as these datasets contain examples requiring multi-hop reasoning. However, adding CoT reasoning reduces performance on DocVQA and InfoVQA: answer biases in these benchmarks favor short responses, penalizing more verbose ones. For instance, in DocVQA the ground truth for an example is "T-Th" while the model responds "Tuesday to Thursday"; although correct, the strict string-matching metric assigns a zero score. This highlights key limitations of current multimodal benchmarks, including answering biases and rigid evaluation metrics.</p>
+
+<figure class="fig">
+  <img src="figures/chartqa_distribution.svg" alt="Pie charts showing the distribution of human-annotated vs machine-generated ChartQA questions in training and test splits">
+  <figcaption><span class="lab">Figure 7.</span> Distribution of the two ChartQA question types in training and testing. During training, most questions (73.9%) are machine-generated, while the test set contains an even distribution of human-annotated and machine-generated questions.</figcaption>
+</figure>
+
+<p><strong>Synthetic data for mitigating biases.</strong> Our experiments reveal answering biases in multimodal benchmarks that VLMs trained solely on these datasets often inherit. To validate this, we analyze ChartQA and observe a distribution shift in question types (Figure 7): some ChartQA questions are human-annotated, while others are generated by the language model T5 (Raffel et al., 2020), heavily influenced by prompt phrasing and limited to a fixed set of templates. During training, most questions (73.9%) are machine-generated, while the test set is evenly split. Models trained exclusively on ChartQA tend to overfit to T5-generated questions. As Table 2 shows, PaliGemma (Beyer et al., 2024) and ChartPali (Carbune et al., 2024) achieve high accuracy on machine-generated questions but drop over 30% on human-annotated ones. Similarly, without synthetic data our model shows a 21.8% gap between the two question types; incorporating synthetic data reduces this gap to 14.2%. This suggests that synthetic data can mitigate benchmark overfitting and enhance VLMs' usability on real-world human-asked questions.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><strong>Table 2. Results on human- and machine-generated questions of ChartQA.</strong> &Delta; (&darr; lower is better) denotes the performance gap between human and machine questions.</caption>
+  <thead>
+    <tr><th>ChartQA</th><th>Average</th><th>Machine</th><th>Human</th><th>&Delta; &darr;</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>PaliGemma-3B</td><td>71.4</td><td>88.5</td><td>54.2</td><td>34.3</td></tr>
+    <tr><td>ChartPali-5B</td><td>77.3</td><td><strong>93.7</strong></td><td>60.9</td><td>32.8</td></tr>
+    <tr><td>Ours (w/o Syn)</td><td>81.4</td><td>92.2</td><td>70.4</td><td>21.8</td></tr>
+    <tr style="background:#f4f4f4"><td><strong>Ours (w/ Syn)</strong></td><td><strong>86.3</strong></td><td>93.4</td><td><strong>79.1</strong></td><td><strong>14.2</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Our synthetic data is more diverse.</strong> To quantify the diversity of images and text in our synthetic dataset $\mathcal{D} = \{(I, T)\}$, we propose two metrics:</p>
+
+$$ \text{Diversity}(\mathcal{D})_{\text{Image}} = \frac{1}{|\mathcal{D}|^2 - |\mathcal{D}|} \sum_{I_i \in \mathcal{D}} \sum_{I_j \in \mathcal{D}}^{i \neq j} \left(1 - \text{sim}(I_i, I_j)\right) $$
+
+$$ \text{Diversity}(\mathcal{D})_{\text{Text}} = \frac{1}{|\mathcal{D}|^2 - |\mathcal{D}|} \sum_{T_i \in \mathcal{D}} \sum_{T_j \in \mathcal{D}}^{i \neq j} \left(1 - \text{sim}(T_i, T_j)\right) $$
+
+<p>where $\text{sim}(\cdot)$ is cosine similarity. Both metrics compute the average pairwise cosine distance between the features of every instance in the dataset. For image diversity we extract features using CLIP; for text diversity we use Sentence-BERT (Reimers and Gurevych, 2019) on question-answer pairs. Table 3 shows that our synthetic charts are significantly more diverse than existing datasets such as FigureQA and ChartQA, in both image and text diversity.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><strong>Table 3. Image and text diversity across chart datasets.</strong> We randomly sample 10K instances from each dataset to compute the results.</caption>
+  <thead>
+    <tr><th>Dataset</th><th>Image Diversity</th><th>Text Diversity</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>FigureQA</td><td>0.268</td><td>0.567</td></tr>
+    <tr><td>DVQA</td><td>0.307</td><td>0.752</td></tr>
+    <tr><td>PlotQA</td><td>0.420</td><td>0.743</td></tr>
+    <tr><td>ChartQA</td><td>0.340</td><td>0.742</td></tr>
+    <tr style="background:#f4f4f4"><td><strong>Ours (Charts)</strong></td><td><strong>0.596</strong></td><td><strong>0.823</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Diversity correlates with model performance.</strong> Data diversity significantly affects downstream performance. To investigate, we compare synthetic chart data generated using only a single tool (Matplotlib) with charts generated by all five tools available in CoSyn. As the table below shows, using multiple tools results in higher image diversity and notably improved performance on ChartQA. This underscores the importance of data diversity for model generalizability.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><strong>Table 3b. Single vs. multiple rendering tools for data generation.</strong> Each row uses the same 45K synthetic images. <em>Single</em> uses only Matplotlib; <em>Multiple</em> also involves HTML, LaTeX, Plotly, and Vega-Lite.</caption>
+  <thead>
+    <tr><th rowspan="2">n. of Tools</th><th rowspan="2">Diversity</th><th colspan="3">ChartQA</th></tr>
+    <tr><th>Average</th><th>Machine</th><th>Human</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Single</td><td>0.572</td><td>73.9</td><td>66.5</td><td>81.5</td></tr>
+    <tr><td>Multiple</td><td><strong>0.607</strong></td><td><strong>75.2</strong></td><td><strong>68.6</strong></td><td><strong>82.0</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<figure class="fig">
+  <img src="figures/data_scale.svg" alt="Line plot: zero-shot ChartQA performance increasing with the number of synthetic training images">
+  <figcaption><span class="lab">Figure 8.</span> <strong>Scaling the size of synthetic data.</strong> We evaluate <em>zero-shot</em> ChartQA performance of models fine-tuned on increasing numbers of synthetic images.</figcaption>
+</figure>
+
+<p><strong>Scaling the size of synthetic data.</strong> In addition to diversity, the scale of synthetic data also impacts performance. As Figure 8 shows, increasing the number of synthetic chart images leads to improved ChartQA performance, demonstrating that scaling up synthetic data can further enhance VLMs on downstream tasks. Due to resource constraints, our final dataset consists of 400K images, which cost about \$8,000. Future work could explore scaling up the dataset size to push the boundaries of synthetic data's potential.</p>
+
+<p><strong>Comparing LLMs for synthetic data generation.</strong> By default, CoSyn uses Claude-3.5-Sonnet as the underlying LLM for code generation. To highlight the importance of strong coding capabilities, we compare it with data generated by GPT-4o. As Table 3c shows, synthetic data generated by Claude-3.5-Sonnet yields significantly better results than GPT-4o. Qualitatively, GPT-4o has a higher failure rate in code generation, particularly for less common languages or libraries. This emphasizes that a strong LLM is essential for successful synthetic data generation for VLMs.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><strong>Table 3c. Comparing LLMs used for synthetic data generation.</strong> For both LLMs, we create 100K synthetic charts for fine-tuning the VLMs and report zero-shot ChartQA results.</caption>
+  <thead>
+    <tr><th rowspan="2">LLM for Data Generation</th><th colspan="3">ChartQA</th></tr>
+    <tr><th>Average</th><th>Machine</th><th>Human</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>GPT-4o</td><td>72.4</td><td>65.8</td><td>78.9</td></tr>
+    <tr><td>Claude-3.5-Sonnet</td><td><strong>77.2</strong></td><td><strong>71.0</strong></td><td><strong>83.8</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Synthetic Pointing Data</h3>
+
+<figure class="fig">
+  <img src="figures/pointing_new.svg" alt="Overview of enabling VLMs to point through synthetic data: (a) synthesize pointing data by editing code to draw answer points; (b) the trained VLM generalizes to real agentic tasks">
+  <figcaption><span class="lab">Figure 9.</span> <strong>Overview of enabling VLMs to point through synthetic data.</strong> (a) We synthesize pointing data by prompting an LLM to generate pointing questions and edit the code to draw the answer points explicitly. (b) We demonstrate that the VLM trained on synthetic pointing data generalizes to real agentic tasks.</figcaption>
+</figure>
+
+<p>Pointing enables VLMs to answer questions by providing specific points on images, grounding their responses in visual content and letting them interact with environments — crucial for developing digital agents. We find that our code-guided system can synthesize pointing data.</p>
+
+<p><strong>Method.</strong> Since we have access to the source code for all generated images, we can prompt an LLM to modify the code to draw points explicitly. As illustrated in Figure 9, we feed the image's source code as context to the LLM, which generates a pointing question and edits the code to draw points with a predefined color. By extracting the pixel values of these points, we obtain their exact $(x, y)$ coordinates.<sup class="fn"><a href="#fn3" id="fnref3">3</a></sup> We then use this pointing data to train VLMs to answer questions by providing point coordinates. In total, we generate pointing data for 65K synthetic images.</p>
+
+<p><strong>Setup.</strong> We evaluate pointing ability on ScreenSpot (Cheng et al., 2024), where the task requires models to provide the correct click location given an instruction, over screenshots from mobile phones, desktops, and web pages. We compare against a model trained on PixMo-point (Deitke et al., 2024), which consists of 155K human-annotated images; our best model uses both PixMo-point and synthetic pointing data. We also compare against CogAgent (Hong et al., 2024), SeeClick (Cheng et al., 2024), and UGround (Gou et al., 2024), the last of which is trained on 1.3M screenshots.</p>
+
+<p><strong>Results.</strong> Table 4 compares click accuracy against previous methods. Using 65K synthetic pointing samples, our model achieves performance comparable to that trained on 155K human-annotated samples. When combining synthetic and human data, our model achieves state-of-the-art performance on ScreenSpot, surpassing UGround (trained on 1.3M screenshots). These results demonstrate that synthetic pointing data is a data-efficient approach for improving VLM performance on agentic click-prediction tasks.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><strong>Table 4. Click accuracy on ScreenSpot.</strong> We report models trained on different pointing data. "Human" uses the human-annotated data from PixMo-point; "Combined" combines human-annotated data with our synthetic pointing data.</caption>
+  <thead>
+    <tr><th rowspan="2">Model</th><th colspan="2">Mobile</th><th colspan="2">Desktop</th><th colspan="2">Web</th><th rowspan="2">Avg</th></tr>
+    <tr><th>Text</th><th>Icon</th><th>Text</th><th>Icon</th><th>Text</th><th>Icon</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>GPT-4o</td><td>20.2</td><td>24.9</td><td>21.1</td><td>23.6</td><td>12.2</td><td>7.8</td><td>18.3</td></tr>
+    <tr><td>CogAgent</td><td>67.0</td><td>24.0</td><td>74.2</td><td>20.0</td><td>70.4</td><td>28.6</td><td>47.4</td></tr>
+    <tr><td>SeeClick</td><td>78.0</td><td>52.0</td><td>72.2</td><td>30.0</td><td>55.7</td><td>32.5</td><td>53.4</td></tr>
+    <tr><td>UGround</td><td>82.8</td><td><u>60.3</u></td><td>82.5</td><td><u>63.6</u></td><td><u>80.4</u></td><td><strong>70.4</strong></td><td><u>73.3</u></td></tr>
+    <tr><td>Synthetic (Ours)</td><td><strong>90.8</strong></td><td>53.3</td><td>78.4</td><td>58.6</td><td>80.0</td><td>47.1</td><td>68.0</td></tr>
+    <tr><td>Human (Ours)</td><td>84.2</td><td>59.0</td><td><strong>88.1</strong></td><td>52.9</td><td>76.5</td><td>50.5</td><td>68.5</td></tr>
+    <tr style="background:#f4f4f4"><td><strong>Combined (Ours)</strong></td><td><u>89.0</u></td><td><strong>65.1</strong></td><td><u>87.6</u></td><td><strong>65.7</strong></td><td><strong>83.0</strong></td><td><u>58.7</u></td><td><strong>74.9</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Conclusion</h2>
+<p>We introduced CoSyn, a framework for generating synthetic data that significantly enhances VLM performance on text-rich image understanding. Our comprehensive analysis highlights the advantages of synthetic data for domain generalization, data efficiency, and bias mitigation. This work demonstrates that the coding capabilities of text-only LLMs can effectively assist multimodal learning and unleash the potential of vision-language models for real-world applications.</p>
+
+<h2>Limitations</h2>
+<p>The effectiveness of synthetic data depends heavily on the quality and diversity of the prompts and rendering pipelines used for generation. For highly specialized or underrepresented domains, generating sufficiently diverse data remains challenging and may require careful prompt engineering or additional customization of rendering tools. Targeted synthetic data generation may be essential for certain tasks, and ensuring relevance and coverage still requires domain-specific expertise. Synthetic data may not fully capture the complexity of real-world data in some scenarios; improving its diversity and realism to support models in highly variable or evolving domains is a reasonable avenue for future research. Finally, our current synthetic data is limited to English and may require further extension for multilingual support.</p>
+
+<h2>Additional Analysis and Appendix Highlights</h2>
+
+<p><strong>Rendering tools and pipelines.</strong> The 20 generation pipelines built on 11 rendering tools support nine categories of text-rich images: <em>Charts</em> (Matplotlib, Vega-Lite, Plotly, LaTeX, HTML); <em>Documents</em> (LaTeX, HTML); <em>Tables</em> (LaTeX, Matplotlib, Plotly, HTML); <em>Diagrams</em> (Graphviz, LaTeX, Mermaid); <em>Math Problems</em> (LaTeX); <em>Vector Graphics</em> (SVG, Asymptote); <em>Music Sheets</em> (LilyPond); <em>Electrical Circuits</em> (LaTeX); and <em>Chemical Structures</em> (RDKit). A separate pipeline generates pointing data using HTML. Each category is driven by a diverse set of queries (e.g., 51 chart queries, 107 document queries, 110 math queries) to ensure broad domain coverage.</p>
+
+<p><strong>Quantifying the contribution of synthetic data.</strong> Table 5 presents performance across benchmarks using different combinations of supervised fine-tuning data. A clear trend shows that synthetic data contributes significantly in both zero-shot and supervised settings, consistently boosting performance on each benchmark.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><strong>Table 5. Ablation of data selection for supervised fine-tuning.</strong> Aux, Syn, and Eval stand for auxiliary, synthetic, and evaluation datasets. Rows marked <sup>*</sup> are zero-shot models (no training examples from any evaluation dataset). Datasets marked <sup>&dagger;</sup> are test-only (no training split), so all numbers on them are zero-shot.</caption>
+  <thead>
+    <tr><th>FT Data</th><th>ChartQA</th><th>DocVQA</th><th>InfoVQA</th><th>TableVQA<sup>&dagger;</sup></th><th>AI2D</th><th>TextVQA</th><th>ScreenQA<sup>&dagger;</sup></th><th>Average</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Aux only<sup>*</sup></td><td>60.7</td><td>56.2</td><td>39.7</td><td>43.1</td><td>81.7</td><td>68.5</td><td>61.3</td><td>58.7</td></tr>
+    <tr><td>Syn only<sup>*</sup></td><td>79.4</td><td>80.5</td><td>60.1</td><td>64.4</td><td>68.6</td><td>63.6</td><td>76.6</td><td>70.5</td></tr>
+    <tr><td>Aux + Syn<sup>*</sup></td><td>80.8</td><td>82.9</td><td>59.8</td><td>64.9</td><td>83.9</td><td>72.7</td><td>78.1</td><td>74.7</td></tr>
+    <tr><td>Eval only</td><td>77.4</td><td>87.4</td><td>63.8</td><td>51.8</td><td>91.3</td><td>81.1</td><td>78.1</td><td>75.9</td></tr>
+    <tr><td>Eval + Aux</td><td>81.4</td><td>87.9</td><td>68.2</td><td>53.6</td><td>91.6</td><td>81.8</td><td>77.0</td><td>77.3</td></tr>
+    <tr style="background:#f4f4f4"><td><strong>Eval + Aux + Syn</strong></td><td><strong>86.3</strong></td><td><strong>90.0</strong></td><td><strong>70.5</strong></td><td><strong>65.8</strong></td><td><strong>91.9</strong></td><td><strong>82.0</strong></td><td><strong>80.1</strong></td><td><strong>80.9</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Impact of chain-of-thought reasoning.</strong> Table 6 compares CoT and short-answer prompts. CoT reasoning improves performance on ChartQA, TableVQA, and NutritionQA, where questions require multi-hop and mathematical reasoning, aligning with findings in language tasks (Sprague et al., 2024). Short-answer prompts yield better results on the other five datasets due to annotation biases favoring concise responses; CoT responses tend to be more verbose, which may not match ground-truth answers exactly.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><strong>Table 6. Ablation of using chain-of-thought (CoT) in prompts.</strong> "CoT" lets the model provide reasoning steps before the final answer; "Short Answer" prompts the model to answer with as few words as possible.</caption>
+  <thead>
+    <tr><th>Prompt Type</th><th>ChartQA</th><th>DocVQA</th><th>InfoVQA</th><th>TableVQA</th><th>AI2D</th><th>TextVQA</th><th>ScreenQA</th><th>NutritionQA</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>CoT</td><td><strong>86.3</strong></td><td>87.4</td><td>63.8</td><td><strong>65.8</strong></td><td>86.0</td><td>70.9</td><td>79.0</td><td><strong>76.0</strong></td></tr>
+    <tr><td>Short Answer</td><td>83.1</td><td><strong>90.0</strong></td><td><strong>70.5</strong></td><td>64.3</td><td><strong>91.9</strong></td><td><strong>82.0</strong></td><td><strong>80.1</strong></td><td>62.0</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Document pointing task.</strong> To further validate our synthetic pointing data, we introduce <strong><a href="https://huggingface.co/datasets/yyupenn/DocPointQA">DocPointQA</a></strong>, a new pointing task with 300 question-point pairs annotated from the DocVQA validation set. We compare models trained on human-annotated PixMo-point data (155K examples), our synthetic pointing data (65K examples), and their combination, reporting precision, recall, F1, and L2 distance (lower is better) following Molmo (Deitke et al., 2024). As Table 7 shows, the model trained on our synthetic data outperforms the one trained on PixMo-point, and performance improves further when both are combined.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><strong>Table 7. Zero-shot pointing on DocPointQA.</strong> "Combined" combines PixMo-point (human-annotated) with our synthetic data.</caption>
+  <thead>
+    <tr><th>Pointing Data</th><th>Precision</th><th>Recall</th><th>F1</th><th>Distance &darr;</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>PixMo-point</td><td>49.7</td><td>49.3</td><td>52.7</td><td>17.3</td></tr>
+    <tr><td>Synthetic (Ours)</td><td>63.8</td><td>66.1</td><td>62.8</td><td>9.2</td></tr>
+    <tr style="background:#f4f4f4"><td><strong>Combined (Ours)</strong></td><td><strong>69.9</strong></td><td><strong>70.6</strong></td><td><strong>70.7</strong></td><td><strong>8.8</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Qualitative Examples</h2>
+
+<p>The figures below show examples from our annotated evaluation sets (<a href="https://huggingface.co/datasets/yyupenn/NutritionQA">NutritionQA</a>, DocPointQA) and randomly selected examples from the nine categories of synthetic text-rich images, along with the synthetic pointing data.</p>
+
+<figure class="fig bordered">
+  <img src="figures/nutrition_qa.svg" alt="Example questions and answers from the NutritionQA dataset over photos of nutrition labels">
+  <figcaption><span class="lab">Figure 10.</span> Examples from our newly collected <strong>NutritionQA</strong> dataset.</figcaption>
+</figure>
+
+<figure class="fig bordered">
+  <img src="figures/doc_point.svg" alt="Example question-point annotations from the DocPointQA dataset over document images">
+  <figcaption><span class="lab">Figure 11.</span> Examples from our newly collected <strong>DocPointQA</strong> dataset.</figcaption>
+</figure>
+
+<figure class="fig bordered">
+  <img src="figures/chart.svg" alt="Randomly selected synthetic chart examples with question-answer annotations">
+  <figcaption><span class="lab">Figure 12.</span> Randomly selected examples from our synthetic <strong>chart</strong> data.</figcaption>
+</figure>
+
+<figure class="fig bordered">
+  <img src="figures/document.svg" alt="Randomly selected synthetic document examples">
+  <figcaption><span class="lab">Figure 13.</span> Randomly selected examples from our synthetic <strong>document</strong> data.</figcaption>
+</figure>
+
+<figure class="fig bordered">
+  <img src="figures/table.svg" alt="Randomly selected synthetic table examples">
+  <figcaption><span class="lab">Figure 14.</span> Randomly selected examples from our synthetic <strong>table</strong> data.</figcaption>
+</figure>
+
+<figure class="fig bordered">
+  <img src="figures/math.svg" alt="Randomly selected synthetic math-problem examples">
+  <figcaption><span class="lab">Figure 15.</span> Randomly selected examples from our synthetic <strong>math</strong> data.</figcaption>
+</figure>
+
+<figure class="fig bordered">
+  <img src="figures/diagram.svg" alt="Randomly selected synthetic diagram examples">
+  <figcaption><span class="lab">Figure 16.</span> Randomly selected examples from our synthetic <strong>diagram</strong> data.</figcaption>
+</figure>
+
+<figure class="fig bordered">
+  <img src="figures/graphic.svg" alt="Randomly selected synthetic vector-graphic examples">
+  <figcaption><span class="lab">Figure 17.</span> Randomly selected examples from our synthetic <strong>vector graphic</strong> data.</figcaption>
+</figure>
+
+<figure class="fig bordered">
+  <img src="figures/special.svg" alt="Randomly selected synthetic sheet music, circuit, and chemical structure examples">
+  <figcaption><span class="lab">Figure 18.</span> Randomly selected examples from our synthetic <strong>sheet music</strong>, <strong>circuits</strong>, and <strong>chemical structures</strong>.</figcaption>
+</figure>
+
+<figure class="fig bordered">
+  <img src="figures/point.png" alt="Randomly selected examples from the synthetic pointing dataset">
+  <figcaption><span class="lab">Figure 19.</span> Randomly selected examples from our synthetic <strong>pointing</strong> data.</figcaption>
+</figure>
+
+<section class="footnotes">
+<h2>Notes</h2>
+<ol>
+  <li id="fn1">Some tools are used in multiple pipelines, e.g., HTML is used for generating documents, tables, and charts. <a class="fnback" href="#fnref1" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn2">TableVQA is an eval-only benchmark (no training split), and we do not use the training split from ScreenQA. <a class="fnback" href="#fnref2" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn3">The coordinates of points are normalized to (0, 100) to mitigate the influence of image resolution. <a class="fnback" href="#fnref3" aria-label="Back to text">&#8617;</a></li>
+</ol>
+</section>
+
+<section class="references">
+<h2>References</h2>
+<ol>
+  <li id="ref-acharya2019tallyqa">Manoj Acharya, Kushal Kafle, and Christopher Kanan. 2019. TallyQA: Answering complex counting questions. In <em>AAAI</em>.</li>
+  <li id="ref-agrawal2024pixtral">Pravesh Agrawal, Szymon Antoniak, Emma&nbsp;Bou Hanna, Devendra Chaplot, Jessica Chudnovsky, Saurabh Garg, Theophile Gervet, Soham Ghosh, Amélie Héliou, Paul Jacob, et&nbsp;al. 2024. <a href="https://arxiv.org/abs/2410.07073">Pixtral 12b</a>. <em>arXiv preprint arXiv:2410.07073</em>.</li>
+  <li id="ref-alayrac2022flamingo">Jean-Baptiste Alayrac, Jeff Donahue, Pauline Luc, Antoine Miech, Iain Barr, Yana Hasson, Karel Lenc, Arthur Mensch, Katherine Millican, Malcolm Reynolds, et&nbsp;al. 2022. Flamingo: a visual language model for few-shot learning. In <em>NeurIPS</em>.</li>
+  <li id="ref-anthropic2024claude">Anthropic. 2024a. <a href="https://www-cdn.anthropic.com/de8ba9b01c9ab7cbabf5c33b80b7bbc618857627/Model_Card_Claude_3.pdf">The claude 3 model family: Opus, sonnet, haiku</a>.</li>
+  <li id="ref-Anthropic">Anthropic. 2024b. <a href="https://www.anthropic.com/news/claude-3-family">Introducing the next generation of claude</a>.</li>
+  <li id="ref-asai2024openscholar">Akari Asai, Jacqueline He, Rulin Shao, Weijia Shi, Amanpreet Singh, Joseph&nbsp;Chee Chang, Kyle Lo, Luca Soldaini, Sergey Feldman, Mike D'arcy, et&nbsp;al. 2024. <a href="https://arxiv.org/abs/2411.14199">Openscholar: Synthesizing scientific literature with retrieval-augmented lms</a>. <em>arXiv preprint arXiv:2411.14199</em>.</li>
+  <li id="ref-baechler2024screenai">Gilles Baechler, Srinivas Sunkara, Maria Wang, Fedir Zubach, Hassan Mansoor, Vincent Etter, Victor Cărbune, Jason Lin, Jindong Chen, and Abhanshu Sharma. 2024. <a href="https://arxiv.org/abs/2402.04615">Screenai: A vision-language model for ui and infographics understanding</a>. <em>Preprint</em>, arXiv:2402.04615.</li>
+  <li id="ref-bai2024hallucination">Zechen Bai, Pichao Wang, Tianjun Xiao, Tong He, Zongbo Han, Zheng Zhang, and Mike&nbsp;Zheng Shou. 2024. <a href="https://arxiv.org/abs/2404.18930">Hallucination of multimodal large language models: A survey</a>. <em>arXiv preprint arXiv:2404.18930</em>.</li>
+  <li id="ref-beyer2024paligemma">Lucas Beyer, Andreas Steiner, André&nbsp;Susano Pinto, Alexander Kolesnikov, Xiao Wang, Daniel Salz, Maxim Neumann, Ibrahim Alabdulmohsin, Michael Tschannen, Emanuele Bugliarello, Thomas Unterthiner, Daniel Keysers, Skanda Koppula, Fangyu Liu, Adam Grycner, Alexey Gritsenko, Neil Houlsby, Manoj Kumar, Keran Rong, Julian Eisenschlos, Rishabh Kabra, Matthias Bauer, Matko Bošnjak, Xi&nbsp;Chen, Matthias Minderer, Paul Voigtlaender, Ioana Bica, Ivana Balazevic, Joan Puigcerver, Pinelopi Papalampidi, Olivier Henaff, Xi&nbsp;Xiong, Radu Soricut, Jeremiah Harmsen, and Xiaohua Zhai. 2024. <a href="https://arxiv.org/abs/2407.07726">PaliGemma: A versatile 3B VLM for transfer</a>. <em>arXiv preprint arXiv:2407.07726</em>.</li>
+  <li id="ref-biten2019scene">Ali&nbsp;Furkan Biten, Ruben Tito, Andres Mafla, Lluis Gomez, Marçal Rusinol, Ernest Valveny, CV&nbsp;Jawahar, and Dimosthenis Karatzas. 2019. Scene text visual question answering. In <em>ICCV</em>.</li>
+  <li id="ref-chartbasedreasoning">Victor Carbune, Hassan Mansoor, Fangyu Liu, Rahul Aralikatte, Gilles Baechler, Jindong Chen, and Abhanshu Sharma. 2024a. <a href="https://arxiv.org/abs/2403.12596">Chart-based reasoning: Transferring capabilities from llms to vlms</a>. <em>arXiv preprint arXiv:2403.12596</em>.</li>
+  <li id="ref-carbune2024chart">Victor Carbune, Hassan Mansoor, Fangyu Liu, Rahul Aralikatte, Gilles Baechler, Jindong Chen, and Abhanshu Sharma. 2024b. <a href="https://arxiv.org/abs/2403.12596">Chart-based reasoning: Transferring capabilities from llms to vlms</a>. <em>arXiv preprint arXiv:2403.12596</em>.</li>
+  <li id="ref-simvqa">Paola Cascante-Bonilla, Hui Wu, Letao Wang, Rogerio&nbsp;S Feris, and Vicente Ordonez. 2022. Simvqa: Exploring simulated environments for visual question answering. In <em>Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition</em>, pages 5056–5066.</li>
+  <li id="ref-cheng2024seeclick">Kanzhi Cheng, Qiushi Sun, Yougang Chu, Fangzhi Xu, Yantao Li, Jianbing Zhang, and Zhiyong Wu. 2024. <a href="https://arxiv.org/abs/2401.10935">Seeclick: Harnessing gui grounding for advanced visual gui agents</a>. <em>Preprint</em>, arXiv:2401.10935.</li>
+  <li id="ref-deitke2024molmo">Matt Deitke, Christopher Clark, Sangho Lee, Rohun Tripathi, Yue Yang, Jae&nbsp;Sung Park, Mohammadreza Salehi, Niklas Muennighoff, Kyle Lo, Luca Soldaini, et&nbsp;al. 2024. <a href="https://arxiv.org/abs/2409.17146">Molmo and pixmo: Open weights and open data for state-of-the-art multimodal models</a>. <em>arXiv preprint arXiv:2409.17146</em>.</li>
+  <li id="ref-ge2024scalingsyntheticdatacreation">Tao Ge, Xin Chan, Xiaoyang Wang, Dian Yu, Haitao Mi, and Dong Yu. 2024. <a href="https://arxiv.org/abs/2406.20094">Scaling synthetic data creation with 1,000,000,000 personas</a>. <em>Preprint</em>, arXiv:2406.20094.</li>
+  <li id="ref-gou2024navigating">Boyu Gou, Ruohan Wang, Boyuan Zheng, Yanan Xie, Cheng Chang, Yiheng Shu, Huan Sun, and Yu&nbsp;Su. 2024. <a href="https://arxiv.org/abs/2410.05243">Navigating the digital world as humans do: Universal visual grounding for gui agents</a>. <em>arXiv preprint arXiv:2410.05243</em>.</li>
+  <li id="ref-balanced_vqa_v2">Yash Goyal, Tejas Khot, Douglas Summers-Stay, Dhruv Batra, and Devi Parikh. 2017. Making the V in VQA matter: Elevating the role of image understanding in Visual Question Answering. In <em>Conference on Computer Vision and Pattern Recognition (CVPR)</em>.</li>
+  <li id="ref-gurari2018vizwiz">Danna Gurari, Qing Li, Abigale&nbsp;J Stangl, Anhong Guo, Chi Lin, Kristen Grauman, Jiebo Luo, and Jeffrey&nbsp;P Bigham. 2018. Vizwiz grand challenge: Answering visual questions from blind people. In <em>Proceedings of the IEEE conference on computer vision and pattern recognition</em>, pages 3608–3617.</li>
+  <li id="ref-chartllama">Yucheng Han, Chi Zhang, Xin Chen, Xu&nbsp;Yang, Zhibin Wang, Gang Yu, Bin Fu, and Hanwang Zhang. 2023. <a href="https://arxiv.org/abs/2311.16483">Chartllama: A multimodal llm for chart understanding and generation</a>. <em>arXiv preprint arXiv:2311.16483</em>.</li>
+  <li id="ref-he2024distill">Wei He, Zhiheng Xi, Wanxu Zhao, Xiaoran Fan, Yiwen Ding, Zifei Shan, Tao Gui, Qi&nbsp;Zhang, and Xuanjing Huang. 2024. <a href="https://arxiv.org/abs/2410.18798">Distill visual chart reasoning ability from llms to mllms</a>. <em>arXiv preprint arXiv:2410.18798</em>.</li>
+  <li id="ref-hong2024cogagent">Wenyi Hong, Weihan Wang, Qingsong Lv, Jiazheng Xu, Wenmeng Yu, Junhui Ji, Yan Wang, Zihan Wang, Yuxiao Dong, Ming Ding, et&nbsp;al. 2024. Cogagent: A visual language model for gui agents. In <em>Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition</em>, pages 14281–14290.</li>
+  <li id="ref-hudson2019gqa">Drew&nbsp;A Hudson and Christopher&nbsp;D Manning. 2019. Gqa: A new dataset for real-world visual reasoning and compositional question answering. In <em>Proceedings of the IEEE/CVF conference on computer vision and pattern recognition</em>, pages 6700–6709.</li>
+  <li id="ref-jiang2023mistral">Albert&nbsp;Q Jiang, Alexandre Sablayrolles, Arthur Mensch, Chris Bamford, Devendra&nbsp;Singh Chaplot, Diego de&nbsp;las Casas, Florian Bressand, Gianna Lengyel, Guillaume Lample, Lucile Saulnier, et&nbsp;al. 2023. <a href="https://arxiv.org/abs/2310.06825">Mistral 7b</a>. <em>arXiv preprint arXiv:2310.06825</em>.</li>
+  <li id="ref-clevr">Justin Johnson, Bharath Hariharan, Laurens Van Der&nbsp;Maaten, Li&nbsp;Fei-Fei, C&nbsp;Lawrence&nbsp;Zitnick, and Ross Girshick. 2017. Clevr: A diagnostic dataset for compositional language and elementary visual reasoning. In <em>Proceedings of the IEEE conference on computer vision and pattern recognition</em>, pages 2901–2910.</li>
+  <li id="ref-virtualworldannotation">Matthew Johnson-Roberson, Charles Barto, Rounak Mehta, Sharath&nbsp;Nittur Sridhar, Karl Rosaen, and Ram Vasudevan. 2017. <a href="https://doi.org/10.1109/ICRA.2017.7989092">Driving in the matrix: Can virtual worlds replace human-generated annotations for real world tasks?</a> In <em>2017 IEEE International Conference on Robotics and Automation (ICRA)</em>, page 746–753. IEEE Press.</li>
+  <li id="ref-kafle2018dvqa">Kushal Kafle, Brian Price, Scott Cohen, and Christopher Kanan. 2018. DVQA: Understanding data visualizations via question answering. In <em>CVPR</em>.</li>
+  <li id="ref-kahou2017figureqa">Samira&nbsp;Ebrahimi Kahou, Vincent Michalski, Adam Atkinson, Ákos Kádár, Adam Trischler, and Yoshua Bengio. 2017. <a href="https://arxiv.org/abs/1710.07300">FigureQA: An annotated figure dataset for visual reasoning</a>. <em>arXiv preprint arXiv:1710.07300</em>.</li>
+  <li id="ref-kembhavi2016diagram">Aniruddha Kembhavi, Mike Salvato, Eric Kolve, Minjoon Seo, Hannaneh Hajishirzi, and Ali Farhadi. 2016. A diagram is worth a dozen images. In <em>ECCV</em>.</li>
+  <li id="ref-kim2024tablevqa">Yoonsik Kim, Moonbin Yim, and Ka&nbsp;Yeon Song. 2024. <a href="https://arxiv.org/abs/2404.19205">Tablevqa-bench: A visual question answering benchmark on multiple table domains</a>. <em>arXiv preprint arXiv:2404.19205</em>.</li>
+  <li id="ref-li2024llava">Bo&nbsp;Li, Yuanhan Zhang, Dong Guo, Renrui Zhang, Feng Li, Hao Zhang, Kaichen Zhang, Yanwei Li, Ziwei Liu, and Chunyuan Li. 2024. <a href="https://arxiv.org/abs/2408.03326">LLaVA-OneVision: Easy visual task transfer</a>. <em>arXiv preprint arXiv:2408.03326</em>.</li>
+  <li id="ref-li2023blip">Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. 2023. Blip-2: Bootstrapping language-image pre-training with frozen image encoders and large language models. In <em>International conference on machine learning</em>, pages 19730–19742. PMLR.</li>
+  <li id="ref-scigraphqa">Shengzhi Li and Nima Tajbakhsh. 2023. <a href="https://arxiv.org/abs/2308.03349">Scigraphqa: A large-scale synthetic multi-turn question-answering dataset for scientific graphs</a>. <em>arXiv preprint arXiv:2308.03349</em>.</li>
+  <li id="ref-liu2024llavanext">Haotian Liu, Chunyuan Li, Yuheng Li, Bo&nbsp;Li, Yuanhan Zhang, Sheng Shen, and Yong&nbsp;Jae Lee. 2024. <a href="https://llava-vl.github.io/blog/2024-01-30-llava-next/">Llava-next: Improved reasoning, ocr, and world knowledge</a>.</li>
+  <li id="ref-liu2023llava">Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong&nbsp;Jae Lee. 2023. Visual instruction tuning. In <em>NeurIPS</em>.</li>
+  <li id="ref-lu2022learn">Pan Lu, Swaroop Mishra, Tanglin Xia, Liang Qiu, Kai-Wei Chang, Song-Chun Zhu, Oyvind Tafjord, Peter Clark, and Ashwin Kalyan. 2022. Learn to explain: Multimodal reasoning via thought chains for science question answering. In <em>NeurIPS</em>.</li>
+  <li id="ref-lu2023dynamic">Pan Lu, Liang Qiu, Kai-Wei Chang, Ying&nbsp;Nian Wu, Song-Chun Zhu, Tanmay Rajpurohit, Peter Clark, and Ashwin Kalyan. 2023. Dynamic prompt learning via policy gradient for semi-structured mathematical reasoning. In <em>ICLR</em>.</li>
+  <li id="ref-okvqa">Kenneth Marino, Mohammad Rastegari, Ali Farhadi, and Roozbeh Mottaghi. 2019. OK-VQA: A visual question answering benchmark requiring external knowledge. In <em>CVPR</em>.</li>
+  <li id="ref-masry-etal-2022-chartqa">Ahmed Masry, Do&nbsp;Long, Jia&nbsp;Qing Tan, Shafiq Joty, and Enamul Hoque. 2022. ChartQA: A benchmark for question answering about charts with visual and logical reasoning. In <em>ACL</em>.</li>
+  <li id="ref-mathew2022infographicvqa">Minesh Mathew, Viraj Bagal, Rubèn Tito, Dimosthenis Karatzas, Ernest Valveny, and CV&nbsp;Jawahar. 2022. InfographicVQA. In <em>WACV</em>.</li>
+  <li id="ref-mathew2021docvqa">Minesh Mathew, Dimosthenis Karatzas, and CV&nbsp;Jawahar. 2021. DocVQA: A dataset for VQA on document images. In <em>WACV</em>.</li>
+  <li id="ref-meta2024llama">Meta. 2024. <a href="https://ai.meta.com/blog/llama-3-2-connect-2024-vision-edge-mobile-devices/">Llama 3.2: Revolutionizing edge ai and vision with open, customizable models</a>.</li>
+  <li id="ref-methani2020plotqa">Nitesh Methani, Pritha Ganguly, Mitesh&nbsp;M Khapra, and Pratyush Kumar. 2020. PlotQA: Reasoning over scientific plots. In <em>WACV</em>.</li>
+  <li id="ref-mishraICDAR19">Anand Mishra, Shashank Shekhar, Ajeet&nbsp;Kumar Singh, and Anirban Chakraborty. 2019. Ocr-vqa: Visual question answering by reading text in images. In <em>ICDAR</em>.</li>
+  <li id="ref-mukhopadhyay-etal-2024-unraveling">Srija Mukhopadhyay, Adnan Qidwai, Aparna Garimella, Pritika Ramu, Vivek Gupta, and Dan Roth. 2024. <a href="https://doi.org/10.18653/v1/2024.findings-emnlp.973">Unraveling the truth: Do VLMs really understand charts? a deep dive into consistency and robustness</a>. In <em>Findings of the Association for Computational Linguistics: EMNLP 2024</em>, pages 16696–16717, Miami, Florida, USA. Association for Computational Linguistics.</li>
+  <li id="ref-gpt4">OpenAI. 2023. <a href="https://arxiv.org/abs/2303.08774">GPT-4 technical report</a>. <em>arXiv preprint arXiv:2303.08774</em>.</li>
+  <li id="ref-patel-etal-2024-datadreamer">Ajay Patel, Colin Raffel, and Chris Callison-Burch. 2024. <a href="https://doi.org/10.18653/v1/2024.acl-long.208">DataDreamer: A tool for synthetic data generation and reproducible LLM workflows</a>. In <em>Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)</em>, pages 3781–3799, Bangkok, Thailand. Association for Computational Linguistics.</li>
+  <li id="ref-clip">Alec Radford, Jong&nbsp;Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. 2021. Learning transferable visual models from natural language supervision. In <em>ICML</em>.</li>
+  <li id="ref-raffel2020exploring">Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter&nbsp;J Liu. 2020. Exploring the limits of transfer learning with a unified text-to-text transformer. <em>Journal of machine learning research</em>, 21(140):1–67.</li>
+  <li id="ref-rajpurkar-etal-2018-know">Pranav Rajpurkar, Robin Jia, and Percy Liang. 2018. <a href="https://doi.org/10.18653/v1/P18-2124">Know what you don't know: Unanswerable questions for SQuAD</a>. In <em>Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers)</em>, pages 784–789, Melbourne, Australia. Association for Computational Linguistics.</li>
+  <li id="ref-reimers2019sentence">N&nbsp;Reimers. 2019. <a href="https://arxiv.org/abs/1908.10084">Sentence-bert: Sentence embeddings using siamese bert-networks</a>. <em>arXiv preprint arXiv:1908.10084</em>.</li>
+  <li id="ref-roberts2024scifibench">Jonathan Roberts, Kai Han, Neil Houlsby, and Samuel Albanie. 2024. <a href="https://arxiv.org/abs/2405.08807">Scifibench: Benchmarking large multimodal models for scientific figure interpretation</a>. <em>arXiv preprint arXiv:2405.08807</em>.</li>
+  <li id="ref-schwenk2022okvqa">Dustin Schwenk, Apoorv Khandelwal, Christopher Clark, Kenneth Marino, and Roozbeh Mottaghi. 2022. A-OKVQA: A benchmark for visual question answering using world knowledge. In <em>ECCV</em>.</li>
+  <li id="ref-sbsfigures">Risa Shinoda, Kuniaki Saito, Shohei Tanaka, Tosho Hirasawa, and Yoshitaka Ushiku. 2024. <a href="https://arxiv.org/abs/2412.17606">Sbs figures: Pre-training figure qa from stage-by-stage synthesized images</a>. <em>arXiv preprint arXiv:2412.17606</em>.</li>
+  <li id="ref-figureseer">Noah Siegel, Zachary Horvitz, Roie Levin, Santosh Divvala, and Ali Farhadi. 2016. Figureseer: Parsing result-figures in research papers. In <em>Computer Vision–ECCV 2016: 14th European Conference, Amsterdam, The Netherlands, October 11–14, 2016, Proceedings, Part VII 14</em>, pages 664–680. Springer.</li>
+  <li id="ref-singh2019towards">Amanpreet Singh, Vivek Natarjan, Meet Shah, Yu&nbsp;Jiang, Xinlei Chen, Devi Parikh, and Marcus Rohrbach. 2019. Towards VQA models that can read. In <em>CVPR</em>.</li>
+  <li id="ref-leafqa++">Hrituraj Singh and Sumit Shekhar. 2020. Stl-cqa: Structure-based transformers with localization and encoding for chart question answering. In <em>Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>, pages 3275–3284.</li>
+  <li id="ref-sprague2024cot">Zayne Sprague, Fangcong Yin, Juan&nbsp;Diego Rodriguez, Dongwei Jiang, Manya Wadhwa, Prasann Singhal, Xinyu Zhao, Xi&nbsp;Ye, Kyle Mahowald, and Greg Durrett. 2024. <a href="https://arxiv.org/abs/2409.12183">To cot or not to cot? chain-of-thought helps mainly on math and symbolic reasoning</a>. <em>arXiv preprint arXiv:2409.12183</em>.</li>
+  <li id="ref-team2024gemini">Gemini Team. 2024. <a href="https://arxiv.org/abs/2403.05530">Gemini 1.5: Unlocking multimodal understanding across millions of tokens of context</a>. <em>arXiv preprint arXiv:2403.05530</em>.</li>
+  <li id="ref-tong2024cambrian">Shengbang Tong, Ellis Brown, Penghao Wu, Sanghyun Woo, Manoj Middepogu, Sai&nbsp;Charitha Akula, Jihan Yang, Shusheng Yang, Adithya Iyer, Xichen Pan, et&nbsp;al. 2024. Cambrian-1: A fully open, vision-centric exploration of multimodal LLMs. In <em>NeurIPS</em>.</li>
+  <li id="ref-tsimpoukelli2021multimodal">Maria Tsimpoukelli, Jacob&nbsp;L Menick, Serkan Cabi, SM&nbsp;Eslami, Oriol Vinyals, and Felix Hill. 2021. Multimodal few-shot learning with frozen language models. <em>Advances in Neural Information Processing Systems</em>, 34:200–212.</li>
+  <li id="ref-wei2022chain">Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed&nbsp;Chi, Quoc&nbsp;V Le, Denny Zhou, et&nbsp;al. 2022. Chain-of-thought prompting elicits reasoning in large language models. <em>Advances in neural information processing systems</em>, 35:24824–24837.</li>
+  <li id="ref-chartx">Renqiu Xia, Bo&nbsp;Zhang, Hancheng Ye, Xiangchao Yan, Qi&nbsp;Liu, Hongbin Zhou, Zijun Chen, Min Dou, Botian Shi, Junchi Yan, et&nbsp;al. 2024. <a href="https://arxiv.org/abs/2402.12185">Chartx &amp; chartvlm: A versatile benchmark and foundation model for complicated chart reasoning</a>. <em>arXiv preprint arXiv:2402.12185</em>.</li>
+  <li id="ref-OSWorld">Tianbao Xie, Danyang Zhang, Jixuan Chen, Xiaochuan Li, Siheng Zhao, Ruisheng Cao, Toh&nbsp;Jing Hua, Zhoujun Cheng, Dongchan Shin, Fangyu Lei, Yitao Liu, Yiheng Xu, Shuyan Zhou, Silvio Savarese, Caiming Xiong, Victor Zhong, and Tao Yu. 2024. <a href="https://arxiv.org/abs/2404.07972">Osworld: Benchmarking multimodal agents for open-ended tasks in real computer environments</a>. <em>Preprint</em>, arXiv:2404.07972.</li>
+  <li id="ref-xu2023chartbench">Zhengzhuo Xu, Sinan Du, Yiyan Qi, Chengjin Xu, Chun Yuan, and Jian Guo. 2023. <a href="https://arxiv.org/abs/2312.15915">Chartbench: A benchmark for complex visual reasoning in charts</a>. <em>arXiv preprint arXiv:2312.15915</em>.</li>
+  <li id="ref-xue2024xgen">Le&nbsp;Xue, Manli Shu, Anas Awadalla, Jun Wang, An&nbsp;Yan, Senthil Purushwalkam, Honglu Zhou, Viraj Prabhu, Yutong Dai, Michael&nbsp;S Ryoo, et&nbsp;al. 2024. <a href="https://arxiv.org/abs/2408.08872">xGen-MM (BLIP-3): A family of open large multimodal models</a>. <em>arXiv preprint arXiv:2408.08872</em>.</li>
+  <li id="ref-yu2023large">Yue Yu, Yuchen Zhuang, Jieyu Zhang, Yu&nbsp;Meng, Alexander Ratner, Ranjay Krishna, Jiaming Shen, and Chao Zhang. 2023. <a href="https://arxiv.org/abs/2306.15895">Large language model as attributed training data generator: A tale of diversity and bias</a>. <em>Preprint</em>, arXiv:2306.15895.</li>
+  <li id="ref-provision">Jieyu Zhang, Le&nbsp;Xue, Linxin Song, Jun Wang, Weikai Huang, Manli Shu, An&nbsp;Yan, Zixian Ma, Juan&nbsp;Carlos Niebles, Caiming Xiong, et&nbsp;al. 2024. <a href="https://arxiv.org/abs/2412.07012">Provision: Programmatically scaling vision-centric instruction data for multimodal language models</a>. <em>arXiv preprint arXiv:2412.07012</em>.</li>
+</ol>
+</section>

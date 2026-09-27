@@ -1,0 +1,768 @@
+---
+layout: paper
+title: "NSF-SciFy"
+subtitle: "Mining the NSF Awards Database for Scientific Claims"
+authors_html: >-
+  Delip Rao<sup>*&dagger;</sup>, Weiqiu You<sup>&dagger;</sup>, Eric Wong,
+  <span class="me">Chris Callison-Burch</span>
+affiliations: "University of Pennsylvania, Philadelphia, PA, USA"
+authornote: "* Corresponding author. &dagger; Co-first authors. Contact: {delip, weiqiuy, exwong, ccb}@seas.upenn.edu"
+venue: "ACL"
+year: 2026
+links:
+  arxiv: "https://arxiv.org/abs/2503.08600"
+  code: "https://github.com/darpa-scify/NSFSciFy"
+  data: "https://huggingface.co/darpa-scify/nsf-scify-matsci-claims"
+abstract: >-
+  We introduce NSF-SciFy, a comprehensive dataset of scientific claims and investigation proposals
+  extracted from National Science Foundation award abstracts. While previous scientific claim
+  verification datasets have been limited in size and scope, NSF-SciFy represents a significant
+  advance with 2.8 million claims from 400,000 abstracts spanning all science and mathematics
+  disciplines. We present two focused subsets: NSF-SciFy-MatSci with 114,000 claims from materials
+  science awards, and NSF-SciFy-20K with 135,000 claims across five NSF directorates. Using zero-shot
+  prompting, we develop a scalable approach for joint extraction of scientific claims and
+  investigation proposals. We demonstrate the dataset's utility through three downstream tasks:
+  non-technical abstract generation, claim extraction, and investigation proposal extraction.
+  Fine-tuning language models on our dataset yields substantial improvements, with relative gains
+  often exceeding 100%, particularly for claim and proposal extraction tasks. Our error analysis
+  reveals that extracted claims exhibit high precision but lower recall, suggesting opportunities
+  for further methodological refinement. NSF-SciFy enables new research directions in large-scale
+  claim verification, scientific discovery tracking, and meta-scientific analysis. Code and data
+  are available at https://github.com/darpa-scify/NSFSciFy.
+bibtex: |
+  @inproceedings{rao2026nsfscify,
+    title={{NSF-SciFy}: Mining the NSF Awards Database for Scientific Claims},
+    author={Rao, Delip and You, Weiqiu and Wong, Eric and Callison-Burch, Chris},
+    booktitle={Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics},
+    year={2026},
+    publisher={Association for Computational Linguistics},
+    url={https://arxiv.org/abs/2503.08600}
+  }
+og_image: "figures/nsf-scify-sample-record.png"
+---
+
+<h2>1. Introduction</h2>
+
+<figure class="fig bordered">
+  <img src="figures/nsf-scify-sample-record.png" alt="A sample NSF-SciFy record showing award ID and title, directorate, technical and non-technical abstracts, extracted claims, investigation proposals, and associated publications">
+  <figcaption><span class="lab">Figure 1.</span> A sample record from our dataset. Each record contains 1) Award ID and title, 2) NSF Directorate, 3) Technical and non-technical abstracts, 4) Scientific Claims, 5) Investigation Proposals, and 6) Associated publications, when present.</figcaption>
+</figure>
+
+<p>The overall growth rate of scientific publications is estimated to be 4% annually, with a doubling time of 17 years (Bornmann et al., 2021). Within this deluge, researchers, reviewers, and the general public struggle to separate substantiated claims from spurious ones&mdash;whether it is the &ldquo;quantum supremacy&rdquo; assertions in computing, the short-lived excitement over LK-99 superconductors,<sup class="fn"><a href="#fn1" id="fnref1">1</a></sup> or the misunderstanding surrounding microplastic leaches from <a href="https://nationalpost.com/news/canada/black-plastic">black plastic spatulas</a>. Manual verification of ever growing body of scientific claims has become intractable, yet the economic and societal consequences of unverified claims are increasingly severe.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table 1.</span> <strong>(NSF-SciFy spans all science and math <em>domains</em> and includes diverse <em>data types</em>: technical/non-technical abstracts, claims, and investigation proposals.)</strong> While previous datasets like SciFACT and PubHEALTH contain at most thousands of claims from published research papers or fact-checking sources, our NSF-SciFy-MatSci and NSF-SciFy-20K datasets individually contribute more than 100K claims. The full NSF-SciFy dataset represents an order-of-magnitude increase with 2.8M claims across 400K abstracts spanning all science &amp; math disciplines. This work introduces grant abstracts as a novel, untapped source for scientific claim extraction, complementing existing approaches that focus on published literature, news articles, or social media.</caption>
+  <thead>
+    <tr><th style="text-align:left">Dataset</th><th># claims</th><th># docs</th><th style="text-align:left">Evidence Source</th><th style="text-align:left">Domain</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">SciFACT (Wadden et al., 2020)</td><td>1.4K</td><td>5K</td><td style="text-align:left">Research papers</td><td style="text-align:left">Biomedical</td></tr>
+    <tr><td style="text-align:left">PubHEALTH (Kotonya and Toni, 2020)</td><td>11.8K</td><td>11.8K</td><td style="text-align:left">Fact-checking sites</td><td style="text-align:left">Public health</td></tr>
+    <tr><td style="text-align:left">CLIMATE-FEVER (Diggelmann et al., 2020)</td><td>1.5K</td><td>7.5K</td><td style="text-align:left">Wikipedia articles</td><td style="text-align:left">Climate change</td></tr>
+    <tr><td style="text-align:left">HealthVer (Sarrouti et al., 2021)</td><td>1.8K</td><td>738</td><td style="text-align:left">Research papers</td><td style="text-align:left">Healthcare</td></tr>
+    <tr><td style="text-align:left">COVID-Fact (Saakyan et al., 2021)</td><td>4K</td><td>4K</td><td style="text-align:left">Research, news</td><td style="text-align:left">COVID</td></tr>
+    <tr><td style="text-align:left">CoVERT (Mohr et al., 2022)</td><td>300</td><td>300</td><td style="text-align:left">Research, news</td><td style="text-align:left">Biomedical</td></tr>
+    <tr><td style="text-align:left">SciFACT-Open (Wadden et al., 2022)</td><td>279</td><td>500K</td><td style="text-align:left">Research papers</td><td style="text-align:left">Biomedical</td></tr>
+    <tr><td style="text-align:left"><strong>NSF-SciFy-MatSci (ours)</strong></td><td><strong>114K</strong></td><td><strong>16K</strong></td><td style="text-align:left"><strong>NSF award abstracts</strong></td><td style="text-align:left"><strong>Material Science</strong></td></tr>
+    <tr><td style="text-align:left"><strong>NSF-SciFy-20K (ours)</strong></td><td><strong>135K</strong></td><td><strong>20K</strong></td><td style="text-align:left"><strong>NSF award abstracts</strong></td><td style="text-align:left"><strong>All Science &amp; Math</strong></td></tr>
+    <tr><td style="text-align:left"><strong>NSF-SciFy (ours)</strong></td><td><strong>2.8M</strong></td><td><strong>400K</strong></td><td style="text-align:left"><strong>NSF award abstracts</strong></td><td style="text-align:left"><strong>All Science &amp; Math</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Wadden et al. (2020) introduced the task of scientific claim verification with the SciFACT dataset, focusing primarily on automatic verification of scientific claims. Follow up works (see Section 2 for a detailed account) have mostly focused on the healthcare, building datasets from scientific publications, and modest-sized dataset creation. In this work, we relax all of these aspects and look at building at least an order of magnitude large-scale scientific claim dataset covering all of basic science. We envision building of such large-scale, scientific claim datasets to help future work on robust scientific claim verification systems.</p>
+
+<p>We introduce NSF-SciFy,<sup class="fn"><a href="#fn2" id="fnref2">2</a></sup> a comprehensive dataset of claims and investigation proposals extracted from National Science Foundation (NSF) award abstracts. We choose NSF abstracts as our source material for several reasons:</p>
+
+<ol>
+  <li>NSF is a primary driver of U.S. scientific innovation, funding approximately 25% of all federally supported basic research, spanning the entirety of science and math areas, with an annual budget of $9.9 billion (FY 2023). Any claim dataset derived from the NSF awards database should faithfully represent the scientific Zeitgeist.</li>
+  <li>NSF's rigorous subject matter expert-review process provides a high-quality filter for the claims made in funded proposals.</li>
+  <li>The public availability and permissive usage terms of the NSF awards database makes it an excellent resource for open science research.</li>
+  <li>Previous datasets on scientific claims have been derived from scientific papers, but claims in scientific grants, and particularly investigation proposals, remain unstudied.</li>
+</ol>
+
+<p>While not the focus of this paper, grant award abstracts additionally provide a unique opportunity to study the relationship between what researchers claim and what they propose to investigate. This could offer valuable insights into scientific practice and the evolution of research questions.</p>
+
+<p>In this paper, we make the following contributions: (1) We introduce NSF-SciFy, the largest scientific claim dataset to date with 2.8M claims extracted from 400K NSF award abstracts, establishing grant proposals as a novel source for scientific claim extraction; (2) We create NSF-SciFy-MatSci focusing exclusively on materials science with 114K extracted claims from 16K abstracts. This is the first materials science claim dataset and, in number of extracted claims, this alone is an order of magnitude bigger than the largest publicly available claim dataset; In addition, we also create NSF-SciFy-20K with 135K claims spanning five NSF directorates. (3) We develop a zero-shot prompting approach for joint extraction of scientific claims and investigation proposals as a scalable way to bootstrap high-precision, large-scale scientific claim datasets; (4) We present novel evaluation metrics for claim/proposal extraction based on LLM judgments, showing that fine-tuned models significantly outperform base models; and (5) Finally, we release all datasets and trained models from our work for unfettered research and commercial use. Our dataset and methods enable new opportunities for large-scale claim verification, scientific discovery tracking, and meta-scientific research. See Appendix A for reproducibility statement.</p>
+
+<h2>2. Related Work</h2>
+
+<p>Scientific claim extraction and verification has emerged as an important research area as the volume of scientific literature continues to grow exponentially. Previous work has primarily focused on claims from published papers, fact-checking sites, and news articles.</p>
+
+<p><strong>Scientific Claim Datasets.</strong> Several datasets have been developed for scientific claim verification, but all have focused on claims from published literature, while we undertake the study of grant award abstracts. SciFACT (Wadden et al., 2020) contains 1,400 scientific claims derived from research papers in the biomedical domain. PubHEALTH (Kotonya and Toni, 2020) includes 11,800 claims from journalists and fact-checkers in public health. CLIMATE-FEVER (Diggelmann et al., 2020) compiled 1,500 claims from news articles about climate change. HealthVer (Sarrouti et al., 2021) extracted 1,800 claims from search queries related to health topics. COVID-Fact (Saakyan et al., 2021) and CoVERT (Mohr et al., 2022) focused on COVID-19 related claims from social media. SciFact-Open (Wadden et al., 2022) expanded the original SciFact dataset using information retrieval pooling, yet it still remains health-care focused and a few orders of magnitude smaller than our largest dataset.</p>
+
+<p>Table 1 situates existing scientific claim datasets with our NSF-SciFy datasets, highlighting the significantly larger scale of our contribution (2.8 million claims in NSF-SciFy, 135,000 claims in NSF-SciFy-20K and 114,000 claims in NSF-SciFy-MatSci), broad topic coverage (all of science and math), and novelty of data source (grant abstracts). See Figure 2.</p>
+
+<figure class="fig">
+  <img src="figures/directorate_distribution_with_materials.svg" alt="Distribution of NSF awards across directorates in NSF-SciFy, with the materials science subset highlighted">
+  <figcaption><span class="lab">Figure 2.</span> <strong>(NSF-SciFy contains a large variety of domains.)</strong> Distribution of awards areas as represented by the National Science Foundation directorates in NSF-SciFy, illustrating the breadth and comprehensiveness of scientific claims in our dataset. The NSF-SciFy-MatSci subset spanning all of materials science awards represents 3.9% of the entire dataset.</figcaption>
+</figure>
+
+<p><strong>Meta Science and Social Science.</strong> Previous works have examined grants data in social science and meta-science contexts. For example, Park et al. (2024) examine the relationship between interdisciplinary grants and the impact of papers they support and Xu et al. (2022) study the influence of research funding on team structure using grant data. While these are tenuously connected to our work, we list them for the sake of completeness.</p>
+
+<h2>3. Building NSF-SciFy</h2>
+
+<h3>3.1 Data Collection</h3>
+
+<p>We downloaded the entire <a href="https://www.nsf.gov/awardsearch/advancedSearch.jsp">NSF Awards database</a> in XML format, containing more than 0.5 million awards from 1970 through September 2024. After parsing, we obtained 412,155 parseable awards, which we call NSF-SciFy.</p>
+
+<p>In this paper, we focus on all awards from the Division of Materials Research (DMR), which is responsible for most materials science awards at the NSF. This subset, called NSF-SciFy-MatSci, contains 16,031 awards, representing approximately 3.2% of the entire NSF awards database. We chose materials science as our focus due to its interdisciplinary nature and technological importance. In addition, we build NSF-SciFy-20K, a different subset of 20K awards spanning 5 NSF directorates&mdash;Mathematical and Physical Sciences (MPS), Geological Sciences (GEO), Engineering (ENG), Computer and Information Science and Engineering (CSE), and Biological Sciences (BIO).</p>
+
+<h3>3.2 Data Processing</h3>
+
+<p>As Figure 1 illustrates, each record in NSF-SciFy-MatSci typically contains:</p>
+<ol>
+  <li>Award ID, title, and year.</li>
+  <li>Directorate and division information</li>
+  <li>Technical abstract</li>
+  <li>Non-technical abstract (present in $\sim$81% of awards)</li>
+  <li>Scientific claims made in the abstracts</li>
+  <li>Investigation proposals in the abstracts</li>
+  <li>Publications resulting from the grant (when available)</li>
+</ol>
+
+<p>The practice of updating awards with resulting publications is relatively recent, primarily occurring from 2014 onwards. For awards where publications are present, we extracted the DOIs and resolved them to obtain titles, abstracts, and publication URLs.</p>
+
+<h3>3.3 Claim and Investigation Proposal Extraction</h3>
+
+<p>To extract scientific claims and investigation proposals from the award abstracts, we developed a zero-shot prompting approach using Anthropic's Claude-3.5<sup class="fn"><a href="#fn3" id="fnref3">3</a></sup> model. Our prompt instructed the model to identify two types of statements:</p>
+<ol>
+  <li><strong>Claims</strong>: Statements that the abstract claims to be true or states as assumptions, either explicitly or implicitly.<sup class="fn"><a href="#fn4" id="fnref4">4</a></sup></li>
+  <li><strong>Investigation proposals</strong>: Forward-looking statements that propose specific research activities as part of the award.</li>
+</ol>
+
+<p>We structured the prompt to return a JSON object containing the award ID, technical abstract, non-technical abstract, a list of claims, and a list of investigation proposals. To maintain consistency and quality, we set temperature to zero for all extractions. See Appendix B for the exact prompt and Appendix G for sample claims and investigation proposals.</p>
+
+<p>We performed qualitative experiments with several prompt variants and our analysis showed that jointly extracting claims and investigation proposals helped maintain the relevance of extracted claims. When claims were extracted without also extracting investigation proposals, the model often confused forward-looking statements about proposed investigations as factual claims.</p>
+
+<h2>4. Dataset Analysis</h2>
+
+<p><strong>NSF-SciFy.</strong> The full dataset contains 412,155 award abstracts spanning from 1970 to 2024, with 2.8 million scientific claims and corresponding investigation proposals.</p>
+
+<p><strong>NSF-SciFy-MatSci.</strong> This materials science subset, which is the focus of this preprint, contains:</p>
+<ul>
+  <li>16,042 awards with each with a technical and non-technical abstract</li>
+  <li>114K extracted scientific claims (average of $7\pm2$ claims per abstract-pair)</li>
+  <li>145K extracted investigation proposals (average of $9\pm3$ proposals per abstract-pair)</li>
+  <li>2,953 awards with linked publications (18.4% of the dataset). Such awards had anywhere between 1&ndash;4 publications.</li>
+</ul>
+
+<p><strong>NSF-SciFy-20K.</strong> For building models across all NSF directorates, we take 20,000 sample subset of NSF-SciFy, by stratifying across 5 directorates.</p>
+<ul>
+  <li>20,001 awards with each with a technical and non-technical abstract</li>
+  <li>135K extracted scientific claims (average of $7\pm2$ claims per abstract-pair)</li>
+  <li>139K extracted investigation proposals (average of $7\pm2$ proposals per abstract-pair)</li>
+</ul>
+
+<h3>4.1 Technical vs. Non-Technical Abstracts</h3>
+
+<p>We investigated the differences between technical and non-technical abstracts in our dataset. Using a symmetric BLEU score to measure textual similarity between paired abstracts, we found that only 202 (1.5%) out of 13,025 technical/non-technical abstract pairs had a similarity score greater than 0.6, suggesting that the non-technical abstracts are not simply copied from the technical abstracts.</p>
+
+<p>Since grant abstracts are previously unexamined in literature, we further investigated the stylistic differences between technical and non-technical abstracts using pre-trained document embedding models. Figure A7 compares content embeddings from SPECTER (Cohan et al., 2020) and style embeddings from STEL (Patel et al., 2025). Using these embeddings with a linear SVM classifier, we achieved F1 scores of 90.99 (SPECTER), 88.42 (STEL), and 89.99 (concatenated), demonstrating that the abstracts are distinguishable both in content and style.</p>
+
+<h3>4.2 Taxonomies of Claims and Investigation Proposals</h3>
+
+<p><strong>Claims.</strong> To characterize the types of assertions made in NSF award abstracts, we analyzed 810 extracted claims from 120 awards sampled across five NSF directorates (MPS, GEO, ENG, CSE, BIO). We identified eight broad categories, covering well-known facts, observed phenomena, applications of methods or technologies, theoretical predictions, experimental findings, knowledge gaps, definitions/classifications, and process descriptions. Figure 3 shows their distribution. The most common types are <em>Capability/Application of Technology/Method</em> (32.8%), <em>Statement of Problem/Knowledge Gap</em> (21.0%), and <em>Observed Phenomenon/Property</em> (18.9%). Examples for all categories are shown in Table A10.</p>
+
+<figure class="fig">
+  <img src="figures/category_treemap.svg" alt="Treemap of scientific claim categories in NSF awards">
+  <figcaption><span class="lab">Figure 3.</span> <strong>(Most scientific claims in the abstracts are about knowledge gap and application methods.)</strong> A treemap of the scientific claim categories in NSF awards. See Table A10 for descriptions of these categories.</figcaption>
+</figure>
+
+<p><strong>Investigation Proposals.</strong> We performed a parallel analysis on 833 investigation proposals from the same award set, identifying eight categories spanning theoretical analysis, experimental technique development, algorithm/method development, academic training, and various empirical study types. Figure 4 shows their distribution. The majority fall under <em>Theoretical Analysis and Computational Modeling</em> (36.9%), <em>Experimental Technique and Tool Development</em> (16.8%), and <em>Academic Training and Curriculum Development</em> (12.8%). Examples for all categories are shown in Table A11.</p>
+
+<figure class="fig">
+  <img src="figures/category_treemap_ip.svg" alt="Treemap of investigation proposal categories in NSF awards">
+  <figcaption><span class="lab">Figure 4.</span> <strong>(Most investigation proposals in the abstracts are about experimental technique and theoretical analysis.)</strong> A treemap of the investigation proposal categories in NSF awards. See Table A11 for descriptions of these categories.</figcaption>
+</figure>
+
+<h3>4.3 Evaluating Extracted Claims and Investigation Proposals</h3>
+
+<p>We evaluate the quality of the extracted claims and investigation proposals (Section 3.3) by manually annotating 120 sampled awards (Section 4.2) and computing precision, recall, and F1. For each of the six NSF areas&mdash;Materials Science (DMR), Mathematical and Physical Sciences excluding Materials Science (MPS-DMR), Geological Sciences (GEO), Engineering (ENG), Computer and Information Science and Engineering (CSE), and Biological Sciences (BIO)&mdash;we randomly sampled 20 items per area. Using <code>GPT-4o</code> (OpenAI, 2024), we identified additional true elements $G'$ missed by the extracted set (with $FN = |G'|$) and categorized previously extracted elements as correct ($TP$) or incorrect ($FP$). Annotators (PhD students) manually verified <code>GPT-4o</code>'s outputs on 20 abstracts and confirmed near-perfect verification accuracy. Precision, recall, and F1 were then computed using $FN$, $TP$, and $FP$.</p>
+
+<figure class="fig">
+  <img src="figures/syndata_eval.svg" alt="Cleveland dot plot of precision, recall, and F1 for Claude-extracted claims across six NSF award areas">
+  <figcaption><span class="lab">Figure 5.</span> <strong>(Claim extraction achieves consistently high precision across all areas, while recall is lower, leading to moderate F1-scores.)</strong> A Cleveland dot plot of precision, recall, and F1-score across different NSF Award Areas for claims extracted via Claude (See Section 3.3). Error bars denote standard deviation (bootstrap N=1000). See Section 4.3 for analysis.</figcaption>
+</figure>
+
+<figure class="fig">
+  <img src="figures/syndata_eval_ip.svg" alt="Cleveland dot plot of precision, recall, and F1 for Claude-extracted investigation proposals across six NSF award areas">
+  <figcaption><span class="lab">Figure 6.</span> <strong>(Investigation Proposal extraction achieves consistently high precision across all areas, while recall is lower, leading to moderate F1-scores.)</strong> A Cleveland dot plot of precision, recall, and F1-score across different NSF Award Areas for investigation proposals extracted via Claude (See Section 3.3). Error bars denote standard deviation (bootstrap N=1000). See Section 4.3 for analysis.</figcaption>
+</figure>
+
+<p>Figures 5 and 6 summarize performance across the six areas for claims and investigation proposals, respectively. For claims, extraction achieves consistently high precision but lower recall, leading to moderate F1-scores. For investigation proposals, precision, recall, and F1 are more balanced across areas, indicating more comprehensive coverage. Overall, the extracted data is of high quality, though improving recall for claims remains an important direction.</p>
+
+<h2>5. Tasks, Metrics, and Experiments</h2>
+
+<p>Previously, Section 3.3 describes the data extraction process using a large model, and Section 4 evaluates the quality of the resulting synthetic data. Here, we demonstrate its utility by evaluating the performance of smaller models fine-tuned on it across three NLP tasks:</p>
+
+<ol>
+  <li>The <strong>Non-technical Abstract Generation</strong> task translates dense, technical grant abstracts into accessible language for broader science communication. Motivated by capturing the core scientific essence while navigating stylistic and content differences between technical and lay summaries, this task uses the dataset's paired examples (common in NSF awards) to train models for this nuanced transformation.</li>
+  <li>The <strong>Abstract to Scientific Claims Extraction</strong> task automates identifying verifiable assertions&mdash;the core of scientific discourse&mdash;from grant abstracts, which capture these claims at an early, pre-publication stage. Significant performance gains post-fine-tuning highlight the dataset's effectiveness in teaching models to pinpoint these crucial statements.</li>
+  <li>The <strong>Abstract to Investigation Proposals Extraction</strong> task distinguishes aspirational research intentions from established claims, offering a novel analysis of scientific texts. This provides a clearer view of the planned research trajectory by identifying intended activities. It complements claim extraction by presenting a fuller picture of proposed work, from assertions to investigative pathways, again showing significant fine-tuning efficacy due to the dataset's focused nature.</li>
+</ol>
+
+<p>To explore the three tasks, we finetuned two 7B parameter language models:</p>
+<ul>
+  <li><code>Mistral-7B-instruct-v0.3</code> (Jiang et al., 2023)</li>
+  <li><code>Qwen2.5-7B-Instruct</code> (Yang et al., 2024)</li>
+</ul>
+
+<h3>5.1 Data Preparation</h3>
+
+<p>Starting with 16,042 processed entries in NSF-SciFy-MatSci, we removed near-duplicates in technical and non-technical abstracts using trigram Jaccard similarity (threshold &gt; 0.9), resulting in 11,569 data points. We further filtered cases where character-level 10-gram similarity between an entry's technical and non-technical abstracts exceeded 0.6, yielding 11,141 final data points. We split this dataset into train/validation/test sets with 8,641/500/2,000 examples, respectively.</p>
+
+<h3>5.2 Finetuning Details</h3>
+
+<p>For fine-tuning, we used LoRA (Hu et al., 2021) with rank=128, lora_alpha=64 and a learning rate of 1e-5 scheduled linearly. We updated the query, key, value, and output projection layers, as well as MLP gate, up, and down projections. We ran the finetuning on an A100 GPU for 3 epochs, 100 warmup steps, and a batch size of 2 with 4 accumulated steps. Each epoch takes around one hour.</p>
+
+<h3>5.3 Evaluation Metrics</h3>
+
+<p>For Task 1&mdash;abstract generation&mdash;we employed a comprehensive evaluation framework using both BERTScore (Zhang et al., 2020) and ROUGE (Lin, 2004) metrics to assess the quality of generated non-technical abstracts. This combination enables us to capture both lexical overlap and structural similarity through the ROUGE variants, while BERTScore provides insights into semantic alignment between the generated texts and reference abstracts. Incorporating such multi-viewed metrics<sup class="fn"><a href="#fn5" id="fnref5">5</a></sup> ensures that the evaluation reflects not only the presence of key words and phrases but also the underlying meaning and narrative coherence of the abstracts.</p>
+
+<p>For Task 2&mdash;claim extraction&mdash;we developed a novel evaluation approach using LLM-based comparisons. Previous methods for claim evaluations focused on comparing a single claim against a single document. See Tang et al. (2024), for example. However, our setting required evaluating a set of extracted claims against a gold set of claims.</p>
+
+<p>Towards that end, we defined a boolean function $\mathbf{\Phi}_{\textrm{claim}}$ using <code>GPT-4o-mini</code> (OpenAI, 2024) with zero-shot prompting to determine whether a generated claim is supported by a gold standard claim. See Appendix C for prompt details.<sup class="fn"><a href="#fn6" id="fnref6">6</a></sup> Using this function, we calculated precision and recall as follows:</p>
+
+$$
+\begin{aligned}
+\text{Precision}&=\frac{1}{|S|} \sum_{c \in S} \max_{g \in G} \mathbf{\Phi}_{\textrm{claim}}(c, g)\\
+\text{Recall}&=\frac{1}{|G|} \sum_{g \in G} \max_{c \in S} \mathbf{\Phi}_{\textrm{claim}}(g, c)
+\end{aligned}
+$$
+
+<p>where $S$ is the set of claims generated from the finetuned model, after removal of any repeats/near-repeats,<sup class="fn"><a href="#fn7" id="fnref7">7</a></sup> and $G$ is the gold standard set. We note that this is a variant of precision/recall metrics defined for image captioning in Deitke et al. (2024), however unlike Deitke et al., we explicitly use $\mathbf{\Phi}_{\textrm{claim}}$ in computing both precision and recall. This is necessary as we need to accurately penalize any spurious claims generated by the finetuned model. Works by Gu et al. (2025) and Liu et al. (2023) are relevant here.</p>
+
+<p>We carefully validated our LLM on a subset of 120 awards using human annotators assisted by <code>GPT-4o-mini</code>. We restricted the role of GPT-4o-mini to only pairwise sentence comparison, a task which prior work has shown as easy for large foundation models. We found a near-perfect correlation between human judgments and <code>GPT-4o-mini</code>'s judgements for this pairwise comparison.<sup class="fn"><a href="#fn8" id="fnref8">8</a></sup> Based on this validation, we applied LLM-as-judge evaluation to the full dataset, a scale that would otherwise have been infeasible to annotate manually. All P/R/F1 values were computed deterministically using the pairwise outputs.</p>
+
+<p>Analogously, for Task 3&mdash;extraction of investigation proposals&mdash;we define precision and recall similarly but use a different pairwise boolean judge function $\mathbf{\Phi}_{\textrm{IP}}$ <em>mutatis mutandis</em>. See Appendix D for prompt details.</p>
+
+<h2>6. Results</h2>
+
+<h3>6.1 Non-technical Abstract Generation</h3>
+
+<p>Table 2 shows the results for Task 1. Both Mistral and Qwen models demonstrated strong performance, with fine-tuning providing modest improvements. The Mistral model outperformed Qwen on almost all metrics, achieving a BERTScore-F1 of 0.8561 after fine-tuning (+0.36% relative improvement). ROUGE scores were generally low (0.01&ndash;0.22), reflecting the stylistic differences between technical and non-technical abstracts.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table 2.</span> <strong>(Finetuned models have modest improvements on technical abstract to non-technical abstract translation, indicating excellent out-of-the-box performance for this task.)</strong> Finetuning performance for <code>Mistral-7B-instruct-v0.3</code> and <code>Qwen2.5-7B-Instruct</code> models for Technical abstract to Non-technical abstract translation (Task 1), with relative improvements over the corresponding unfinetuned model indicated in <span style="color:#0a7d2c">green</span>. Error bars for all metrics at 95% confidence intervals range between 0.0000&ndash;0.0025. Mistral model outperforms Qwen on almost all metrics for this task regardless of finetuning.</caption>
+  <thead>
+    <tr><th style="text-align:left">Metric</th><th>Mistral</th><th>Qwen</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">BERTScore-P</td><td>0.8563 <span style="color:#0a7d2c">(+0.38% &uarr;)</span></td><td>0.8459 <span style="color:#0a7d2c">(+0.98% &uarr;)</span></td></tr>
+    <tr><td style="text-align:left">BERTScore-R</td><td>0.8555 <span style="color:#0a7d2c">(+0.30% &uarr;)</span></td><td>0.8597 <span style="color:#0a7d2c">(+1.61% &uarr;)</span></td></tr>
+    <tr><td style="text-align:left">BERTScore-F1</td><td><strong>0.8561</strong> <span style="color:#0a7d2c">(+0.36% &uarr;)</span></td><td>0.8437 <span style="color:#0a7d2c">(+0.75% &uarr;)</span></td></tr>
+    <tr><td style="text-align:left">ROUGE1</td><td>0.2000 <span style="color:#0a7d2c">(+2.58% &uarr;)</span></td><td>0.1978 <span style="color:#0a7d2c">(+1.98% &uarr;)</span></td></tr>
+    <tr><td style="text-align:left">ROUGE2</td><td>0.0198 <span style="color:#0a7d2c">(+4.76% &uarr;)</span></td><td>0.0210 <span style="color:#0a7d2c">(+3.89% &uarr;)</span></td></tr>
+    <tr><td style="text-align:left">ROUGE-L</td><td>0.1273 <span style="color:#0a7d2c">(+2.96% &uarr;)</span></td><td>0.1466 <span style="color:#0a7d2c">(+0.65% &uarr;)</span></td></tr>
+    <tr><td style="text-align:left">ROUGE-L-sum</td><td>0.2166 <span style="color:#0a7d2c">(+2.45% &uarr;)</span></td><td>0.2078 <span style="color:#0a7d2c">(+1.66% &uarr;)</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>6.2 Scientific Claim Extraction</h3>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table 3.</span> <strong>(Finetuning leads to large improvements in claim extraction from abstracts.)</strong> Finetuning performance for <code>Mistral-7B-instruct-v0.3</code> and <code>Qwen2.5-7B-Instruct</code> models for Claim Extraction from abstracts (Task 2), with relative improvements over the corresponding unfinetuned model indicated in <span style="color:#0a7d2c">green</span>. Error bars for all metrics at 95% confidence intervals range between 0.0038&ndash;0.0055. Mistral model outperforms Qwen on almost all metrics for this task regardless of finetuning. We note the large positive percent changes, sometimes improvements as large as 2x, indicate finetuning is indispensable for claim extraction. Mistral model outperforms Qwen on almost all metrics for this task.</caption>
+  <thead>
+    <tr><th style="text-align:left">Metric</th><th>Mistral</th><th>Qwen</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">Precision</td><td>0.7450 <span style="color:#0a7d2c">(+116.7% &uarr;)</span></td><td>0.6839 <span style="color:#0a7d2c">(+107.1% &uarr;)</span></td></tr>
+    <tr><td style="text-align:left">Recall</td><td>0.7098 <span style="color:#0a7d2c">(+59.5% &uarr;)</span></td><td>0.6611 <span style="color:#0a7d2c">(+7.8% &uarr;)</span></td></tr>
+    <tr><td style="text-align:left">F1</td><td>0.7097 <span style="color:#0a7d2c">(+101.8% &uarr;)</span></td><td>0.6541 <span style="color:#0a7d2c">(+63.3% &uarr;)</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>For Task 2 (claim extraction), fine-tuning yielded substantial improvements. As shown in Table 3, the fine-tuned Mistral model achieved a precision of 0.7450 (+116.7% relative improvement), recall of 0.7098 (+59.5%), and F1 of 0.7097 (+101.8%). The Mistral model consistently outperformed Qwen, though both showed significant benefits from fine-tuning.</p>
+
+<h3>6.3 Investigation Proposal Extraction</h3>
+
+<p>Similarly, Task 3 (proposal extraction) showed dramatic improvements with fine-tuning. As shown in Table 4, the Mistral model achieved a precision of 0.7351 (+18.24%), recall of 0.7539 (+127.24%), and F1 of 0.7261 (+90.97%) after fine-tuning. The relative improvements were even larger for the Qwen model, though Mistral still performed better overall.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table 4.</span> <strong>(Finetuning leads to large improvements in investigation proposal extraction from abstracts.)</strong> Finetuning performance for <code>Mistral-7B-instruct-v0.3</code> and <code>Qwen2.5-7B-Instruct</code> models for extraction of Investigation Proposals from award abstracts (Task 3), with relative improvements over the corresponding unfinetuned model indicated in <span style="color:#0a7d2c">green</span>. Error bars for all metrics at 95% confidence intervals range between 0.0036&ndash;0.0073. Mistral model outperforms Qwen on almost all metrics for this task regardless of finetuning. We note the large positive percent changes, sometimes improvements as large as 2x, indicate finetuning is indispensable for this task. Mistral model outperforms Qwen on almost all metrics for this task.</caption>
+  <thead>
+    <tr><th style="text-align:left">Metric</th><th>Mistral</th><th>Qwen</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">Precision</td><td>0.7351 <span style="color:#0a7d2c">(+18.24% &uarr;)</span></td><td>0.7245 <span style="color:#0a7d2c">(+70.07% &uarr;)</span></td></tr>
+    <tr><td style="text-align:left">Recall</td><td>0.7539 <span style="color:#0a7d2c">(+127.24% &uarr;)</span></td><td>0.6865 <span style="color:#0a7d2c">(+81.57% &uarr;)</span></td></tr>
+    <tr><td style="text-align:left">F1</td><td>0.7261 <span style="color:#0a7d2c">(+90.97% &uarr;)</span></td><td>0.6827 <span style="color:#0a7d2c">(+112.60% &uarr;)</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Since Mistral models seemed to have an edge over the Qwen2.5 models for these tasks, we also trained a Mistral only version of on the NSF-SciFy-20K subset which spans all NSF directorates. The results can be found in Appendix F.</p>
+
+<h2>7. Error Analysis</h2>
+
+<p>We conduct error analyses on both claim extraction and investigation proposal extraction to understand common failure modes of fine-tuned models.</p>
+
+<p><strong>Claims.</strong> Using 120 awards from the test sets of NSF-SciFy-MatSci and NSF-SciFy-20K, we examined 802 claims generated by a fine-tuned Mistral-7B model and found an error rate of 2.6%. We categorized the errors into five types: (1) <strong>Overconfidence</strong>&mdash;misrepresenting hedged statements as factual assertions; (2) <strong>Mixing Information</strong>&mdash;combining content from multiple sentences incorrectly; (3) <strong>Overgeneralization</strong>&mdash;extending claims beyond what is stated; (4) <strong>Information Omission</strong>&mdash;dropping key qualifiers and altering meaning; and (5) <strong>Administrative Hallucinations</strong>&mdash;inserting funding or institutional information not present. Overconfidence and overgeneralization were the most common. Claude-extracted claims had a slightly lower error rate (2.1%), mostly administrative hallucinations.</p>
+
+<p><strong>Investigation Proposals.</strong> A parallel analysis on 833 investigation proposals yielded an error rate of 2.4%. We identified four error types: (1) <strong>No Investigation Proposals</strong>&mdash;generating proposals when none exist in the abstract; (2) <strong>Content Mismatch</strong>&mdash;introducing or omitting key elements; (3) <strong>Overspecification</strong>&mdash;adding unsupported details; and (4) <strong>Existing Work</strong>&mdash;describing prior work rather than forward-looking plans.</p>
+
+<p>Examples per error type are in Appendix I. Mitigation strategies across both tasks include uncertainty calibration, and stricter alignment between extractions and source text. We manually check 20 examples and found most &ldquo;correct&rdquo; claims are indeed correct, while over half of the &ldquo;errors&rdquo; are not actual errors, suggesting even higher true accuracy.</p>
+
+<h2>8. Discussion and Conclusion</h2>
+
+<p>We introduced NSF-SciFy, a large dataset of 2.8 million scientific claims and proposals from 400,000 NSF grant abstracts across all science and mathematics disciplines. Focused subsets include NSF-SciFy-MatSci (114,000 materials science claims) and NSF-SciFy-20K (135,000 claims from five directorates). Experiments demonstrate that fine-tuning language models on NSF-SciFy significantly improves scientific claim and proposal extraction, with relative performance gains often exceeding 100%. Non-technical abstract generation saw modest improvements due to strong baselines. Stylistic differences between technical and non-technical abstracts offer potential for science communication. Our claim taxonomy identifies prevalent assertion types like capability/application and problem/knowledge gap statements. NSF-SciFy's unique advantages include its vast scale, high quality from NSF expert review, comprehensive coverage of scientific domains, a temporal span from 1970&ndash;2024 enabling longitudinal studies, and, for recent grants, links to resulting publications. NSF-SciFy opens new research avenues in large-scale claim verification, scientific discovery tracking, and meta-scientific analysis, a key resource for understanding scientific assertions at their origin.</p>
+
+<h2>Limitations</h2>
+
+<p><strong>Source Material Scope.</strong> The dataset, derived from NSF award abstracts, offers insights into early-stage scientific claims from a rigorously reviewed, cross-disciplinary source. However, it currently excludes claims from unfunded proposals or international contexts. Future work may expand to other agencies and sources.</p>
+
+<p><strong>Bias and Coverage Considerations.</strong> While the dataset currently excludes unfunded and international proposals, the National Science Foundation accounts for approximately 25% of U.S. federally supported basic research, providing substantial coverage across scientific disciplines. We also note an availability bias: (1) unfunded proposals are not publicly accessible, aside from a handful of exemplars shared online, and (2) international proposals are rare and geographically dispersed. Given their importance, systematically incorporating international proposals represents an important direction for future work.</p>
+
+<p><strong>Extraction Methodology.</strong> Our approach utilizes zero-shot prompting with large language models, refined by prompt engineering and selective human validation. While manual evaluation shows consistently high precision across all directorates, our zero-shot extraction pipeline exhibits lower recall. At this bootstrapping stage, this was a deliberate design choice&mdash;we prioritized high precision to ensure the foundational reliability of the extracted statements and to prevent the proliferation of spurious claims. As demonstrated in Table 3, fine-tuning smaller models on this dataset significantly improves extraction, roughly doubling the F1 score for both claim and proposal tasks by significantly boosting recall alongside precision. Furthermore, the massive scale of NSF-SciFy enables data-intensive strategies to close the recall gap in future work. For instance, the dataset's massive size and cross-disciplinary diversity provide the necessary training signals for multi-pass extraction protocols, allowing models to iteratively capture secondary claims. It also serves as a robust foundation for fine-tuning diverse open-source models for agreement-based ensembling. Finally, the vast candidate pool allows for targeted active annotation, enabling researchers to isolate and manually label only the most complex, low-confidence edge cases to systematically improve recall.</p>
+
+<p><strong>Evaluation Design.</strong> We introduced LLM-based metrics for evaluating claims and investigation proposals, offering a nuanced assessment beyond lexical overlap. These metrics correlate well with human judgment in samples, but broader validation across more scientific domains is needed to confirm their robustness. The public dataset and code aim to facilitate such community efforts.</p>
+
+<p><strong>Temporal and Linked Data Coverage.</strong> Spanning over five decades and including recent linked publication metadata, the dataset's systematic outcome tracking is limited for older awards. This restricts longitudinal analysis of claim evolution from proposal to publication. Broader, consistent outcome reporting could enrich NSF-SciFy for deeper research trajectory studies.</p>
+
+<p><strong>Generalizability.</strong> While designed and validated for National Science Foundation abstracts, whose structure may differ from other scientific communications, the general framework is adaptable. It could be extended to related corpora like other funding agencies, patent abstracts, or scientific news, creating opportunities for future research.</p>
+
+<p><strong>Baselines.</strong> We report results using two competitive baseline models&mdash;Mistral-7B-v0.3 and Qwen2.5-7B&mdash;and observe consistent trends across both. We do not include additional baselines in this work; a more extensive comparison with other models is left for future work. All datasets and models are publicly released to facilitate such comparisons.</p>
+
+<h2>Acknowledgments</h2>
+
+<p>The authors would like to acknowledge NSF award CCF <code>2442421</code>, the AI2050 program at Schmidt Sciences (Grant <code>G-25-67983</code>), the Defense Advanced Research Projects Agency (DARPA) SciFy program (Agreement No. <code>HR00112520300</code>) for funding this research, and the Office of the Director of National Intelligence (ODNI), Intelligence Advanced Research Projects Activity (IARPA), via 56000026C0019. We also thank the National Science Foundation (NSF) for making award data publicly available, enabling this research. Any views, opinions, findings and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the official policy, position, or views, either expressed or implied, of the National Science Foundation, DARPA, the Department of Defense, ODNI, IARPA, or the U.S. Government. The U.S. Government is authorized to reproduce and distribute reprints for governmental purposes notwithstanding any copyright annotation therein.</p>
+
+<h2>Appendix A. Reproducibility Statement</h2>
+
+<p>To foster research on large-scale claim extraction, we are releasing our datasets, training code, and trained models:</p>
+<ul>
+  <li>NSF-SciFy-MatSci: Materials Science subset with extracted claims, investigation proposals, and resolved publication information.</li>
+  <li>NSF-SciFy: Similar in content to NSF-SciFy-MatSci, but a larger superset spanning all of NSF awards database. The key difference is the claims and investigation proposals are extracted from our finetuned models instead of frontier LLMs.</li>
+  <li>Our code is available at <a href="https://github.com/darpa-scify/NSFSciFy">https://github.com/darpa-scify/NSFSciFy</a>.</li>
+  <li>Our best finetuned model checkpoints for extraction of claims and investigation proposals at <a href="https://huggingface.co/darpa-scify/nsf-scify-matsci-claims">https://huggingface.co/darpa-scify/nsf-scify-matsci-claims</a>.</li>
+  <li>License: We will release our data and model under apache-2.0.</li>
+  <li>We used all existing artifacts in accordance with their intended research purposes, and we specify that NSF-SciFy is released solely for research and commercial use under compatible access conditions.</li>
+</ul>
+
+<h2>Appendix B. Complete Prompt for Extracting Claims and Investigation Proposals</h2>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p>You are an expert materials science researcher. Given an input JSON description of an NSF material science award abstract, parse out the technical and nontechnical abstracts, and identify the claims and research/investigation proposals the abstract makes. Be thorough. Answer in the following JSON format:</p>
+<pre style="text-align:left; overflow-x:auto; background:#fbfbfc; border:1px solid var(--border); border-radius:8px; padding:16px 18px; font-size:0.85rem; line-height:1.55;">{
+  "award_id": "", // copied from input
+  "technical_abstract": ""  // technical abstract if present, otherwise contents of the abstract field in the input
+  "non_technical_abstract": /non-technical abstract if present, otherwise empty
+  "claims": [ // list of strings
+  ],
+  "investigation_proposals":  [ // list of strings
+  ],
+}</pre>
+<p>claims are statements that the abstract claims to be true or states as an assumption explicitly or implicitly.<br>
+investigation_proposals are forward-looking statements that the abstract proposals to investigate as a part of this award.<br>
+Ensure that the output is in JSON format and that the JSON is valid.</p>
+</div>
+
+<p>We manually tested the prompt with a few award abstracts to make sure it was optimal for this task.</p>
+
+<h2>Appendix C. Prompt for Task 2 evaluation function $\mathbf{\Phi}_{\textrm{claim}}$</h2>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p>Check two scientific claims c1 and c2, if c1 is supported by c2. If c2 includes all the evidences for c1, but also includes additional content, then it should still be supported (YES). If not all information of c1 is included in c2, or if c2 contains information that conflicts with information in c1, then it should be unsupported (NO). Answer only as a YES or NO.<br>
+c1: {c1}<br>
+c2: {c2}</p>
+</div>
+
+<h2>Appendix D. Prompt for Task 3 evaluation function $\mathbf{\Phi}_{\textrm{IP}}$</h2>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p>Check two investigation proposals c1 and c2, if c1 is supported by c2. If c2 includes all the investigations proposed by c1, but also includes additional proposals, then it should still be supported (YES). If not all proposed investigations by c1 is included in c2, or if c2 contains investigation actions that conflict with investigation actions in c1, then it should be unsupported (NO). Answer only as a YES or NO.<br>
+c1: {c1}<br>
+c2: {c2}</p>
+</div>
+
+<h2>Appendix E. Stylistic Differences between Technical and Nontechinal Abstracts</h2>
+
+<p>Figure A7 shows stylistic differences between technical and nontechnical abstracts.</p>
+
+<figure class="fig bordered">
+  <img src="figures/tsne-specter-stel.png" alt="t-SNE plots of SPECTER content embeddings and STEL style embeddings for technical and non-technical abstracts">
+  <figcaption><span class="lab">Figure A7.</span> The t-SNE plot of comparing content embeddings from SPECTER (Cohan et al., 2020) and style embeddings from STEL (Patel et al., 2025) for technical and non-technical abstracts in NSF-SciFy-MatSci. The somewhat clear separation between technical and non-technical abstracts when using style embeddings indicate marked stylistic differences between the two kinds abstracts.</figcaption>
+</figure>
+
+<h2>Appendix F. Evaluation results for NSF-SciFy-20K</h2>
+
+<p>Tables A5, A6, and A7 summarize the results for the three generation tasks defined in Section 5 on NSF-SciFy-20K.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table A5.</span> Technical to Non-Technical Abstract Task: Mistral-7B</caption>
+  <thead>
+    <tr><th style="text-align:left">Metric</th><th>Base</th><th>Finetuned</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">BERTScore-F1</td><td>0.8514 $\pm$ 0.0003</td><td>0.8500 $\pm$ 0.0006</td></tr>
+    <tr><td style="text-align:left">BERTScore-Precision</td><td>0.8515 $\pm$ 0.0003</td><td>0.8513 $\pm$ 0.0007</td></tr>
+    <tr><td style="text-align:left">BERTScore-Recall</td><td>0.8516 $\pm$ 0.0003</td><td>0.8496 $\pm$ 0.0005</td></tr>
+    <tr><td style="text-align:left">ROUGE-rouge1</td><td>0.3351 $\pm$ 0.0013</td><td>0.3141 $\pm$ 0.0023</td></tr>
+    <tr><td style="text-align:left">ROUGE-rouge2</td><td>0.0705 $\pm$ 0.0008</td><td>0.0936 $\pm$ 0.0016</td></tr>
+    <tr><td style="text-align:left">ROUGE-rougeL</td><td>0.1773 $\pm$ 0.0008</td><td>0.1967 $\pm$ 0.0016</td></tr>
+    <tr><td style="text-align:left">ROUGE-rougeLsum</td><td>0.1982 $\pm$ 0.0010</td><td>0.1998 $\pm$ 0.0016</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table A6.</span> Abstract to Claims Task: Mistral-7B</caption>
+  <thead>
+    <tr><th style="text-align:left">Model</th><th>Base</th><th>Finetuned</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">Precision</td><td>0.4146 $\pm$ 0.0025</td><td>0.7526 $\pm$ 0.0027</td></tr>
+    <tr><td style="text-align:left">Recall</td><td>0.8141 $\pm$ 0.0026</td><td>0.7354 $\pm$ 0.0026</td></tr>
+    <tr><td style="text-align:left">F-score</td><td>0.5247 $\pm$ 0.0025</td><td>0.7268 $\pm$ 0.0023</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table A7.</span> Abstract to Investigation Proposals Task: Mistral-7B</caption>
+  <thead>
+    <tr><th style="text-align:left">Model</th><th>Base</th><th>Finetuned</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">Precision</td><td>0.6222 $\pm$ 0.0038</td><td>0.7219 $\pm$ 0.0027</td></tr>
+    <tr><td style="text-align:left">Recall</td><td>0.6364 $\pm$ 0.0034</td><td>0.7359 $\pm$ 0.0029</td></tr>
+    <tr><td style="text-align:left">F1-score</td><td>0.5668 $\pm$ 0.0033</td><td>0.7039 $\pm$ 0.0026</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Appendix G. Examples of Extracted Claims and Investigation Proposals</h2>
+
+<p>Tables A8 and A9 provide a sampling of the extracted claims and investigation proposals.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table A8.</span> A sample of extracted claims from the NSF-SciFy-MatSci dataset. Award IDs are hyperlinked to the NSF's Award database.</caption>
+  <thead>
+    <tr><th style="text-align:left">Award ID</th><th style="text-align:left">Title</th><th style="text-align:left">Extracted Claims</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:left; vertical-align:top"><a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=2324035&amp;HistoricalAwards=false">2324035</a></td>
+      <td style="text-align:left; vertical-align:top">DMREF: Developing and Harnessing the Platform of Quasi-One-Dimensional Topological Materials for Novel Functionalities and Devices</td>
+      <td style="text-align:left; vertical-align:top"><pre style="text-align:left; overflow-x:auto; background:#fbfbfc; border:1px solid var(--border); border-radius:8px; padding:12px 14px; font-size:0.8rem; line-height:1.5; white-space:pre-wrap; margin:0;">[
+    "Topological insulators are electrically insulating in the bulk but host conductive surface states that are immune to impurities.",
+    "Current TI materials face critical challenges that limit their potential.",
+    "Quasi-1D structures promise to overcome challenges faced by current TI materials.",
+    "Most identified topological insulators are either strongly bonded bulk materials or layered van der Waals materials.",
+    ...
+]</pre></td>
+    </tr>
+    <tr>
+      <td style="text-align:left; vertical-align:top"><a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=9814055&amp;HistoricalAwards=false">9814055</a></td>
+      <td style="text-align:left; vertical-align:top">Kinks and Surface Potentials</td>
+      <td style="text-align:left; vertical-align:top"><pre style="text-align:left; overflow-x:auto; background:#fbfbfc; border:1px solid var(--border); border-radius:8px; padding:12px 14px; font-size:0.8rem; line-height:1.5; white-space:pre-wrap; margin:0;">[
+    "Atomically flat terraced surfaces for thin TEM samples can be prepared under moderate (10-7 Torr) vacuum conditions by annealing in oxygen or vacuum for materials such as sapphire, SiC and MgO.",
+    "\"Forbidden\" Bragg reflections arise from the stacking fault between partial dislocations.",
+    "The surface potential is critical for chemical reactions at surfaces, adsorption, catalysis, epitaxy, diffusion bonding process, oxidation, and semiconductor crystal growth.",
+    ...
+]</pre></td>
+    </tr>
+    <tr>
+      <td style="text-align:left; vertical-align:top"><a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=0821136&amp;HistoricalAwards=false">0821136</a></td>
+      <td style="text-align:left; vertical-align:top">MRI: Acquisition of an Imaging Spherical Aberration Corrector and a Lorentz Lens for Magnetic Materials Characterization</td>
+      <td style="text-align:left; vertical-align:top"><pre style="text-align:left; overflow-x:auto; background:#fbfbfc; border:1px solid var(--border); border-radius:8px; padding:12px 14px; font-size:0.8rem; line-height:1.5; white-space:pre-wrap; margin:0;">[
+    "The attainable spatial resolution of uncorrected Lorentz instruments is in the range 10-15 nm.",
+    "Delocalization effects cause significant image blurring in uncorrected Lorentz microscopes.",
+    "Recent developments in aberration correction make it possible to correct the spherical aberration of a Lorentz lens.",
+    "The size of written bits in state-of-the-art magnetic recording media is comparable to the magnetic resolution of uncorrected Lorentz microscopes.",
+    "Transmission electron microscopes have suffered from lens aberration since their invention in the 1930s.",
+    "The Hubble space telescope suffered from a similar aberration when first launched.",
+    ...
+]</pre></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table A9.</span> A sample of extracted investigation proposals from the NSF-SciFy-MatSci dataset. Award IDs are hyperlinked to the NSF's Award database.</caption>
+  <thead>
+    <tr><th style="text-align:left">Award ID</th><th style="text-align:left">Title</th><th style="text-align:left">Extracted Investigation Proposals</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:left; vertical-align:top"><a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=2324035&amp;HistoricalAwards=false">2324035</a></td>
+      <td style="text-align:left; vertical-align:top">DMREF: Developing and Harnessing the Platform of Quasi-One-Dimensional Topological Materials for Novel Functionalities and Devices</td>
+      <td style="text-align:left; vertical-align:top"><pre style="text-align:left; overflow-x:auto; background:#fbfbfc; border:1px solid var(--border); border-radius:8px; padding:12px 14px; font-size:0.8rem; line-height:1.5; white-space:pre-wrap; margin:0;">[
+    "Predict, design, synthesize, and control topological phases in quasi-1D topological materials.",
+    "Design and demonstrate emergent materials, functionalities, and devices, including moiré quasi-1D TIs, stable and high temperature quantum spin Hall (QSH) insulators, and quantum intelligent sensors.",
+    "Expand research to include other selected quasi-1D materials families through collaborations.",
+    "Discover or realize novel topological materials and phases.",
+    "Study topological phase transitions and control.",
+    ...
+]</pre></td>
+    </tr>
+    <tr>
+      <td style="text-align:left; vertical-align:top"><a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=9814055&amp;HistoricalAwards=false">9814055</a></td>
+      <td style="text-align:left; vertical-align:top">Kinks and Surface Potentials</td>
+      <td style="text-align:left; vertical-align:top"><pre style="text-align:left; overflow-x:auto; background:#fbfbfc; border:1px solid var(--border); border-radius:8px; padding:12px 14px; font-size:0.8rem; line-height:1.5; white-space:pre-wrap; margin:0;">[
+    "Observe dislocation kinks by atomic resolution TEM in materials such as sapphire, SiC and MgO.",
+    "Use \"forbidden\" Bragg reflections to form lattice images without surface noise.",
+    "Determine which process (kink formation, kink migration or obstacles along the dislocation line) limits kink (and hence dislocation) velocity, for given conditions of temperature and stress.",
+    "Extend quantitative convergent-beam TEM measurements of bonding in crystals to the RHEED geometry to refine the electrostatic potential extending into the vacuum from ceramic surfaces.",
+    "Measure modifications to the surface potential resulting from the deposition of a monolayer or more of atoms.",
+    ...
+]</pre></td>
+    </tr>
+    <tr>
+      <td style="text-align:left; vertical-align:top"><a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=0821136&amp;HistoricalAwards=false">0821136</a></td>
+      <td style="text-align:left; vertical-align:top">MRI: Acquisition of an Imaging Spherical Aberration Corrector and a Lorentz Lens for Magnetic Materials Characterization</td>
+      <td style="text-align:left; vertical-align:top"><pre style="text-align:left; overflow-x:auto; background:#fbfbfc; border:1px solid var(--border); border-radius:8px; padding:12px 14px; font-size:0.8rem; line-height:1.5; white-space:pre-wrap; margin:0;">[
+    "Acquire an imaging spherical aberration corrector and a Lorentz lens for magnetic materials characterization.",
+    "Add these components to an existing FEI Titan 80-300 TEM.",
+    "Bring the spatial resolution in Lorentz mode down to less than 1 nm, with negligible delocalization effects.",
+    "Enable direct quantitative study of magnetic features at a length scale of around 1 nm.",
+    "Obtain new scientific results on material systems for which these observations were previously impossible.",
+    "Impact a large number of research groups within CMU, as well as collaborations with local industry and several national laboratories.",
+    ...
+]</pre></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Appendix H. Examples of Scientific Claim and Investigation Proposal Categories</h2>
+
+<p>Please see Table A10 and A11 for the examples.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table A10.</span> Scientific claim categories found in NSF-SciFy and 3 randomly selected examples for each category.</caption>
+  <tbody>
+    <tr><th style="text-align:left">Category: Capability/Application of Technology/Method</th></tr>
+    <tr><td style="text-align:left">Memory-centric computing capitalizes on extensive parallelism in memory arrays.</td></tr>
+    <tr><td style="text-align:left">The Illinois group has joined the fixed target COMPASS experiment at CERN.</td></tr>
+    <tr><td style="text-align:left">An electronics company is involved in the project, making imaging products in this energy regime.</td></tr>
+    <tr><th style="text-align:left">Category: Definition/Classification</th></tr>
+    <tr><td style="text-align:left">The RV Weatherbird II is owned and operated by the Bermuda Biological Station for Research (BBSR), Inc.</td></tr>
+    <tr><td style="text-align:left">The program will include topics such as dark matter, dark energy, inflation, and gravitational waves.</td></tr>
+    <tr><td style="text-align:left">The shear zone in question is the Cuyamaca-Laguna Mountains shear zone.</td></tr>
+    <tr><th style="text-align:left">Category: Statement of Problem/Knowledge Gap</th></tr>
+    <tr><td style="text-align:left">Current efforts on analyzing tree-informed compositional data are primarily designed for individual applications.</td></tr>
+    <tr><td style="text-align:left">CU began the Guerrero GPS project in 1997.</td></tr>
+    <tr><td style="text-align:left">High pressure-low temperature metamorphism is often obscured by post-tectonic thermal equilibration or later deformation and mineral growth.</td></tr>
+    <tr><th style="text-align:left">Category: Experimental Result/Finding/Measurability</th></tr>
+    <tr><td style="text-align:left">Lattice QCD has made important progress.</td></tr>
+    <tr><td style="text-align:left">RBP repression is absent when an oncoprotein is present.</td></tr>
+    <tr><td style="text-align:left">Over 100 of 650 U.S. electronics fabricators have gone out of business in the past five years, according to a 1999 White Paper by the Interconnection Technology Research Institute.</td></tr>
+    <tr><th style="text-align:left">Category: Established Scientific Fact/Principle</th></tr>
+    <tr><td style="text-align:left">Dynamic programming includes well-known search algorithms like breadth-first search, Dijkstra's algorithm, A*, value iteration and policy iteration for Markov decision processes.</td></tr>
+    <tr><td style="text-align:left">The electron carries a magnetic moment.</td></tr>
+    <tr><td style="text-align:left">Stars in clusters evolve off the main sequence, become red giants, and ultimately horizontal branch stars.</td></tr>
+    <tr><th style="text-align:left">Category: Observed Phenomenon/Property</th></tr>
+    <tr><td style="text-align:left">The lake level of Laguna Paron was artificially lowered in 1985.</td></tr>
+    <tr><td style="text-align:left">Laminated sediments are exposed in Laguna Paron, Peru.</td></tr>
+    <tr><td style="text-align:left">The study sites exhibit extreme differences (1 to 2 orders of magnitude) in larval settlement.</td></tr>
+    <tr><th style="text-align:left">Category: Process/Mechanism Description</th></tr>
+    <tr><td style="text-align:left">Exciton-phonon and exciton-exciton interactions contribute to decoherence at finite temperatures.</td></tr>
+    <tr><td style="text-align:left">The fidelity of translation is determined by the accuracy of aminoacyl-tRNA selection by ribosomes and synthesis of cognate amino acid/tRNA pairs by aminoacyl-tRNA synthetases.</td></tr>
+    <tr><td style="text-align:left">The evaluation process includes both direct and indirect measures of student success and learning.</td></tr>
+    <tr><th style="text-align:left">Category: Hypothesis/Theoretical Prediction</th></tr>
+    <tr><td style="text-align:left">Assemblages that combine human-technology partnerships are stronger than individual humans or machines.</td></tr>
+    <tr><td style="text-align:left">Mating advantage in guppies appears to result from female sexual responses to unusual males.</td></tr>
+    <tr><td style="text-align:left">The long wavelength part of the CBR spectrum is important for constraining the evolution of the intergalactic medium.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table A11.</span> Investigation proposal categories found in NSF-SciFy and 3 examples for each category.</caption>
+  <tbody>
+    <tr><th style="text-align:left">Category: Academic Training and Curriculum Development</th></tr>
+    <tr><td style="text-align:left">Develop a generic geometric interpretation to the wavelet frame transform by studying its relations with differential operators within various variational frameworks.</td></tr>
+    <tr><td style="text-align:left">Support participation in the visitor program activities during 2018 - 2020.</td></tr>
+    <tr><td style="text-align:left">Measure the contributions of antiquarks to nucleon spin using the PHENIX polarized pp program with an Illinois-led muon trigger upgrade.</td></tr>
+    <tr><th style="text-align:left">Category: Experimental Technique and Tool Development</th></tr>
+    <tr><td style="text-align:left">Develop a generic geometric interpretation to the wavelet frame transform by studying its relations with differential operators within various variational frameworks.</td></tr>
+    <tr><td style="text-align:left">Measure the contributions of antiquarks to nucleon spin using the PHENIX polarized pp program with an Illinois-led muon trigger upgrade.</td></tr>
+    <tr><td style="text-align:left">Develop a method of creating sulfur ylides with improved yields.</td></tr>
+    <tr><th style="text-align:left">Category: Theoretical Analysis and Computational Modeling</th></tr>
+    <tr><td style="text-align:left">Develop a generic geometric interpretation to the wavelet frame transform by studying its relations with differential operators within various variational frameworks.</td></tr>
+    <tr><td style="text-align:left">Deepen understanding about how to recognize the complexity of certain types of computational problems.</td></tr>
+    <tr><td style="text-align:left">Support participation in the visitor program activities during 2018 - 2020.</td></tr>
+    <tr><th style="text-align:left">Category: Human/User Study</th></tr>
+    <tr><td style="text-align:left">Focus on the settling and juvenile stages of 7 dominant species within subtidal marine epifaunal communities along the coast of southern New England.</td></tr>
+    <tr><td style="text-align:left">Examine the impact of sea ice on the distribution and abundance of zooplankton.</td></tr>
+    <tr><td style="text-align:left">Examine and model visual tracking of continuously moving targets in normal human subjects.</td></tr>
+    <tr><th style="text-align:left">Category: Algorithm/Method Development</th></tr>
+    <tr><td style="text-align:left">Develop a generic geometric interpretation to the wavelet frame transform by studying its relations with differential operators within various variational frameworks.</td></tr>
+    <tr><td style="text-align:left">Deepen understanding about how to recognize the complexity of certain types of computational problems.</td></tr>
+    <tr><td style="text-align:left">Develop a method of creating sulfur ylides with improved yields.</td></tr>
+    <tr><th style="text-align:left">Category: Policy/Guidelines/Standards Work</th></tr>
+    <tr><td style="text-align:left">Design, fabricate, assemble, align, test, integrate, and calibrate a sensitive CCD camera system.</td></tr>
+    <tr><td style="text-align:left">Provide funding to offset registration fees for about 12 graduate students or postdocs at the COSMO-16 conference.</td></tr>
+    <tr><td style="text-align:left">Replace two semi-conductor detectors in the Neutron Activation Laboratory.</td></tr>
+    <tr><th style="text-align:left">Category: Interpretability/Alignment Analysis</th></tr>
+    <tr><td style="text-align:left">Understand and correct for hidden assumptions in Bayesian inference algorithms.</td></tr>
+    <tr><td style="text-align:left">Develop assemblages for human-technology partnerships in visually based cognition-oriented tasks in radiology.</td></tr>
+    <tr><td style="text-align:left">Systematically investigate and proactively prevent specious configurations.</td></tr>
+    <tr><th style="text-align:left">Category: Deployment/Field Study</th></tr>
+    <tr><td style="text-align:left">Develop a method of creating sulfur ylides with improved yields.</td></tr>
+    <tr><td style="text-align:left">Design, fabricate, assemble, align, test, integrate, and calibrate a sensitive CCD camera system.</td></tr>
+    <tr><td style="text-align:left">Measure chlorofluorocarbons (CFC-11, CFC-12, CFC-113) on the 26 degrees N transect in winter 2004.</td></tr>
+    <tr><th style="text-align:left">Category: Tooling/Systems/Infrastructure</th></tr>
+    <tr><td style="text-align:left">Deepen understanding about how to recognize the complexity of certain types of computational problems.</td></tr>
+    <tr><td style="text-align:left">Design, fabricate, assemble, align, test, integrate, and calibrate a sensitive CCD camera system.</td></tr>
+    <tr><td style="text-align:left">Understand and correct for hidden assumptions in Bayesian inference algorithms.</td></tr>
+    <tr><th style="text-align:left">Category: Empirical Benchmarking/Evaluation</th></tr>
+    <tr><td style="text-align:left">Measure the contributions of antiquarks to nucleon spin using the PHENIX polarized pp program with an Illinois-led muon trigger upgrade.</td></tr>
+    <tr><td style="text-align:left">Obtain accurate colors and brightnesses of the brighter stars in 50 globular clusters over a two-year period.</td></tr>
+    <tr><td style="text-align:left">Develop a new density cumulant functional theory.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Appendix I. Error Analysis Examples</h2>
+
+<h3>I.1 Claims</h3>
+
+<p>Of the three proposed tasks, we consider the claim extraction task as a canonical task for performing error analysis. To do so, we consider another 120 awards from the test portion of NSF-SciFy-MatSci and NSF-SciFy-20K. These were stratified samples across the five areas of interest (similar to Section 4.3). We then generate the claims using a Mistral-7B model finetuned on NSF-SciFy-20K, resulting in 802 claims. A careful examination revealed around 2.6% of the generated claims were incorrect. To dive deeper, we categorized the erroneous claims into 5 categories. We list them here with examples:</p>
+
+<p><strong>1. Overconfidence:</strong> The claim can be overconfident about information that has qualifiers in the supporting document text (award abstract).</p>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p><strong>Award ID:</strong> 9820570</p>
+<p><strong>Extracted Claim:</strong> The research areas include knot theory, immiscible fluids and geodesic nets, ergodic theory, commutative algebra and vector-valued forms.<br>
+<strong>Analysis:</strong> The abstract states 'probably in the areas of,' indicating potential areas, not certainty.</p>
+</div>
+
+<p><strong>2. Mixing Information:</strong> The claim can mix information from two sentences together to form wrong information.</p>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p><strong>Award ID:</strong> 1205671</p>
+<p><strong>Extracted Claim:</strong> The SEAQUEST experiment at Fermilab has successfully measured the asymmetry of up and down anti-quarks in the nucleon.<br>
+<strong>Analysis:</strong> The abstract mentions that SEAQUEST will follow the successful E866 measurement with more precise data, and thus it does not say SEAQUEST has already successfully measured that, but the success is describing the previous E866.</p>
+</div>
+
+<p><strong>3. Overgeneralization:</strong> The claim can overgeneralize what the supporting document implies.</p>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p><strong>Award ID:</strong> 0957482</p>
+<p><strong>Extracted Claim:</strong> The methodology is potentially environmentally benign.<br>
+<strong>Analysis:</strong> The abstract mentions non-dangerous chemicals but does not specifically state that the methodology is environmentally benign.</p>
+</div>
+
+<p><strong>4. Information Omission:</strong> The claim might omit important information from the abstract and thus the meaning is changed.</p>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p><strong>Award ID:</strong> 9409461</p>
+<p><strong>Extracted Claim:</strong> Frequency-domain techniques can display trade-offs between output performance and sensitivity reduction.<br>
+<strong>Analysis:</strong> The claim frames output performance and sensitivity reduction as two separate quantities and leaves out bandwidth, so it does not accurately reflect the abstract.</p>
+</div>
+
+<p><strong>5. Hallucinations about Administrative Metadata:</strong> The model can sometimes hallucinate claims regarding where the funding is from and which institutions are included. While hallucination is a serious issue, it is worth noting that for this dataset and model scientific claims seem to be rarely hallucinated. In our study, all hallucinations were connected with administrative metadata.</p>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p><strong>Award ID:</strong> 0542751</p>
+<p><strong>Claim:</strong> The award is funded under the American Recovery and Reinvestment Act of 2009 (Public Law 111-5).<br>
+<strong>Reasoning:</strong> This claim is not mentioned in the abstract.</p>
+</div>
+
+<p>To mitigate these errors, uncertainty calibration and prompting strategies can reduce overconfidence and overgeneralization, encouraging the model to reflect source qualifiers. Fine-tuning with more annotated data and enforcing stricter alignment between claims and source text can address mixing information and omission issues. Retrieval-augmented generation and chain-of-thought prompting may also promote better grounding. For hallucinations about administrative metadata, entity verification or output constraints based on structured data can help. Combining these approaches with human-in-the-loop evaluation might further improve claim extraction reliability.</p>
+
+<p>We performed a similar error analysis on claims extracted from Claude (See Section 3.3). Our findings revealed a smaller error-rate (2.1% as opposed to 2.6%), and of the only 10 erroneous claims, 5 were hallucinations of administrative data.</p>
+
+<h3>I.2 Investigation Proposals</h3>
+
+<p>We additionally performed an error analysis on investigation proposals, following the same procedure as for claims Among 120 awards from the test portion of NSF-SciFy-MatSci and NSF-SciFy-20K, and generated the investigation proposals using a Mistral-7B model finetuned on NSF-SciFy-20K, resulting in 833 proposals. A careful examination revealed around 2.4% of the generated investigation proposals were incorrect. To dive deeper, we categorized the erroneous proposals into 4 categories. We list them here with examples:</p>
+
+<p><strong>No investigation proposals.</strong> The abstract itself does not have investigation proposals and the model forcefully generates some that are not proposals.</p>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p><strong>Award ID:</strong> 1642020</p>
+<p><strong>Investigation Proposal:</strong> The conference aims to advance understanding in cosmology through the presentation and discussion of new research findings.<br>
+<strong>Analysis:</strong> It implies discussion and presentation rather than a forward-looking research goal, and the abstract only seeks funding to cover junior students' registration fees, so it contains no actual investigation proposals.</p>
+</div>
+
+<p><strong>Content Mismatch Error.</strong> The investigation proposal does not accurately reflect the information in the abstract&mdash;either by introducing concepts not mentioned, omitting key elements, or misrepresenting the scope or focus of the abstract's content.</p>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p><strong>Experimental Technique and Tool Development:</strong> Develop new experimental tools and techniques for data collection or experimentation.</p>
+<p><strong>Investigation Proposal:</strong> Access and design different novel nano-motion components.<br>
+<strong>Reasoning:</strong> The abstract focuses on designing and characterizing catalytic nanomotors with different dynamic behaviors, but it does not mention accessing or broadly designing novel nano-motion components.</p>
+</div>
+
+<p><strong>Overspecification.</strong> The proposal extracted is more specific than what is actually mentioned in the abstract, containing non-existing details.</p>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p><strong>Experimental Technique and Tool Development:</strong> Develop new experimental tools and techniques for data collection or experimentation.</p>
+<p><strong>Investigation Proposal:</strong> Design and integrate novel nanomachines.<br>
+<strong>Reasoning:</strong> The abstract focuses on designing and characterizing nanomotors, not on integrating nanomachines. &ldquo;Integrated nanomachinary systems&rdquo; is mentioned only as a motivation, not as a research activity.</p>
+</div>
+
+<p><strong>Existing Work.</strong> The claim is about existing work instead of a forward-looking statement.</p>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p><strong>Algorithm/Method Development:</strong> Propose novel algorithms or procedures for solving specific problems or improving performance.</p>
+<p><strong>Investigation Proposal:</strong> Apply the developed approach to find subtle errors in non-trivial designs.<br>
+<strong>Reasoning:</strong> The proposal describes a planned research activity, whereas the abstract only refers to a past application, not a proposed investigation.</p>
+</div>
+
+<h2>Appendix J. Potential Risks</h2>
+
+<p>NSF-SciFy opens new opportunities for large-scale scientific text analysis, but responsible use is important. As the dataset is automatically constructed, some extraction errors or omissions may remain, underscoring the need for careful validation in downstream applications. Its coverage of NSF award abstracts may reflect domain-specific language and institutional styles, which can inform analyses but may also introduce biases if not accounted for. Finally, while the dataset enables powerful new capabilities, users should ensure appropriate use to avoid generating or disseminating unverified claims.</p>
+
+<h2>Appendix K. AI Writing/Coding Assistance Disclosure</h2>
+
+<p>In accordance with the <a href="https://www.aclweb.org/adminwiki/index.php/ACL_Policy_on_Publication_Ethics#Guidelines_for_Generative_Assistance_in_Authorship">ACL Policy on AI Writing Assistance</a>, the authors attest that we used generative AI tools for assistance purely with the language of the paper, including spell checking, grammar fixes, and proof reading. Additionally, we used GPT-4o to fix LaTeX issues, and to generate LaTeX tables from spreadsheets. In all such uses, the outputs were verified by the first author for correctness.</p>
+
+<section class="footnotes">
+<h2>Notes</h2>
+<ol>
+  <li id="fn1">For an entertaining digression c.f., <a href="https://en.wikipedia.org/wiki/LK-99">https://en.wikipedia.org/wiki/LK-99</a>. <a class="fnback" href="#fnref1" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn2">Short for &ldquo;NSF SCIentific FeasibilitY&rdquo;. <a class="fnback" href="#fnref2" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn3"><code>Claude-3.5-Sonnet-20240620</code> accessed between Sep&ndash;Oct. 2024, to be specific. <a class="fnback" href="#fnref3" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn4">Our notion of claims follows prior work (Tang et al., 2024). <a class="fnback" href="#fnref4" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn5">For BERTScore we report precision, recall and F1, and for ROUGE we report ROUGE-1, ROUGE-2, ROUGE-L, and ROUGE-L-sum. <a class="fnback" href="#fnref5" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn6">We tried several slight edits of the prompts and found them to be robust to such changes. <a class="fnback" href="#fnref6" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn7">We determine repeats and near-repeats in the generation by thresholding cosine similarity calculated over a TF-IDF representation of the generated claims. <a class="fnback" href="#fnref7" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn8">We use <code>GPT-4o-mini</code> here because this is a simple task and we found <code>GPT-4o-mini</code> sufficient. <a class="fnback" href="#fnref8" aria-label="Back to text">&#8617;</a></li>
+</ol>
+</section>
+
+<section class="references">
+<h2>References</h2>
+<ol>
+  <li id="ref-Bornmann2021">Lutz Bornmann, Robin Haunschild, and R&uuml;diger Mutz. 2021. <a href="https://doi.org/10.1057/s41599-021-00903-w">Growth rates of modern science: A latent piecewise growth curve approach to model publication numbers from established and new literature databases</a>. <em>Humanities and Social Sciences Communications</em>, 8(1).</li>
+  <li id="ref-cohan-etal-2020-specter">Arman Cohan, Sergey Feldman, Iz Beltagy, Doug Downey, and Daniel Weld. 2020. <a href="https://doi.org/10.18653/v1/2020.acl-main.207">SPECTER: Document-level representation learning using citation-informed transformers</a>. In <em>Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</em>, pages 2270&ndash;2282.</li>
+  <li id="ref-deitke2024molmo">Matt Deitke, Christopher Clark, Sangho Lee, Rohun Tripathi, Yue Yang, Jae Sung Park, Mohammadreza Salehi, Niklas Muennighoff, Kyle Lo, Luca Soldaini, Jiasen Lu, Taira Anderson, Erin Bransom, Kiana Ehsani, Huong Ngo, YenSung Chen, Ajay Patel, Mark Yatskar, Chris Callison-Burch, Andrew Head, Rose Hendrix, Favyen Bastani, Eli VanderBilt, Nathan Lambert, Yvonne Chou, Arnavi Chheda, Jenna Sparks, Sam Skjonsberg, Michael Schmitz, Aaron Sarnat, Byron Bischoff, Pete Walsh, Chris Newell, Piper Wolters, Tanmay Gupta, Kuo-Hao Zeng, Jon Borchardt, Dirk Groeneveld, Crystal Nam, Sophie Lebrecht, Caitlin Wittlif, Carissa Schoenick, Oscar Michel, Ranjay Krishna, Luca Weihs, Noah A. Smith, Hannaneh Hajishirzi, Ross Girshick, Ali Farhadi, and Aniruddha Kembhavi. 2024. <a href="https://arxiv.org/abs/2409.17146">Molmo and PixMo: Open weights and open data for state-of-the-art vision-language models</a>. arXiv preprint arXiv:2409.17146.</li>
+  <li id="ref-diggelmann-etal-2020">Thomas Diggelmann, Jordan L. Boyd-Graber, Jannis Bulian, Massimiliano Ciaramita, and Markus Leippold. 2020. <a href="https://arxiv.org/abs/2012.00614">CLIMATE-FEVER: A dataset for verification of real-world climate claims</a>. <em>CoRR</em>, abs/2012.00614.</li>
+  <li id="ref-gu2025surveyllmasajudge">Jiawei Gu, Xuhui Jiang, Zhichao Shi, Hexiang Tan, Xuehao Zhai, Chengjin Xu, Wei Li, Yinghan Shen, Shengjie Ma, Honghao Liu, Saizhuo Wang, Kun Zhang, Yuanzhuo Wang, Wen Gao, Lionel Ni, and Jian Guo. 2025. <a href="https://arxiv.org/abs/2411.15594">A survey on LLM-as-a-judge</a>. arXiv preprint arXiv:2411.15594.</li>
+  <li id="ref-hu2021lora">Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. 2021. <a href="https://arxiv.org/abs/2106.09685">LoRA: Low-rank adaptation of large language models</a>. arXiv preprint arXiv:2106.09685.</li>
+  <li id="ref-jiang2023mistral7b">Albert Q. Jiang, Alexandre Sablayrolles, Arthur Mensch, Chris Bamford, Devendra Singh Chaplot, Diego de las Casas, Florian Bressand, Gianna Lengyel, Guillaume Lample, Lucile Saulnier, L&eacute;lio Renard Lavaud, Marie-Anne Lachaux, Pierre Stock, Teven Le Scao, Thibaut Lavril, Thomas Wang, Timoth&eacute;e Lacroix, and William El Sayed. 2023. <a href="https://arxiv.org/abs/2310.06825">Mistral 7B</a>. arXiv preprint arXiv:2310.06825.</li>
+  <li id="ref-kotonya-toni-2020">Neema Kotonya and Francesca Toni. 2020. <a href="https://doi.org/10.18653/v1/2020.emnlp-main.623">Explainable automated fact-checking for public health claims</a>. In <em>Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>, pages 7740&ndash;7754.</li>
+  <li id="ref-lin-2004-rouge">Chin-Yew Lin. 2004. <a href="https://aclanthology.org/W04-1013/">ROUGE: A package for automatic evaluation of summaries</a>. In <em>Text Summarization Branches Out</em>, pages 74&ndash;81.</li>
+  <li id="ref-liu2023g">Yang Liu, Dan Iter, Yichong Xu, Shuohang Wang, Ruochen Xu, and Chenguang Zhu. 2023. <a href="https://doi.org/10.18653/v1/2023.emnlp-main.153">G-Eval: NLG evaluation using GPT-4 with better human alignment</a>. In <em>Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing</em>, pages 2511&ndash;2522.</li>
+  <li id="ref-mohr-etal-2022">Isabelle Mohr, Amelie W&uuml;hrl, and Roman Klinger. 2022. <a href="https://aclanthology.org/2022.lrec-1.26/">CoVERT: A corpus of fact-checked biomedical COVID-19 tweets</a>. In <em>Proceedings of the Thirteenth Language Resources and Evaluation Conference</em>, pages 244&ndash;257.</li>
+  <li id="ref-openai2024gpt4omini">OpenAI. 2024. <a href="https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/">GPT-4o mini: Advancing cost-efficient intelligence</a>. Accessed: 2025-10-01.</li>
+  <li id="ref-openai2024gpt4ocard">OpenAI. 2024. <a href="https://arxiv.org/abs/2410.21276">GPT-4o system card</a>. arXiv preprint arXiv:2410.21276.</li>
+  <li id="ref-park2024">Minsu Park, Suman Kalyan Maity, Stefan Wuchty, and Dashun Wang. 2024. <a href="https://arxiv.org/abs/2303.14732">Interdisciplinary papers supported by disciplinary grants garner deep and broad scientific impact</a>. arXiv preprint arXiv:2303.14732.</li>
+  <li id="ref-patel2025">Ajay Patel, Jiacheng Zhu, Justin Qiu, Zachary Horvitz, Marianna Apidianaki, Kathleen McKeown, and Chris Callison-Burch. 2025. <a href="https://aclanthology.org/2025.naacl-long.436/">StyleDistance: Stronger content-independent style embeddings with synthetic parallel examples</a>. In <em>Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers)</em>, pages 8662&ndash;8685.</li>
+  <li id="ref-saakyan-etal-2021">Arkadiy Saakyan, Tuhin Chakrabarty, and Smaranda Muresan. 2021. <a href="https://doi.org/10.18653/v1/2021.acl-long.165">COVID-Fact: Fact extraction and verification of real-world claims on COVID-19 pandemic</a>. In <em>Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers)</em>, pages 2116&ndash;2129.</li>
+  <li id="ref-sarrouti-etal-2021">Mourad Sarrouti, Asma Ben Abacha, Yassine Mrabet, and Dina Demner-Fushman. 2021. <a href="https://doi.org/10.18653/v1/2021.findings-emnlp.297">Evidence-based fact-checking of health-related claims</a>. In <em>Findings of the Association for Computational Linguistics: EMNLP 2021</em>, pages 3499&ndash;3512.</li>
+  <li id="ref-tang-etal-2024-minicheck">Liyan Tang, Philippe Laban, and Greg Durrett. 2024. <a href="https://doi.org/10.18653/v1/2024.emnlp-main.499">MiniCheck: Efficient fact-checking of LLMs on grounding documents</a>. In <em>Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing</em>, pages 8818&ndash;8847.</li>
+  <li id="ref-wadden-etal-2020">David Wadden, Shanchuan Lin, Kyle Lo, Lucy Lu Wang, Madeleine van Zuylen, Arman Cohan, and Hannaneh Hajishirzi. 2020. <a href="https://doi.org/10.18653/v1/2020.emnlp-main.609">Fact or fiction: Verifying scientific claims</a>. In <em>Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>, pages 7534&ndash;7550.</li>
+  <li id="ref-wadden-etal-2022">David Wadden, Kyle Lo, Bailey Kuehl, Arman Cohan, Iz Beltagy, Lucy Lu Wang, and Hannaneh Hajishirzi. 2022. <a href="https://doi.org/10.18653/v1/2022.findings-emnlp.347">SciFact-Open: Towards open-domain scientific claim verification</a>. In <em>Findings of the Association for Computational Linguistics: EMNLP 2022</em>, pages 4719&ndash;4734.</li>
+  <li id="ref-xu2022">Fengli Xu, Lingfei Wu, and James A. Evans. 2022. <a href="https://arxiv.org/abs/2210.05852">Quantifying hierarchy in scientific teams</a>. arXiv preprint arXiv:2210.05852.</li>
+  <li id="ref-qwen2">An Yang, Baosong Yang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Zhou, Chengpeng Li, Chengyuan Li, Dayiheng Liu, Fei Huang, Guanting Dong, Haoran Wei, Huan Lin, Jialong Tang, Jialin Wang, Jian Yang, Jianhong Tu, Jianwei Zhang, Jianxin Ma, Jin Xu, Jingren Zhou, Jinze Bai, Jinzheng He, Junyang Lin, Kai Dang, Keming Lu, Keqin Chen, Kexin Yang, Mei Li, Mingfeng Xue, Na Ni, Pei Zhang, Peng Wang, Ru Peng, Rui Men, Ruize Gao, Runji Lin, Shijie Wang, Shuai Bai, Sinan Tan, Tianhang Zhu, Tianhao Li, Tianyu Liu, Wenbin Ge, Xiaodong Deng, Xiaohuan Zhou, Xingzhang Ren, Xinyu Zhang, Xipin Wei, Xuancheng Ren, Yang Fan, Yang Yao, Yichang Zhang, Yu Wan, Yunfei Chu, Yuqiong Liu, Zeyu Cui, Zhenru Zhang, and Zhihao Fan. 2024. <a href="https://arxiv.org/abs/2407.10671">Qwen2 technical report</a>. <em>arXiv preprint arXiv:2407.10671</em>.</li>
+  <li id="ref-zhang2020bertscore">Tianyi Zhang, Varsha Kishore, Felix Wu, Kilian Q. Weinberger, and Yoav Artzi. 2020. <a href="https://openreview.net/forum?id=SkeHuCVFDr">BERTScore: Evaluating text generation with BERT</a>. In <em>International Conference on Learning Representations</em>.</li>
+</ol>
+</section>

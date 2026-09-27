@@ -1,149 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="icon" href="../../favicon.ico">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page.title }}{% if page.subtitle %}: {{ page.subtitle }}{% endif %}</title>
+  <meta name="description" content="{{ page.abstract | strip_html | truncate: 200 | escape }}">
 
-    <title>{{page.title}}</title>
+  <!-- Open Graph / social preview -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{{ page.title | escape }}">
+  <meta property="og:description" content="{{ page.abstract | strip_html | truncate: 200 | escape }}">
+  {% if page.og_image %}<meta property="og:image" content="{{ page.og_image }}">{% endif %}
 
-    <!-- Bootstrap core CSS -->
-    <link href="../dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- MathJax 3 -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], tags: 'ams',
+             macros: { bm: ['\\boldsymbol{#1}', 1] } },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
 
-    <!-- Custom styles for this template -->
-    <link href="homepage.css" rel="stylesheet">
+  <style>
+    :root {
+      --text: #1a1a1a;
+      --muted: #6b7280;
+      --faint: #f6f7f9;
+      --border: #e5e7eb;
+      --accent: #1d4ed8;
+      --accent-soft: #eef2ff;
+      --measure: 760px;
+      --wide: 940px;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      font-size: 18px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
 
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    /* ---------- Top site nav ---------- */
+    .site-nav {
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: saturate(180%) blur(8px);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .site-nav .inner {
+      max-width: var(--wide); margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: center; height: 56px; gap: 22px;
+    }
+    .site-nav .brand { font-weight: 700; color: var(--text); text-decoration: none; margin-right: auto; font-size: 1rem; }
+    .site-nav a.navlink { color: var(--muted); text-decoration: none; font-size: 0.92rem; }
+    .site-nav a.navlink:hover { color: var(--accent); }
+    @media (max-width: 640px) { .site-nav a.navlink { font-size: 0.8rem; } .site-nav .inner { gap: 14px; padding: 0 16px; } }
 
-<script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
+    /* ---------- Header / title block ---------- */
+    .paper { max-width: var(--measure); margin: 0 auto; padding: 0 24px 96px; }
+    .paper-header { text-align: center; padding: 56px 0 8px; }
+    .venue-badge {
+      display: inline-block; font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase;
+      color: var(--accent); font-weight: 600; margin-bottom: 14px;
+    }
+    h1.paper-title { font-size: 2.1rem; line-height: 1.2; font-weight: 700; margin: 0 0 20px; letter-spacing: -0.01em; }
+    .authors { font-size: 1.05rem; line-height: 1.7; margin: 0 0 6px; }
+    .authors .me { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; }
+    .affil { color: var(--muted); font-size: 0.95rem; margin: 6px 0 2px; }
+    .authornote { color: var(--muted); font-size: 0.85rem; margin-top: 6px; }
 
-  </head>
+    /* ---------- Resource buttons ---------- */
+    .resources { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 26px 0 8px; }
+    .resources a {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 16px; border-radius: 999px; border: 1px solid var(--border);
+      color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500;
+      background: #fff; transition: all .15s ease;
+    }
+    .resources a:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .resources svg { width: 16px; height: 16px; }
 
+    hr.rule { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
 
+    /* ---------- Abstract ---------- */
+    .abstract { background: var(--faint); border: 1px solid var(--border); border-radius: 12px; padding: 22px 26px; margin: 8px 0 40px; }
+    .abstract h2 { text-align: center; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 12px; color: var(--muted); }
+    .abstract p { margin: 0; font-size: 0.98rem; line-height: 1.7; }
+
+    /* ---------- Body prose ---------- */
+    .paper-body h2 { font-size: 1.5rem; font-weight: 700; margin: 48px 0 14px; letter-spacing: -0.01em; }
+    .paper-body h3 { font-size: 1.18rem; font-weight: 650; margin: 32px 0 10px; }
+    .paper-body p { margin: 0 0 18px; }
+    .paper-body a { color: var(--accent); text-decoration: none; }
+    .paper-body a:hover { text-decoration: underline; }
+    .paper-body ul, .paper-body ol { margin: 0 0 18px; padding-left: 26px; }
+    .paper-body li { margin-bottom: 8px; }
+    .paper-body strong { font-weight: 650; }
+
+    /* ---------- Figures (allowed to break out wider than text) ---------- */
+    figure.fig {
+      margin: 34px calc((var(--measure) - var(--wide)) / 2); /* negative on wide screens */
+      text-align: center;
+    }
+    @media (max-width: 1000px) { figure.fig { margin-left: 0; margin-right: 0; } }
+    figure.fig img { max-width: 100%; height: auto; border-radius: 6px; }
+    figure.fig.bordered img { border: 1px solid var(--border); }
+    figure.fig figcaption { font-size: 0.88rem; color: var(--muted); line-height: 1.55; margin-top: 12px; max-width: var(--measure); margin-left: auto; margin-right: auto; text-align: left; padding: 0 8px; }
+    figure.fig figcaption .lab { color: var(--text); font-weight: 650; }
+
+    /* ---------- Tables ---------- */
+    .table-wrap { overflow-x: auto; margin: 28px 0; }
+    table.data { border-collapse: collapse; font-size: 0.9rem; margin: 0 auto; min-width: 60%; }
+    table.data th, table.data td { padding: 7px 12px; text-align: center; border-bottom: 1px solid var(--border); }
+    table.data thead th { border-bottom: 2px solid #c9ced6; }
+    table.data caption { caption-side: top; font-size: 0.88rem; color: var(--muted); text-align: left; margin-bottom: 10px; }
+
+    /* ---------- Footnotes: marker + reveal-in-place + notes list ---------- */
+    sup.fn { font-size: 0.7em; line-height: 0; }
+    sup.fn a { color: var(--accent); text-decoration: none; padding: 0 2px; cursor: pointer; }
+    sup.fn a:hover { text-decoration: underline; }
+    .fn-inline { display: none; margin: 8px 0 10px; padding: 10px 14px; background: var(--faint);
+      border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; font-size: 0.9rem; line-height: 1.55; color: #333; }
+    .fn-inline.open { display: block; }
+    .fn-inline p, .fn-pop p { margin: 0; }
+    .fn-pop { display: none; position: absolute; z-index: 40; max-width: 360px; padding: 10px 14px; background: #fff;
+      border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.08);
+      font-size: 0.88rem; line-height: 1.5; color: #333; }
+    @media (hover: hover) { .fn-pop.show { display: block; } }
+    a.fnback { color: var(--muted); text-decoration: none; margin-left: 4px; font-size: 0.85em; }
+
+    /* ---------- Notes & References lists ---------- */
+    .footnotes ol, .references ol { padding-left: 26px; }
+    .footnotes li, .references li { font-size: 0.9rem; color: #333; margin-bottom: 10px; line-height: 1.5; }
+    .references li { text-align: left; overflow-wrap: anywhere; }
+    .footnotes li:target, .references li:target { background: var(--accent-soft); border-radius: 4px; }
+
+    /* ---------- BibTeX ---------- */
+    details.bibtex { margin: 32px 0 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    details.bibtex summary { cursor: pointer; padding: 12px 18px; font-weight: 600; background: var(--faint); font-size: 0.92rem; list-style: none; }
+    details.bibtex summary::-webkit-details-marker { display: none; }
+    details.bibtex summary::before { content: "▸ "; color: var(--muted); }
+    details.bibtex[open] summary::before { content: "▾ "; }
+    details.bibtex pre { margin: 0; padding: 16px 18px; overflow-x: auto; font-size: 0.82rem; line-height: 1.5;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; background: #fbfbfc; }
+
+    footer.paper-foot { max-width: var(--measure); margin: 40px auto 0; padding: 24px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; text-align: center; }
+  </style>
+</head>
 <body>
 
-    <div class="blog-masthead">
-      <div class="container">
-        <nav class="blog-nav">
-          <a class="blog-nav-item" href="index.html">Research</a>
-          <a class="blog-nav-item" href="publications.html">Publications</a>
-          <a class="blog-nav-item" href="teaching.html">Teaching</a>
-          <a class="blog-nav-item" href="resume.html">CV</a>
-        </nav>
-      </div>
+  <nav class="site-nav">
+    <div class="inner">
+      <a class="brand" href="../../../index.html">Chris Callison-Burch</a>
+      <a class="navlink" href="../../../publications.html">Publications</a>
+      <a class="navlink" href="../../../students.html">Lab</a>
+      <a class="navlink" href="../../../teaching.html">Teaching</a>
+      <a class="navlink" href="../../../resume.html">CV</a>
     </div>
+  </nav>
 
+  <main class="paper">
+    <header class="paper-header">
+      {% if page.venue %}<div class="venue-badge">{{ page.venue }}{% if page.year %} · {{ page.year }}{% endif %}</div>{% endif %}
+      <h1 class="paper-title">{{ page.title }}{% if page.subtitle %}: {{ page.subtitle }}{% endif %}</h1>
+      {% if page.authors_html %}<div class="authors">{{ page.authors_html }}</div>{% endif %}
+      {% if page.affiliations %}<div class="affil">{{ page.affiliations }}</div>{% endif %}
+      {% if page.authornote %}<div class="authornote">{{ page.authornote }}</div>{% endif %}
 
-    <div class="container">
-
-      <div class="blog-header">
-        <h2 class="blog-title">{{page.title}}</h2>
+      <div class="resources">
+        {% if page.links.pdf %}<a href="{{ page.links.pdf }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>PDF</a>{% endif %}
+        {% if page.links.arxiv %}<a href="{{ page.links.arxiv }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>arXiv</a>{% endif %}
+        {% if page.links.code %}<a href="{{ page.links.code }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Code</a>{% endif %}
+        {% if page.links.data %}<a href="{{ page.links.data }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>Data</a>{% endif %}
+        {% if page.links.website %}<a href="{{ page.links.website }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Project</a>{% endif %}
+        {% if page.links.doi %}<a href="https://doi.org/{{ page.links.doi }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>DOI</a>{% endif %}
       </div>
-      <div class="blog-header">
-        <h3>{{page.author}}</h3>
-      </div>
+    </header>
 
+    {% if page.abstract %}
+    <section class="abstract">
+      <h2>Abstract</h2>
+      <p>{{ page.abstract }}</p>
+    </section>
+    {% endif %}
 
-	{% if page.figures %}
-	<!-- figures button -->
-	<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#{{page.id}}-figures">Figures</button>
-	<!-- /.figures button -->
-	<!-- figures content -->
-	<div id="{{page.id}}-figures" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="{{page.id}}">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="{{page.id}}">{{page.title}}</h4>
-        </div><!-- /.modal-header -->
-        <div class="modal-body">
-	 <!-- Carousel -->
-	<div id="{{page.id}}-figures-carousel" class="carousel slide" data-interval="false">
+    <article class="paper-body">
+      {{ content }}
+    </article>
 
-	  <ol class="carousel-indicators">
-	    {% for figure in page.figures %}
-	    <li data-target="#{{page.id}}-figures-carousel" data-slide-to="{{figure.label}}" class="active"></li>
-	    {% endfor %}
-	  </ol>
+    {% if page.bibtex %}
+    <details class="bibtex">
+      <summary>BibTeX</summary>
+      <pre>{{ page.bibtex | escape }}</pre>
+    </details>
+    {% endif %}
 
-	  <!-- Carousel items -->
-	  <div class="carousel-inner" role="listbox">
-                {% assign isFirstFigure = 1 %}
-	  	{% for figure in page.figures %}
-		  	{% if isFirstFigure == 1 %}
-			  	<div class="item active">
-                		{% assign isFirstFigure = 0 %}
-		  	{% else %}
-			  	<div class="item">
-                	{% endif %}
-					<img src="{{figure.img}}" alt="" width="100%">
-					<p><b>{{figure.label}}:</b> {{figure.caption}}</p>
-				</div>
-		{% endfor %}
-	  </div>
-	  <!-- /.Carousel items -->
-	  <!-- Controls -->
-		<a class="left carousel-control" href="#{{page.id}}-figures-carousel" role="button" data-slide="prev">
-		<span class="glyphicon glyphicon-chevron-left" aria-hidden="true" style="color:gray"></span>
-		<span class="sr-only">Previous</span>
-		</a>
-		<a class="right carousel-control" href="#{{page.id}}-figures-carousel" role="button" data-slide="next">
-		<span class="glyphicon glyphicon-chevron-right" aria-hidden="true" style="color:gray"></span>
-		<span class="sr-only">Next</span>
-		</a>
-	  <!-- /.Controls -->
-	</div>
-	<!-- /.Carousel -->
+    <footer class="paper-foot">
+      HTML rendering of the paper. For the authoritative version, see the {% if page.links.pdf %}<a href="{{ page.links.pdf }}">PDF</a>{% if page.links.arxiv %} or {% endif %}{% endif %}{% if page.links.arxiv %}<a href="{{ page.links.arxiv }}">arXiv</a>{% endif %}{% if page.links.pdf == nil and page.links.arxiv == nil %}published version{% endif %}.<br>
+      &copy; {{ page.year }} the authors. Rendered for <a href="../../../publications.html">callison-burch.github.io</a>.
+    </footer>
+  </main>
 
-        </div><!-- /.modal-body -->
-	</div><!-- /.modal-content -->
-	</div><!-- /.modal-dialog -->
-	</div><!-- /.figures-content -->
-	{% endif %}
+  <script>
+  // Footnotes: hover shows a popover (pointer devices); click/tap expands the note in place.
+  // Without JS the markers are plain links to the Notes list, which keeps back-links.
+  (function () {
+    document.querySelectorAll('sup.fn > a[href^="#fn"]').forEach(function (a) {
+      var li = document.getElementById(a.getAttribute('href').slice(1));
+      if (!li) return;
+      var clone = li.cloneNode(true);
+      clone.querySelectorAll('a.fnback').forEach(function (b) { b.remove(); });
+      var box = document.createElement('span'); box.className = 'fn-inline'; box.innerHTML = clone.innerHTML;
+      a.parentNode.insertAdjacentElement('afterend', box);
+      var pop = document.createElement('span'); pop.className = 'fn-pop'; pop.innerHTML = clone.innerHTML;
+      document.body.appendChild(pop);
+      a.addEventListener('click', function (e) { e.preventDefault(); pop.classList.remove('show'); box.classList.toggle('open'); });
+      a.addEventListener('mouseenter', function () {
+        if (box.classList.contains('open')) return;
+        var r = a.getBoundingClientRect();
+        pop.style.left = Math.max(12, Math.min(r.left + window.scrollX, window.innerWidth - 384)) + 'px';
+        pop.style.top = (r.bottom + window.scrollY + 6) + 'px';
+        pop.classList.add('show');
+      });
+      a.addEventListener('mouseleave', function () { pop.classList.remove('show'); });
+    });
+  })();
+  </script>
 
-
-
-	<div class="blog-main">
-	  <!-- TODO - use the replace function to replace @tags with bib entries  -->
-
-          {{ content }}
-
-
-<h1 id="references">References</h1>
-{% for reference in page.references %}
-   {% if content contains reference.id %}
-	<p id="{{reference.id}}">
-	{% for author in reference.author %}
-		{{author.given}} {{author.family}},
-	{% endfor %} <i>{{ reference.title }}</i>. {{ reference.container-title }} {{ reference.issued[0].year }}.
-	</p>
-   {% endif %}
-{% endfor %}
-	</div>
-
-
-      <footer class="text-center text-muted">
-        <hr/>
-        Last updated {{ site.time | date: "%B %d, %Y" }}. <br/>
-        <br/>
-      </footer>
-    </div>
-
-
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-  <script src="../dist/js/bootstrap.min.js"></script>
-
-
-
-  </body>
+</body>
 </html>

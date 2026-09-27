@@ -1,0 +1,326 @@
+---
+layout: paper
+title: "Evaluating Vision-Language Models on Bistable Images"
+authors_html: >-
+  Artemis Panagopoulou<sup>*</sup>, Coby Melkin<sup>*</sup>,
+  <span class="me">Chris Callison-Burch</span>
+affiliations: "University of Pennsylvania"
+authornote: "* Equal contribution.  Correspondence: artemisp@seas.upenn.edu"
+venue: "CMCL Workshop"
+year: 2024
+links:
+  pdf: "https://www.cis.upenn.edu/~ccb/publications/bistable-images-with-vlms.pdf"
+  code: "https://github.com/artemisp/Bistable-Illusions-MLLMs"
+  doi: "10.18653/v1/2024.cmcl-1.2"
+abstract: >-
+  Bistable images, also known as ambiguous or reversible images, present visual stimuli that can be seen in two distinct interpretations, though not simultaneously, by the observer. In this study, we conduct the most extensive examination of vision-language models using bistable images to date. We manually gathered a dataset of 29 bistable images, along with their associated labels, and subjected them to 121 different manipulations in brightness, resolution, tint, and rotation. We evaluated twelve different models in both classification and generative tasks across six model architectures. Our findings reveal that, with the exception of models from the Idefics family and LLaVA1.5-13b, there is a pronounced preference for one interpretation over another among the models, and minimal variance under image manipulations, with few exceptions on image rotations. Additionally, we compared the models' preferences with humans, noting that the models do not exhibit the same continuity biases as humans and often diverge from human initial interpretations. We also investigated the influence of variations in prompts and the use of synonymous labels, discovering that these factors significantly affect model interpretations more than image manipulations showing a higher influence of the language priors on bistable image interpretations compared to image-text training data.
+bibtex: |
+  @inproceedings{panagopoulou-etal-2024-evaluating,
+      title = "Evaluating Vision-Language Models on Bistable Images",
+      author = "Panagopoulou, Artemis and Melkin, Coby and Callison-Burch, Chris",
+      booktitle = "Proceedings of the Workshop on Cognitive Modeling and Computational Linguistics",
+      month = aug, year = "2024", address = "Bangkok, Thailand",
+      publisher = "Association for Computational Linguistics",
+      url = "https://aclanthology.org/2024.cmcl-1.2",
+      doi = "10.18653/v1/2024.cmcl-1.2", pages = "8--29"
+  }
+og_image: "figures/768b8ab0d55761b205087c079df1e6e6_img.png"
+---
+
+<p><em>Best Paper Award, Workshop on Cognitive Modeling and Computational Linguistics (CMCL 2024).</em></p>
+
+<figure class="fig bordered">
+  <img src="figures/768b8ab0d55761b205087c079df1e6e6_img.png" alt="Descriptions of a Duck-Rabbit image by five generative vision-language models, all favoring the duck interpretation">
+  <figcaption><span class="lab">Figure 1.</span> Descriptions of a Duck-Rabbit image produced by five generative models when prompted to &ldquo;describe the image.&rdquo; IDEFICS, mPLUG-Owl, InstructBLIP, LLaVA, and BLIP-2 all favor the duck interpretation. Responses are drawn directly from model outputs.</figcaption>
+</figure>
+
+<h2>1. Introduction</h2>
+
+<p>Bistable images, also known as ambiguous or reversible images, offer unique visual stimuli that present two distinct interpretations, though a viewer cannot simultaneously perceive both (Khalil, 2021). An example is depicted in Figure 1, which can be seen as either a rabbit or a duck. The rapid advancements in vision-language models (VLMs) (Ye et al., 2023; Radford et al., 2021; Dai et al., 2023; Liu et al., 2023b; Li et al., 2023a) have sparked interest in testing these models against various types of visual challenges, including optical illusions. While considerable research has examined how these models interpret geometric and color-varying optical illusions (Guan et al., 2023; Villa et al., 2019; Zhang et al., 2023b; Afifi and Brown, 2019; Benjamin et al., 2019; Sun and Dekel, 2021), exploration into their performance with bistable images remains sparse.</p>
+
+<p>Motivated by this gap, this work conducts a comprehensive investigation into how vision-language models process and interpret bistable images. We assemble the largest dataset of bistable images to date, apply a range of visual transformations, and examine the models' interpretations and their alignment with human perception. In particular, we collect 29 bistable images from diverse online sources and cognitive science literature. Each image is subjected to 121 transformations affecting brightness, tint, rotation, and resolution, resulting in a total of 3,509 processed images. We assess the behaviors of twelve vision-language models across six distinct model families in both classification and generative settings.</p>
+
+<p>Our analysis shows that, apart from a few exceptions, these models generally demonstrate a preference for one interpretation of bistable images over the other. Notably, models from the Idefics family (Laurençon et al., 2024) and LLaVA1.5-13b (Liu et al., 2023b,a) exhibit more balanced preferences. While most model responses show little variation to image manipulations, exceptions include CLIP (Radford et al., 2021) and BLIP2-OPT6.7 (Li et al., 2023a), which are sensitive to such changes.</p>
+
+<p>We also explored how variations in prompts and the use of synonymous labels affect model interpretations. These textual modifications significantly influenced the models' interpretations, reinforcing the importance of LLM priors on the VLM processing of bistable images. This finding contrasts with prior research on convolutional neural networks (CNNs) focused on geometric optical illusions (Villa et al., 2019; Gomez-Villa et al., 2020; Afifi and Brown, 2019; Benjamin et al., 2019; Sun and Dekel, 2021), which typically show biases consistent with human perception. The CNNs studied did not utilize language model priors, highlighting a fundamental difference in how traditional vision models and VLMs handle visual ambiguity.</p>
+
+<p>To further understand the influence of training data, we considered multiple models from the same families, trained on identical datasets but using different base language models (LLMs). Even when trained on the same visual data, the models do not consistently align in their preferences, suggesting that LLM priors play a major role in ambiguous image interpretation. This underscores that image-text interaction during training is not the sole determinant of how VLMs perceive ambiguity, echoing earlier findings on the importance of textual signal in VLMs (Jabri et al., 2016; Goyal et al., 2017a; Agrawal et al., 2018).</p>
+
+<p>Our contributions are as follows:</p>
+<ul>
+  <li>We curate the largest collection of bistable images from various online sources and cognitive studies, consisting of 29 unique images. These images are modified through 121 transformations, creating a comprehensive set of ~3.5k images for analysis.</li>
+  <li>We analyze the behavior of twelve different vision-language models across six architectural types in both classification and generative tasks, providing a detailed account of their performance on bistable images.</li>
+  <li>We examine the influence of prompt variations and synonymous labeling on model interpretations, finding that these textual modifications significantly impact how models perceive bistable images.</li>
+  <li>Through direct comparison with human subjects and reference to established cognitive science studies, we assess the degree to which model preferences align with humans. Unlike previous work on CNNs (Villa et al., 2019; Gomez-Villa et al., 2020; Afifi and Brown, 2019; Benjamin et al., 2019; Sun and Dekel, 2021), VLMs do not exhibit human biases in bistable image interpretations.</li>
+</ul>
+
+<h2>2. Background</h2>
+
+<h3>2.1 Bistable Images</h3>
+
+<p>Bistable images, a unique class of cognitive illusions, present two or more plausible perceptual states, yet viewers cannot observe multiple percepts simultaneously (Khalil, 2021). Instead, observers typically &ldquo;switch&rdquo; between the percepts in a seemingly random manner (Kornmeier and Bach, 2005). This phenomenon prompts two primary questions in cognitive science regarding bistable images:</p>
+<ol>
+  <li>What causes an individual to initially perceive a particular percept?</li>
+  <li>What triggers the seemingly random switching between percepts?</li>
+</ol>
+
+<p>The exploration of these questions incorporates both bottom-up and top-down considerations (Wang et al., 2013). Bottom-up explanations focus on how the brain processes visual stimuli, starting from the simplest sensory inputs and moving to more complex interpretations, involving the detection of subtle visual cues and the neural computation within the visual cortex that ultimately determines the perceived image. Conversely, top-down explanations emphasize the role of cognitive processes, such as expectations, which heavily influence initial perceptions. For instance, a person's previous experiences, like frequently viewing cubes from above, shape their initial interpretation of a Necker Cube (Kuc et al., 2023).</p>
+
+<p>Regarding the switching phenomenon, the dominant bottom-up explanation involves neural mechanisms like spike frequency adaptation or synaptic depression, where the neural connections producing one percept become fatigued, allowing the alternative percept to emerge (Laing and Chow, 2002). Other bottom-up theories propose that switching is influenced by the brain's inherent noise or randomness (Moreno-Bote et al., 2007) or by unconscious, subtle cues within the images (Ward and Scholl, 2015). On the other hand, top-down explanations suggest that higher cognitive functions, such as motivation and attention, can also induce switching. Studies have shown that individuals can exert some control over their perceptual focus, which influences the switching between different states (Hugrass and Crewther, 2012; Slotnick and Yantis, 2005).</p>
+
+<h3>2.2 Vision-Language Models (VLMs)</h3>
+
+<p>VLMs integrate visual information as input and generate text as output. They are categorized into contrastive and generative types. Contrastive VLMs, such as the prototypical model CLIP (Radford et al., 2021), are trained to match visual representations with corresponding textual descriptions by distinguishing between different data points, creating a latent embedding space where similar text and images are drawn closer together and dissimilar ones are pushed apart. Generative VLMs extend this by incorporating a vision-to-language connection module that projects visual information into the LLM space. This module can either prepend to the input layer of the LLM or condition deeper layers through cross-attention, allowing flexible and dynamic text generation based on visual inputs. For our experiments, we employed models from various families, including CLIP, Idefics (Laurençon et al., 2024), LLaVA1.5 (Liu et al., 2023b,a), mPLUG-Owl (Ye et al., 2023), InstructBLIP (Dai et al., 2023), and BLIP-2 (Li et al., 2023a). Detailed information on the model architectures and training datasets is summarized in the appendix.</p>
+
+<h3>2.3 VLMs and Cognitive Illusions</h3>
+
+<p>While prior studies have investigated how CNNs process optical illusions, showing that they often mimic human perceptual errors (Gomez-Villa et al., 2020; Villa et al., 2019; Afifi and Brown, 2019; Benjamin et al., 2019; Sun and Dekel, 2021), the interaction of VLMs with cognitive illusions, especially bistable images, remains underexplored. In contemporary work, Luo et al. (2024) introduce a benchmark designed to evaluate VLMs on ambiguous, context-dependent visual inputs, finding that VLMs significantly underperform humans in these scenarios. More closely related to this work, Zhang et al. (2023b) evaluated VLMs on optical illusions by soliciting binary Yes/No responses and found that larger VLMs tend to be more susceptible to such illusions. However, their study was limited to 16 root images with 100 manually edited variations, focusing primarily on color, shape, and geometric illusions, and did not include bistable images. They experimented with only three families of models, whereas our study encompasses six. Limited resources restricted our ability to test some of the larger models that Zhang et al. (2023b) included. Hallusion-Bench (Guan et al., 2023) integrates a subset of these optical illusion images, predominantly sourced from Zhang et al. (2023b), but lacks bistable examples.</p>
+
+<h2>3. Methodology</h2>
+
+<h3>3.1 Data Collection</h3>
+
+<p>Our dataset comprises 29 bistable images categorized into seven distinct types, sourced from both online platforms, such as Wikipedia, and academic studies (Schooler, 2015; Trautmann, 2021; Wilson, 2012; Pastukhov et al., 2019; Fields et al., 2013; Di Blasi, 2014). Notably, we source all images from Takashima et al. (2012) on face-perception illusions in order to compare VLMs to the results of that human study. Among these, twelve images are organized into four classic categories of bistable illusions: the Rubin Vase, Necker Cube, Duck-Rabbit, and Young-Old Woman. Each category includes several iconic versions of the respective illusion type.</p>
+
+<p>To explore the influence of visual modifications on perception, we created 121 variations for each image through a series of controlled manipulations. These include adjustments to image resolution, rotation, brightness (both increases and decreases), and the application of color tints. The colors used for the tints are red, green, blue, yellow, magenta, and cyan. The intensity of each tint was varied by 0.1 from 0 (no change) to 1.0 (maximum change), and the brightness was adjusted within a range from &minus;1 (darker) to 1 (brighter). We also applied image rotations from 0 to 360 degrees every 10 degrees. Finally, we scale the resolution of the images from 0.5 to 1.0 in increments of 0.1.</p>
+
+<h3>3.2 Experimental Setup</h3>
+
+<p>We utilized six VLM families, encompassing a total of twelve different models, to evaluate bistable image description. We employed all six VLMs for classification tasks and five for generation tasks (excluding CLIP). The models used and their corresponding implementations on Hugging Face Transformers are listed in the footnotes: CLIP (Radford et al., 2021),<sup class="fn"><a href="#fn1" id="fnref1">1</a></sup> Idefics 9b (Laurençon et al., 2024),<sup class="fn"><a href="#fn2" id="fnref2">2</a></sup> LLaVA1.5 (Liu et al., 2023b,a),<sup class="fn"><a href="#fn3" id="fnref3">3</a></sup> mPLUG-Owl (Ye et al., 2023),<sup class="fn"><a href="#fn4" id="fnref4">4</a></sup> InstructBLIP (Dai et al., 2023),<sup class="fn"><a href="#fn5" id="fnref5">5</a></sup> and BLIP-2 (Li et al., 2023a).<sup class="fn"><a href="#fn6" id="fnref6">6</a></sup> Each model was queried with the default generation parameters and the prompt suggested by its respective model page on Hugging Face. All experiments were conducted on a single A100 40GB GPU.</p>
+
+<p>Although all VLMs used, except for CLIP, are generative models, we adapted their outputs to simulate classification. Specifically, we utilized a loss-ranking technique (Wei et al., 2022; Li et al., 2021, 2023a; Dai et al., 2023) for classification. As depicted in Figure 2, this technique employs the score to determine the negative log-likelihood of each candidate label. In the classification setup, we prompted each VLM with each image along with a pair of strings corresponding to its potential interpretations.<sup class="fn"><a href="#fn7" id="fnref7">7</a></sup> In the generative setup, we prompted the models with the format suggested in the Hugging Face documentation for captioning; in addition to model-specific setups, all models were presented with each image and asked to &ldquo;describe the image.&rdquo;</p>
+
+<figure class="fig">
+  <img src="figures/2763901b7a1fd1b5d704cdc450d12ed0_img.png" alt="Classification setup: an image and two candidate labels are passed to the VLM, and the label with lower loss is chosen">
+  <figcaption><span class="lab">Figure 2.</span> Classification setup for generative models. Each candidate label and the corresponding image are forwarded to the model. The prediction is set to be the label with lower loss (higher negative log-likelihood) &mdash; here, &ldquo;two faces&rdquo; is chosen over &ldquo;a vase.&rdquo;</figcaption>
+</figure>
+
+<h2>4. Results</h2>
+
+<h3>4.1 VLMs on Original Images</h3>
+
+<p>The models displayed clear preferences between interpretations for the original bistable images; very rarely were models indifferent. The averages across models for our four image categories are shown in Figure 3. We see a strong preference for the &lsquo;two faces&rsquo; interpretation in the Rubin Vase group and moderate preferences for &lsquo;a cube seen from above&rsquo; and &lsquo;duck&rsquo; interpretations in the Necker Cube and Duck-Rabbit groups. Less classical illusions such as the &lsquo;Grimace-Beggar,&rsquo; &lsquo;Idaho-Face,&rsquo; and &lsquo;Lion-Gorilla-Tree&rsquo; also show strong inclinations toward one interpretation. The images with the highest variation across models were the &lsquo;Woman-Trumpeter,&rsquo; &lsquo;Schroeder Stairs,&rsquo; and &lsquo;Raven-Bear,&rsquo; with CLIP variants showing almost consistently opposite preferences to the LLM-based generative models.</p>
+
+<figure class="fig">
+  <img src="figures/de6e8b740c69dac308cce9edfec3eff4_img.png" alt="Four bar charts of the probability of the favored interpretation across image categories, for original labels, synonym labels, prompt variation, and human initial interpretations">
+  <figcaption><span class="lab">Figure 3.</span> Between-model averages of the probability of the favored interpretation for each image category, under (a) original labels, (b) synonym labels, (c) prompt variation with original labels, and (d) human initial interpretations.</figcaption>
+</figure>
+
+<p>While the six models generally showed alignment in their interpretation preferences, there was significant variance. Figure 4 shows a heat map of the correlation coefficients among model preferences. First, all CLIP variants exhibited the exact same probability distributions, with high variance across images within the same category, suggesting a heightened sensitivity to bistability. Second, the variants of Idefics 9b and LLaVA 13b demonstrated minimal variance among images of the same category and exhibited relatively moderate preferences, indicating lower sensitivity to bistability. Moreover, BLIP2-FlanT5, InstructBLIP-FlanT5, and mPLUG-Owl showed opposite preferences to CLIP, despite CLIP being used to encode images for these models &mdash; likely due to the underlying LLM, highlighting the importance of language priors in VLM predictions.</p>
+
+<figure class="fig">
+  <img src="figures/6bbc398f520a7bcc5491cab18d3e4cac_img.png" alt="Heatmap of correlation coefficients among the twelve models' preferences on original images">
+  <figcaption><span class="lab">Figure 4.</span> Correlation among model preferences on original images. The three CLIP variants are perfectly correlated with each other but weakly (or negatively) correlated with the FlanT5-based models, while Idefics and LLaVA variants correlate strongly with each other.</figcaption>
+</figure>
+
+<p>Interestingly, all models showed a preference for the two animals over the tree in the &lsquo;Lion-Gorilla-Tree&rsquo; illusion, despite the frequent appearance of all these objects in their training sets. There was also a consistent preference for the face over the full-body abstract silhouette in the &lsquo;Grimace-Beggar&rsquo; illusion across all models except those based on the FlanT5-xl architecture, further accentuating the significant impact of the underlying LLM on image interpretation in VLMs. Notably, although BLIP2-OPT was trained on the same image-text data as the FlanT5 variants, it exhibited almost opposite preferences in some image categories.</p>
+
+<h3>4.2 VLMs on Image Manipulations</h3>
+
+<p>We observed minimal effects from image manipulations on interpretation probabilities. When adjusting brightness levels, resolution, color tints, and tint intensities, the probabilities for each model remained largely unchanged (Figures 5a, 5b, and 5d). This suggests that VLMs tend to overlook minor, low-level perturbations in favor of holistic image processing, and highlights a significant divergence between VLM processing and human perception of bistable images, which often relies on bottom-up cues according to certain theories (Ward and Scholl, 2015).</p>
+
+<p>Notably, the models did not shift interpretations based on subtle cues of brightness and color. The primary exception was the CLIP variants, which demonstrated sensitivity to variations in brightness and tint, particularly in the &lsquo;Young-Old Woman,&rsquo; &lsquo;Cat-Dog,&rsquo; &lsquo;Grimace-Beggar,&rsquo; and &lsquo;Woman-Trumpeter&rsquo; illusions. We hypothesize that contrastive learning across aggregations of patches in these models enhances their sensitivity to global changes in the image, as each layer encompasses a more substantial portion of the visual input, making variations more influential to the model's output. This sensitivity was also observed, to a lesser extent, in BLIP2-OPT6.7, especially regarding brightness changes in the &lsquo;Rubin-Vase&rsquo; and &lsquo;Woman-Trumpeter&rsquo; illusions. Variations were less pronounced in BLIP2-OPT2.7, particularly for the &lsquo;Duck-Rabbit&rsquo; illusion, and were absent in the corresponding FlanT5-xl variant, underscoring the impact of the underlying LLM's priors on generative VLMs. Interestingly, when transformations were applied at maximum scale, resulting in a monochrome image, most models exhibited similar preferences, reinforcing the role of language priors.</p>
+
+<p>Figure 5c shows the variation of interpretations across rotated versions of the images. This manipulation causes significantly higher variation than the color-based manipulations. The variations typically follow the same pattern across models for some bistable images, such as &lsquo;Rubin-Vase&rsquo; and &lsquo;Duck-Rabbit.&rsquo; The contrastive CLIP variants once again exhibit the most variation, despite being trained with minor-rotation data augmentations. Among the generative models, mPLUG-Owl exhibits the highest sensitivity to rotation, despite also employing rotation augmentation in training. We also observe that the larger LLM variants of LLaVA1.5 and BLIP2-OPT exhibit less variation than their smaller counterparts, likely due to the stronger language prior.</p>
+
+<figure class="fig">
+  <img src="figures/431b8889a0e7f676f0eef40859590349_img.png" alt="Line plots of interpretation probability versus brightness for ten bistable images">
+  <figcaption><span class="lab">Figure 5a.</span> Brightness variation. Interpretation probability as brightness varies from &minus;1.0 to 1.0, across ten bistable images and all models.</figcaption>
+</figure>
+
+<figure class="fig">
+  <img src="figures/55d2bfe1c3d04e86df8d7a104d802172_img.png" alt="Line plots of interpretation probability versus tint intensity for ten bistable images">
+  <figcaption><span class="lab">Figure 5b.</span> Tint variation, averaged across the six color tints. Interpretation probability as tint intensity varies from 0.0 to 1.0.</figcaption>
+</figure>
+
+<figure class="fig">
+  <img src="figures/ac99eff233b8fe51d30f499e7413c345_img.png" alt="Line plots of interpretation probability versus rotation angle for ten bistable images">
+  <figcaption><span class="lab">Figure 5c.</span> Rotation variation. Interpretation probability as rotation angle varies from 0 to 360 degrees &mdash; the manipulation that produces the largest changes in model preference.</figcaption>
+</figure>
+
+<figure class="fig">
+  <img src="figures/e1dda754c2c88a8ad0b968aea4fc0786_img.png" alt="Line plots of interpretation probability versus resolution scale factor for ten bistable images">
+  <figcaption><span class="lab">Figure 5d.</span> Resolution variation. Interpretation probability as the scale factor varies from 0.5 to 1.0.</figcaption>
+</figure>
+
+<figure class="fig">
+  <img src="figures/80530169c7b6298ce012a85b906caeb3_img.png" alt="Line plots of interpretation probability under seven different prompts for ten bistable images">
+  <figcaption><span class="lab">Figure 5e.</span> Prompt variation. Interpretation probability under seven prompts (e.g., &ldquo;A photo of,&rdquo; &ldquo;An illustration of,&rdquo; &ldquo;The image shows,&rdquo; &ldquo;What do you see?&rdquo;). Prompt changes produce substantial within-model variation, especially for the CLIP variants.</figcaption>
+</figure>
+
+<h3>4.3 Synonymous Interpretations</h3>
+
+<p>To investigate the influence of synonymous interpretation labels on bistable image perception in VLMs, we substituted the original labels with synonyms. Figure 3b displays the effects on model preferences. The impact is generally mild, but a notable exception occurs with the &lsquo;Grimace-Beggar&rsquo; image, where the preference shifts dramatically: models show a clear preference for interpreting the image as a face rather than a beggar. This shift is likely attributable to the relative unfamiliarity of the synonym &lsquo;pan-handler&rsquo; compared with the more commonly recognized term &lsquo;face,&rsquo; making the facial interpretation more likely due to term frequency.</p>
+
+<h3>4.4 Prompt Variation</h3>
+
+<p>To investigate the effect of prompt variation on VLM bistable image interpretations, we examined 7 different prompts. Figure 3c shows little variation on average; however, the individual decomposition in Figure 5e reveals significant variation within models, especially for CLIP-B/32 and CLIP-B/32-Laion. Although these two models are trained on distinct data of different sizes (400M vs. 2B), they exhibit identical behavior across manipulations, indicating the importance of the architecture in bistable image interpretation. The BLIP family models show higher variation under prompt manipulations than the LLaVA and Idefics variants, likely due to the conditioning of the visual feature-extraction module on the instruction prompt.</p>
+
+<h3>4.5 Human Interpretations</h3>
+
+<p>To compare human initial interpretations with model preferences, we conducted a human evaluation using all original bistable images from our dataset, except for those from Takashima et al. (2012). We presented these images to three human annotators, asking them which interpretation they saw first; they were also given the option to select an alternative interpretation. Figure 3d displays the average results for each interpretation, calculated from the frequency each interpretation was selected across all annotations for that image.</p>
+
+<p>The results reveal a limited correspondence between human and VLM interpretations, contrasting with findings for geometric illusions (Afifi and Brown, 2019; Villa et al., 2019; Gomez-Villa et al., 2020). This discrepancy suggests that the training datasets for VLMs do not trigger the same cognitive biases as those encoded in humans through everyday environmental interactions and conceptual influences. It is important to note that all annotators are students at an American institution, which might influence the results; interpretations could vary significantly based on different socio-cultural experiences and the priors encoded through them.</p>
+
+<h3>4.6 Replicating Takashima et al. (2012)</h3>
+
+<p>We sought to evaluate VLM-human alignment on bistable image processing by comparing our results to a human study. Takashima et al. (2012) presented eight versions of the Rubin Vase illusion to <em>n</em> = 70 participants. The images are shown in Figure 6 and the human results in Figure 7 (top). They highlight two primary findings: human subjects favored the &lsquo;two faces&rsquo; interpretation for patterns where the profiles' homogeneity is broken (patterns 3 and 4) and favored the &lsquo;vase&rsquo; interpretation for patterns where the faces form a continuous background by Gestalt principles (Koffka, 1922) (patterns 6 and 8).</p>
+
+<figure class="fig bordered">
+  <img src="figures/9ebd85380ef496499e5f23ec0d9cd744_img.png" alt="Eight variations of the Rubin Vase illusion with different color schemes and internal textures">
+  <figcaption><span class="lab">Figure 6.</span> The eight variations of the Rubin Vase illusion (patterns 1&ndash;8) presented to participants in Takashima et al. (2012), differing in color scheme and internal texture.</figcaption>
+</figure>
+
+<p>VLMs did not replicate these results, as shown in the bottom plot of Figure 7. While the models exhibited a strong preference for the &lsquo;two faces&rsquo; interpretation on patterns 3 and 4, the same preference appears in patterns 1 and 2 (where profiles are homogeneous). Furthermore, the models did not exhibit any preference for the &lsquo;vase&rsquo; interpretation in patterns 6 and 8. Even examined individually, no model exhibited patterns similar to humans. As in earlier results, LLaVA and Idefics variants showed high consistency across the images in their tamed preferences; the CLIP variants showed identical patterns despite varying patch size, unlike in the more global interventions of tint and brightness; and BLIP-2 variants trained on the same image-text data with different LLMs show starkly different preferences, reinforcing the importance of language priors.</p>
+
+<figure class="fig">
+  <img src="figures/a6a8016b231533e7f34b550f4676afc6_img.png" alt="Bar charts comparing human and model probability of the 'two faces' interpretation across the eight Rubin Vase patterns">
+  <figcaption><span class="lab">Figure 7.</span> Comparison of between-subject average (top) and between-model average (bottom) probabilities of interpreting each Rubin Vase pattern as &lsquo;two faces,&rsquo; in Takashima et al. (2012) and in our study, respectively. The models do not reproduce the human pattern-dependent preferences.</figcaption>
+</figure>
+
+<h3>4.7 Generative Results</h3>
+
+<p>In the generative setup, we performed a qualitative analysis. Several interpretation preferences discovered in the classification setup were amplified in generation. Across models, the heavily favored interpretations were faces and ducks for Rubin Vase and Duck-Rabbit images. Figure 1 shows the output of each generative model when prompted to describe a Duck-Rabbit image: each model employs its own explanatory style, but all favor the duck interpretation. Few models commented on the age of the individual in Young-Old Woman images, and the majority of those comments described the woman as a &ldquo;girl&rdquo; or &ldquo;young woman.&rdquo;</p>
+
+<p>An overview of the responses on a subset of the images is shown in Figure 8. Most models comment on only a single interpretation, if at all, with some notable exceptions. In a few cases, models &ldquo;hallucinate&rdquo; descriptions, such as InstructBLIP's interpretation of &ldquo;two giraffes&rdquo; for the Lion-Gorilla-Tree illusion, though human inspection showed this was a rare occurrence. For the Lion-Gorilla-Tree image, models are able to identify at least one of the animals, and the tree almost consistently. We hypothesize this is because of the detail expressed in both interpretations, making it easier even for humans to consciously identify both interpretations simultaneously, even if they cannot visually perceive both at the same time &mdash; indeed, in the human study, the &lsquo;Lion-Gorilla-Tree&rsquo; image received the most balanced responses across annotators.</p>
+
+<figure class="fig bordered">
+  <img src="figures/228b525aeddd826691dfd0327516afa7_img.jpg" alt="Grimace-Beggar silhouette" style="max-width:22%">
+  <img src="figures/780ef716320af54636610e4f7ec99c4b_img.jpg" alt="Woman-Trumpeter silhouette" style="max-width:22%">
+  <img src="figures/9714d63cc65799a02d2eaa0ef023820e_img.jpg" alt="Lion-Gorilla-Tree silhouette" style="max-width:22%">
+  <img src="figures/b0298c0e7beca0c7480c57bbf9569320_img.jpg" alt="Raven-Bear circular logo" style="max-width:22%">
+  <figcaption><span class="lab">Figure 8.</span> Depiction of generative models' descriptions for various bistable images (Grimace-Beggar, Woman-Trumpeter, Lion-Gorilla-Tree, and Raven-Bear). In the paper, orange and darker blue indicate selection of one interpretation, green of both, and light blue of neither. Most models comment on only a single interpretation.</figcaption>
+</figure>
+
+<h2>5. Discussion and Limitations</h2>
+
+<p>This original analysis of VLM behavior on bistable images has yielded interesting preliminary results. Similar to humans, VLMs have preferred initial interpretations for most classical bistable images. Five out of six models showed a preference for &lsquo;two faces&rsquo; in Rubin Vase images, &lsquo;a cube seen from above&rsquo; in Necker Cube images, and &lsquo;a duck&rsquo; in Duck-Rabbit images. Young-Old Woman was the only category for which models' preferences were more neutral and mixed.</p>
+
+<p>We have seen minimal alignment between VLMs and humans when replicating Takashima et al. (2012) and conducting human annotations on the rest of the images. This analysis highlights that VLMs are not sensitive to the same variations that heavily impact human preferences. Models vary greatly in their sensitivity to bistability: CLIP emerged as a model with strong, variable preferences, while LLaVA is more neutral. CLIP's variability could be attributed to contrastive pre-training, which might sensitize the model to smaller differences. Moreover, the synthetic nature of bistable images renders them out of domain from most pretraining data, especially for VLMs that are predominantly trained on realistic images.</p>
+
+<p>Making comparisons between human and machine perception of bistable images is difficult beyond the initial biases. Human perception of bistable images exhibits the phenomenon of switching interpretations through extended focus on the image. Replicating switching is difficult because VLMs take static images at a single point in time. We loosely approximated the passage of time by testing the models on dozens of subtle variations of each image. Under the theories that subtle bottom-up cues precipitate switching in human processing, VLMs do not replicate this phenomenon: all models' preferences remained steady with variations in brightness, resolution, color, and tint intensity. This was in contrast to linguistic variations, highlighting the importance of language priors in generative VLMs.</p>
+
+<p>More research is needed to further our understanding of VLM bistable image interpretation. Using VLMs that process videos could be a tractable way of mimicking the passage of time. Additional interventions through design manipulations &mdash; either via text-to-image models or human artists &mdash; could reveal further insight into VLM behavior on bistable image inputs.</p>
+
+<h2>6. Conclusion</h2>
+
+<p>In this study we explore the behavior of VLMs on bistable images. We construct the largest bistable image dataset and evaluate 12 different models across six model families under various perturbations: pixel-color-based perturbations, resolution, rotations, interpretation-label synonyms, and prompt variations. We find that prompts have the highest impact on model preferences, whereas pixel-color perturbations have minimal effects. We further conduct human-study comparisons and find that VLMs do not exhibit the same initial biases on bistable images as human subjects.</p>
+
+<h2>Acknowledgments</h2>
+
+<p>This research was supported by a gift from AWS AI for research in Trustworthy AI.</p>
+
+<h2>Appendix: The Bistable Image Collection</h2>
+
+<p>Below we present the original images in our dataset, without any visual manipulations. In total the dataset spans seven types of illusion across 29 images, each associated with a pair of candidate interpretation labels used for classification.</p>
+
+<figure class="fig bordered">
+  <img src="figures/a8e5c2ac336eb43cda4e333ea9c73237_img.png" alt="Rubin Vase and Necker Cube illusion images">
+  <figcaption><span class="lab">Figure 18.</span> Rubin Vase illusions (interpretations: &ldquo;vase&rdquo; / &ldquo;two faces&rdquo;) and Necker Cube illusions (interpretations: &ldquo;a cube seen from below&rdquo; / &ldquo;a cube seen from above&rdquo;).</figcaption>
+</figure>
+
+<figure class="fig bordered">
+  <img src="figures/ac852a162572ca8a8c8478c49b571af5_img.png" alt="Duck-Rabbit and Young-Old Woman illusion images">
+  <figcaption><span class="lab">Figure 19.</span> Duck-Rabbit illusion (interpretations: &ldquo;duck&rdquo; / &ldquo;rabbit&rdquo;) and Young-Old Woman illusion (interpretations: &ldquo;young woman&rdquo; / &ldquo;old woman&rdquo;).</figcaption>
+</figure>
+
+<figure class="fig bordered">
+  <img src="figures/93afce28d7dec5b2202789b31b4ef8ab_img.png" alt="Schroeder Stairs, Lion-Gorilla-Tree, and Grimace-Beggar illusion images">
+  <figcaption><span class="lab">Figure 20.</span> Schroeder Stairs illusion (&ldquo;upright stairs&rdquo; / &ldquo;sideways stairs&rdquo;), Lion-Gorilla-Tree illusion (&ldquo;lion and gorilla&rdquo; / &ldquo;tree&rdquo;), and Grimace-Beggar illusion (&ldquo;grimace&rdquo; / &ldquo;beggar&rdquo;).</figcaption>
+</figure>
+
+<figure class="fig bordered">
+  <img src="figures/41245ac07db266bea228735b9e8c8b73_img.png" alt="Woman-Trumpeter, Idaho-Face, Spinning Dancer, and Raven-Bear illusion images">
+  <figcaption><span class="lab">Figure 21.</span> From left to right: Woman-Trumpeter (&ldquo;woman's face&rdquo; / &ldquo;saxophonist&rdquo;), Idaho-Face (&ldquo;the state of Idaho&rdquo; / &ldquo;face&rdquo;), Spinning Dancer (&ldquo;dancer spinning clockwise&rdquo; / &ldquo;counter-clockwise&rdquo;), and Raven-Bear (&ldquo;bird&rdquo; / &ldquo;bear&rdquo;).</figcaption>
+</figure>
+
+<p>The appendix of the paper additionally reports per-model architecture and training-data tables (Tables 1&ndash;2), individual-model probability distributions for original labels, synonymous labels, and the Takashima et al. (2012) study (Figures 9&ndash;11), per-color tint-variation plots (Figures 12&ndash;17, which consistently show limited effect with the highest variability from CLIP variants), and full sets of generative examples for the Duck-Rabbit, Young-Old Woman, Rubin Vase, Necker Cube, Spinning Dancer, Schroeder Stairs, and Idaho-Face images (Figures 22&ndash;26). See the PDF for these detailed appendices.</p>
+
+<section class="footnotes">
+<h2>Notes</h2>
+<ol>
+  <li id="fn1"><code>openai/clip-vit-base-patch32</code>, <code>openai/clip-vit-base-patch16</code>, <code>laion/CLIP-ViT-B-32-laion2B-s34B-b79K</code> <a class="fnback" href="#fnref1" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn2"><code>HuggingFaceM4/idefics-9b</code>, <code>HuggingFaceM4/idefics-9b-instruct</code> <a class="fnback" href="#fnref2" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn3"><code>llava-hf/llava-1.5-7b-hf</code>, <code>llava-hf/llava-1.5-13b-hf</code> <a class="fnback" href="#fnref3" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn4"><code>MAGAer13/mplug-owl-llama-7b</code> <a class="fnback" href="#fnref4" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn5"><code>Salesforce/instructblip-flan-t5-xl</code> <a class="fnback" href="#fnref5" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn6"><code>Salesforce/blip2-opt-2.7b</code>, <code>Salesforce/blip2-opt-6.7b</code>, <code>Salesforce/blip2-flan-t5-xl</code> <a class="fnback" href="#fnref6" aria-label="Back to text">&#8617;</a></li>
+  <li id="fn7">Image interpretations are found in Appendix C. <a class="fnback" href="#fnref7" aria-label="Back to text">&#8617;</a></li>
+</ol>
+</section>
+
+<section class="references">
+<h2>References</h2>
+<ol>
+  <li id="ref-afifi2019">Mahmoud Afifi and Michael S. Brown. 2019. What else can fool deep learning? addressing color constancy errors on deep neural network performance. In <em>2019 IEEE/CVF International Conference on Computer Vision, ICCV 2019, Seoul, Korea (South), October 27 &ndash; November 2, 2019</em>, pages 243&ndash;252. IEEE.</li>
+  <li id="ref-agrawal2018">Aishwarya Agrawal, Dhruv Batra, Devi Parikh, and Aniruddha Kembhavi. 2018. Don&rsquo;t just assume; look and answer: Overcoming priors for visual question answering. In <em>2018 IEEE Conference on Computer Vision and Pattern Recognition, CVPR 2018, Salt Lake City, UT, USA, June 18-22, 2018</em>, pages 4971&ndash;4980. IEEE Computer Society.</li>
+  <li id="ref-benjamin2019">Ari Benjamin, Cheng Qiu, Ling-Qi Zhang, Konrad Kording, and Alan Stocker. 2019. Shared visual illusions between humans and artificial neural networks. In <em>2019 Conference on Cognitive Computational Neuroscience</em>, volume 10, pages 2019&ndash;1299. Cognitive Computational Neuroscience.</li>
+  <li id="ref-carlini2023">Nicholas Carlini, Matthew Jagielski, Christopher A Choquette-Choo, Daniel Paleka, Will Pearce, Hyrum Anderson, Andreas Terzis, Kurt Thomas, and Florian Tramèr. 2023. <a href="https://arxiv.org/abs/2302.10149">Poisoning web-scale training datasets is practical</a>. <em>ArXiv preprint</em>, abs/2302.10149.</li>
+  <li id="ref-changpinyo2021">Soravit Changpinyo, Piyush Sharma, Nan Ding, and Radu Soricut. 2021. Conceptual 12m: Pushing web-scale image-text pre-training to recognize long-tail visual concepts. In <em>IEEE Conference on Computer Vision and Pattern Recognition, CVPR 2021, virtual, June 19-25, 2021</em>, pages 3558&ndash;3568. Computer Vision Foundation / IEEE.</li>
+  <li id="ref-chen2015">Xinlei Chen, Hao Fang, Tsung-Yi Lin, Ramakrishna Vedantam, Saurabh Gupta, Piotr Dollár, and C Lawrence Zitnick. 2015. <a href="https://arxiv.org/abs/1504.00325">Microsoft coco captions: Data collection and evaluation server</a>. <em>ArXiv preprint</em>, abs/1504.00325.</li>
+  <li id="ref-chiang2023">Wei-Lin Chiang, Zhuohan Li, Zi Lin, Ying Sheng, Zhanghao Wu, Hao Zhang, Lianmin Zheng, Siyuan Zhuang, Yonghao Zhuang, Joseph E. Gonzalez, Ion Stoica, and Eric P. Xing. 2023. Vicuna: An open-source chatbot impressing gpt-4 with 90%* chatgpt quality.</li>
+  <li id="ref-chung2024">Hyung Won Chung, Le Hou, Shayne Longpre, Barret Zoph, Yi Tay, William Fedus, Yunxuan Li, Xuezhi Wang, Mostafa Dehghani, Siddhartha Brahma, et al. 2024. Scaling instruction-finetuned language models. <em>Journal of Machine Learning Research</em>, 25(70):1&ndash;53.</li>
+  <li id="ref-dai2023">Wenliang Dai, Junnan Li, Dongxu Li, Anthony Tiong, Junqi Zhao, Weisheng Wang, Boyang Li, Pascale Fung, and Steven Hoi. 2023. InstructBLIP: Towards general-purpose vision-language models with instruction tuning. In <em>Thirty-seventh Conference on Neural Information Processing Systems</em>.</li>
+  <li id="ref-desai2021">Karan Desai, Gaurav Kaul, Zubin Aysola, and Justin Johnson. 2021. <a href="https://arxiv.org/abs/2111.11431">Redcaps: web-curated image-text data created by the people, for the people</a>. <em>Preprint</em>, arXiv:2111.11431.</li>
+  <li id="ref-diblasi2014">Luca Di Blasi. 2014. <em>Splitting Images: Understanding Irreversible Fractures through Aspect Change</em>, pages 67&ndash;87.</li>
+  <li id="ref-ding2023">Ning Ding, Yulin Chen, Bokai Xu, Yujia Qin, Shengding Hu, Zhiyuan Liu, Maosong Sun, and Bowen Zhou. 2023. Enhancing chat language models by scaling high-quality instructional conversations. In <em>The 2023 Conference on Empirical Methods in Natural Language Processing</em>.</li>
+  <li id="ref-fields2013">R Fields, Alfonso Araque, Heidi Johansen-Berg, Soo-Siang Lim, Gary Lynch, Klaus-Armin Nave, Maiken Nedergaard, Ray Perez, Terrence Sejnowski, and Hiroaki Wake. 2013. Glial biology in learning and cognition. <em>The Neuroscientist : a review journal bringing neurobiology, neurology and psychiatry</em>, 20.</li>
+  <li id="ref-gadre2024">Samir Yitzhak Gadre, Gabriel Ilharco, Alex Fang, Jonathan Hayase, Georgios Smyrnis, Thao Nguyen, Ryan Marten, Mitchell Wortsman, Dhruba Ghosh, Jieyu Zhang, et al. 2024. Datacomp: In search of the next generation of multimodal datasets. <em>Advances in Neural Information Processing Systems</em>, 36.</li>
+  <li id="ref-gomezvilla2020">Alexander Gomez-Villa, Adrian Martín, Javier Vazquez-Corral, Marcelo Bertalmío, and Jesús Malo. 2020. Color illusions also deceive cnns for low-level vision tasks: Analysis and implications. <em>Vision Research</em>, 176:156&ndash;174.</li>
+  <li id="ref-goyal2017a">Yash Goyal, Tejas Khot, Douglas Summers-Stay, Dhruv Batra, and Devi Parikh. 2017a. Making the V in VQA matter: Elevating the role of image understanding in visual question answering. In <em>2017 IEEE Conference on Computer Vision and Pattern Recognition, CVPR 2017, Honolulu, HI, USA, July 21-26, 2017</em>, pages 6325&ndash;6334. IEEE Computer Society.</li>
+  <li id="ref-goyal2017b">Yash Goyal, Tejas Khot, Douglas Summers-Stay, Dhruv Batra, and Devi Parikh. 2017b. Making the V in VQA matter: Elevating the role of image understanding in visual question answering. In <em>2017 IEEE Conference on Computer Vision and Pattern Recognition, CVPR 2017, Honolulu, HI, USA, July 21-26, 2017</em>, pages 6325&ndash;6334. IEEE Computer Society.</li>
+  <li id="ref-guan2023">Tianrui Guan, Fuxiao Liu, Xiyang Wu, Ruiqi Xian, Zongxia Li, Xiaoyu Liu, Xijun Wang, Lichang Chen, Furong Huang, Yaser Yacoob, et al. 2023. <a href="https://arxiv.org/abs/2310.14566">Hallusionbench: An advanced diagnostic suite for entangled language hallucination &amp; visual illusion in large vision-language models</a>. <em>ArXiv preprint</em>, abs/2310.14566.</li>
+  <li id="ref-hudson2019">Drew A. Hudson and Christopher D. Manning. 2019. GQA: A new dataset for real-world visual reasoning and compositional question answering. In <em>IEEE Conference on Computer Vision and Pattern Recognition, CVPR 2019, Long Beach, CA, USA, June 16-20, 2019</em>, pages 6700&ndash;6709. Computer Vision Foundation / IEEE.</li>
+  <li id="ref-hugrass2012">Laila Hugrass and David Crewther. 2012. Willpower and conscious percept: volitional switching in binocular rivalry. <em>PloS one</em>, 7(4):e35963.</li>
+  <li id="ref-jabri2016">Allan Jabri, Armand Joulin, and Laurens Van Der Maaten. 2016. Revisiting visual question answering baselines. In <em>European conference on computer vision</em>, pages 727&ndash;739. Springer.</li>
+  <li id="ref-jaegle2021">Andrew Jaegle, Felix Gimeno, Andy Brock, Oriol Vinyals, Andrew Zisserman, and João Carreira. 2021. Perceiver: General perception with iterative attention. In <em>Proceedings of the 38th International Conference on Machine Learning, ICML 2021, 18-24 July 2021, Virtual Event</em>, volume 139 of <em>Proceedings of Machine Learning Research</em>, pages 4651&ndash;4664. PMLR.</li>
+  <li id="ref-khalil2021">Elias L Khalil. 2021. Why does rubin&rsquo;s vase differ radically from optical illusions? framing effects contra cognitive illusions. <em>Frontiers in Psychology</em>, 12:597758.</li>
+  <li id="ref-koffka1922">Kurt Koffka. 1922. Perception: an introduction to the gestalt-theorie. <em>Psychological bulletin</em>, 19(10):531.</li>
+  <li id="ref-kornmeier2005">Jürgen Kornmeier and Michael Bach. 2005. The necker cube&mdash;an ambiguous figure disambiguated in early visual processing. <em>Vision Research</em>, 45(8):955&ndash;960.</li>
+  <li id="ref-krishna2017">Ranjay Krishna, Yuke Zhu, Oliver Groth, Justin Johnson, Kenji Hata, Joshua Kravitz, Stephanie Chen, Yannis Kalantidis, Li-Jia Li, David A Shamma, et al. 2017. Visual genome: Connecting language and vision using crowdsourced dense image annotations. <em>International journal of computer vision</em>, 123(1):32&ndash;73.</li>
+  <li id="ref-kuc2023">Alexander Kuc, Vladimir Maksimenko, Andrey Savosenkov, Nikita Grigorev, Vadim Grubov, Artem Badarin, Victor Kazantsev, Susanna Gordleeva, and Alexander Hramov. 2023. Studying perceptual bias in favor of the from-above necker cube perspective in a goal-directed behavior. <em>Frontiers in Psychology</em>, 14:1160605.</li>
+  <li id="ref-laing2002">Carlo R Laing and Carson C Chow. 2002. A spiking neuron model for binocular rivalry. <em>Journal of computational neuroscience</em>, 12:39&ndash;53.</li>
+  <li id="ref-laurencon2024">Hugo Laurençon, Lucile Saulnier, Léo Tronchon, Stas Bekman, Amanpreet Singh, Anton Lozhkov, Thomas Wang, Siddharth Karamcheti, Alexander Rush, Douwe Kiela, et al. 2024. Obelics: An open web-scale filtered dataset of interleaved image-text documents. <em>Advances in Neural Information Processing Systems</em>, 36.</li>
+  <li id="ref-li2023a">Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. 2023a. Blip-2: Bootstrapping language-image pre-training with frozen image encoders and large language models. In <em>International conference on machine learning</em>, pages 19730&ndash;19742. PMLR.</li>
+  <li id="ref-li2023b">Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. 2023b. BLIP-2: Bootstrapping language-image pre-training with frozen image encoders and large language models. In <em>Proceedings of the 40th International Conference on Machine Learning</em>, volume 202 of <em>Proceedings of Machine Learning Research</em>, pages 19730&ndash;19742. PMLR.</li>
+  <li id="ref-li2021">Junnan Li, Ramprasaath R. Selvaraju, Akhilesh Gotmare, Shafiq R. Joty, Caiming Xiong, and Steven Chu-Hong Hoi. 2021. Align before fuse: Vision and language representation learning with momentum distillation. In <em>Advances in Neural Information Processing Systems 34: Annual Conference on Neural Information Processing Systems 2021, NeurIPS 2021, December 6-14, 2021, virtual</em>, pages 9694&ndash;9705.</li>
+  <li id="ref-li2023c">Lei Li, Yuwei Yin, Shicheng Li, Liang Chen, Peiyi Wang, Shuhuai Ren, Mukai Li, Yazheng Yang, Jingjing Xu, Xu Sun, et al. 2023c. <a href="https://arxiv.org/abs/2306.04387">M3it: A large-scale dataset towards multi-modal multilingual instruction tuning</a>. <em>ArXiv preprint</em>, abs/2306.04387.</li>
+  <li id="ref-lian2023">Wing Lian, Guan Wang, Bleys Goodson, Eugene Pentland, Austin Cook, Chanvichet Vong, and &ldquo;Teknium&rdquo;. 2023. Slimorca: An open dataset of gpt-4 augmented flan reasoning traces, with verification.</li>
+  <li id="ref-liu2023a">Haotian Liu, Chunyuan Li, Yuheng Li, and Yong Jae Lee. 2023a. Improved baselines with visual instruction tuning. In <em>NeurIPS 2023 Workshop on Instruction Tuning and Instruction Following</em>.</li>
+  <li id="ref-liu2023b">Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. 2023b. Visual instruction tuning. In <em>Thirty-seventh Conference on Neural Information Processing Systems</em>.</li>
+  <li id="ref-luo2024">Fuwen Luo, Chi Chen, Zihao Wan, Zhaolu Kang, Qidong Yan, Yingjie Li, Xiaolong Wang, Siyu Wang, Ziyue Wang, Xiaoyue Mi, et al. 2024. <a href="https://arxiv.org/abs/2402.13607">Codis: Benchmarking context-dependent visual comprehension for multimodal large language models</a>. <em>ArXiv preprint</em>, abs/2402.13607.</li>
+  <li id="ref-marino2019">Kenneth Marino, Mohammad Rastegari, Ali Farhadi, and Roozbeh Mottaghi. 2019. OK-VQA: A visual question answering benchmark requiring external knowledge. In <em>IEEE Conference on Computer Vision and Pattern Recognition, CVPR 2019, Long Beach, CA, USA, June 16-20, 2019</em>, pages 3195&ndash;3204. Computer Vision Foundation / IEEE.</li>
+  <li id="ref-mishra2019">Anand Mishra, Shashank Shekhar, Ajeet Kumar Singh, and Anirban Chakraborty. 2019. Ocr-vqa: Visual question answering by reading text in images. In <em>ICDAR</em>.</li>
+  <li id="ref-morenobote2007">Rubén Moreno-Bote, John Rinzel, and Nava Rubin. 2007. Noise-induced alternations in an attractor network model of perceptual bistability. <em>Journal of neurophysiology</em>, 98(3):1125&ndash;1139.</li>
+  <li id="ref-ordonez2011">Vicente Ordonez, Girish Kulkarni, and Tamara L. Berg. 2011. Im2text: Describing images using 1 million captioned photographs. In <em>Advances in Neural Information Processing Systems 24: 25th Annual Conference on Neural Information Processing Systems 2011. Proceedings of a meeting held 12-14 December 2011, Granada, Spain</em>, pages 1143&ndash;1151.</li>
+  <li id="ref-pastukhov2019">Alexander Pastukhov, Philipp Kastrup, Isabel Abs, and Claus-Christian Carbon. 2019. Switch rates for orthogonally oriented kinetic-depth displays are correlated across observers. <em>Journal of Vision</em>, 19:1.</li>
+  <li id="ref-ponttuset2020">Jordi Pont-Tuset, Jasper Uijlings, Soravit Changpinyo, Radu Soricut, and Vittorio Ferrari. 2020. Connecting vision and language with localized narratives. In <em>ECCV</em>.</li>
+  <li id="ref-radford2021">Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. 2021. Learning transferable visual models from natural language supervision. In <em>Proceedings of the 38th International Conference on Machine Learning, ICML 2021, 18-24 July 2021, Virtual Event</em>, volume 139 of <em>Proceedings of Machine Learning Research</em>, pages 8748&ndash;8763. PMLR.</li>
+  <li id="ref-schooler2015">Jonathan Schooler. 2015. Bridging the objective/subjective divide towards a meta-perspective of science and experience. In <em>T. Metzinger J. M. Windt (Eds). Open MIND: 34(T)</em>. Frankfurt am Main: MIND Group.</li>
+  <li id="ref-schuhmann2022">Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell Wortsman, et al. 2022. Laion-5b: An open large-scale dataset for training next generation image-text models. <em>Advances in Neural Information Processing Systems</em>, 35:25278&ndash;25294.</li>
+  <li id="ref-schuhmann2021">Christoph Schuhmann, Richard Vencu, Romain Beaumont, Robert Kaczmarczyk, Clayton Mullis, Aarush Katta, Theo Coombes, Jenia Jitsev, and Aran Komatsuzaki. 2021. <a href="https://arxiv.org/abs/2111.02114">Laion-400m: Open dataset of clip-filtered 400 million image-text pairs</a>. <em>ArXiv preprint</em>, abs/2111.02114.</li>
+  <li id="ref-schwenk2022">Dustin Schwenk, Apoorv Khandelwal, Christopher Clark, Kenneth Marino, and Roozbeh Mottaghi. 2022. A-okvqa: A benchmark for visual question answering using world knowledge. In <em>European Conference on Computer Vision</em>, pages 146&ndash;162. Springer.</li>
+  <li id="ref-sharma2018">Piyush Sharma, Nan Ding, Sebastian Goodman, and Radu Soricut. 2018. Conceptual captions: A cleaned, hypernymed, image alt-text dataset for automatic image captioning. In <em>Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)</em>, pages 2556&ndash;2565, Melbourne, Australia. Association for Computational Linguistics.</li>
+  <li id="ref-sidorov2020">Oleksii Sidorov, Ronghang Hu, Marcus Rohrbach, and Amanpreet Singh. 2020. Textcaps: a dataset for image captioning with reading comprehension. In <em>Computer Vision&ndash;ECCV 2020: 16th European Conference, Glasgow, UK, August 23&ndash;28, 2020, Proceedings, Part II 16</em>, pages 742&ndash;758. Springer.</li>
+  <li id="ref-slotnick2005">Scott D Slotnick and Steven Yantis. 2005. Common neural substrates for the control and effects of visual attention and perceptual bistability. <em>Cognitive Brain Research</em>, 24(1):97&ndash;108.</li>
+  <li id="ref-srinivasan2021">Krishna Srinivasan, Karthik Raman, Jiecao Chen, Michael Bendersky, and Marc Najork. 2021. <a href="https://arxiv.org/abs/2103.01913">Wit: Wikipedia-based image text dataset for multimodal multilingual machine learning</a>. <em>ArXiv preprint</em>, abs/2103.01913.</li>
+  <li id="ref-sun2021">Eric D Sun and Ron Dekel. 2021. Imagenet-trained deep neural networks exhibit illusion-like response to the scintillating grid. <em>Journal of Vision</em>, 21(11):15&ndash;15.</li>
+  <li id="ref-sun2023">Quan Sun, Yuxin Fang, Ledell Wu, Xinlong Wang, and Yue Cao. 2023. <a href="https://arxiv.org/abs/2303.15389">Eva-clip: Improved training techniques for clip at scale</a>. <em>ArXiv preprint</em>, abs/2303.15389.</li>
+  <li id="ref-takashima2012">Midori Takashima, Teruo Fujii, and Ken Shiina. 2012. Face or vase? areal homogeneity effect. <em>Perception</em>, 41(11):1392&ndash;1394.</li>
+  <li id="ref-thomee2016">Bart Thomee, David A Shamma, Gerald Friedland, Benjamin Elizalde, Karl Ni, Douglas Poland, Damian Borth, and Li-Jia Li. 2016. Yfcc100m: The new data in multimedia research. <em>Communications of the ACM</em>, 59(2):64&ndash;73.</li>
+  <li id="ref-touvron2023">Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal Azhar, et al. 2023. <a href="https://arxiv.org/abs/2302.13971">Llama: Open and efficient foundation language models</a>. <em>ArXiv preprint</em>, abs/2302.13971.</li>
+  <li id="ref-trautmann2021">Laura Trautmann. 2021. Emotions evoked by geometric patterns. <em>J</em>, 4:376&ndash;393.</li>
+  <li id="ref-villa2019">Alexander Gómez Villa, Adrián Martín, Javier Vazquez-Corral, and Marcelo Bertalmío. 2019. Convolutional neural networks can be deceived by visual illusions. In <em>IEEE Conference on Computer Vision and Pattern Recognition, CVPR 2019, Long Beach, CA, USA, June 16-20, 2019</em>, pages 12309&ndash;12317. Computer Vision Foundation / IEEE.</li>
+  <li id="ref-wang2013">Megan Wang, Daniel Arteaga, and Biyu J He. 2013. Brain mechanisms for simple perception and bistable perception. <em>Proceedings of the National Academy of Sciences</em>, 110(35):E3350&ndash;E3359.</li>
+  <li id="ref-wang2024">Yiqi Wang, Wentao Chen, Xiaotian Han, Xudong Lin, Haiteng Zhao, Yongfei Liu, Bohan Zhai, Jianbo Yuan, Quanzeng You, and Hongxia Yang. 2024. <a href="https://arxiv.org/abs/2401.06805">Exploring the reasoning abilities of multimodal large language models (mllms): A comprehensive survey on emerging trends in multimodal reasoning</a>. <em>ArXiv preprint</em>, abs/2401.06805.</li>
+  <li id="ref-ward2015">Emily J Ward and Brian J Scholl. 2015. Stochastic or systematic? seemingly random perceptual switching in bistable events triggered by transient unconscious cues. <em>Journal of Experimental Psychology: Human Perception and Performance</em>, 41(4):929.</li>
+  <li id="ref-wei2022">Jason Wei, Maarten Bosma, Vincent Y. Zhao, Kelvin Guu, Adams Wei Yu, Brian Lester, Nan Du, Andrew M. Dai, and Quoc V. Le. 2022. Finetuned language models are zero-shot learners. In <em>The Tenth International Conference on Learning Representations, ICLR 2022, Virtual Event, April 25-29, 2022</em>. OpenReview.net.</li>
+  <li id="ref-wilson2012">Amanda Wilson. 2012. Multistable perception of art-science imagery. <em>Leonardo</em>, 45.</li>
+  <li id="ref-ye2023">Qinghao Ye, Haiyang Xu, Guohai Xu, Jiabo Ye, Ming Yan, Yiyang Zhou, Junyang Wang, Anwen Hu, Pengcheng Shi, Yaya Shi, et al. 2023. <a href="https://arxiv.org/abs/2304.14178">mplug-owl: Modularization empowers large language models with multimodality</a>. <em>ArXiv preprint</em>, abs/2304.14178.</li>
+  <li id="ref-yu2016">Licheng Yu, Patrick Poirson, Shan Yang, Alexander C Berg, and Tamara L Berg. 2016. Modeling context in referring expressions. In <em>Computer Vision&ndash;ECCV 2016: 14th European Conference, Amsterdam, The Netherlands, October 11-14, 2016, Proceedings, Part II 14</em>, pages 69&ndash;85. Springer.</li>
+  <li id="ref-zhang2022">Susan Zhang, Stephen Roller, Naman Goyal, Mikel Artetxe, Moya Chen, Shuohui Chen, Christopher Dewan, Mona Diab, Xian Li, Xi Victoria Lin, et al. 2022. <a href="https://arxiv.org/abs/2205.01068">Opt: Open pre-trained transformer language models</a>. <em>ArXiv preprint</em>, abs/2205.01068.</li>
+  <li id="ref-zhang2023a">Yanzhe Zhang, Ruiyi Zhang, Jiuxiang Gu, Yufan Zhou, Nedim Lipka, Diyi Yang, and Tong Sun. 2023a. <a href="https://arxiv.org/abs/2306.17107">Llavar: Enhanced visual instruction tuning for text-rich image understanding</a>. <em>ArXiv preprint</em>, abs/2306.17107.</li>
+  <li id="ref-zhang2023b">Yichi Zhang, Jiayi Pan, Yuchen Zhou, Rui Pan, and Joyce Chai. 2023b. <a href="https://arxiv.org/abs/2311.00047">Grounding visual illusions in language: Do vision-language models perceive illusions like humans?</a> <em>Preprint</em>, arXiv:2311.00047.</li>
+  <li id="ref-zhao2023">Bo Zhao, Boya Wu, and Tiejun Huang. 2023. <a href="https://arxiv.org/abs/2307.04087">Svit: Scaling up visual instruction tuning</a>. <em>ArXiv preprint</em>, abs/2307.04087.</li>
+</ol>
+</section>

@@ -1,0 +1,1212 @@
+---
+layout: paper
+title: "When Verification Fails"
+subtitle: "How Compositionally Infeasible Claims Escape Rejection"
+authors_html: >-
+  Muxin Liu<sup>*</sup>, Delip Rao, Grace Kim,
+  <span class="me">Chris Callison-Burch</span>
+affiliations: "University of Pennsylvania"
+authornote: "* Correspondence: muxinliu@seas.upenn.edu"
+venue: "COLM"
+year: 2026
+links:
+  arxiv: "https://arxiv.org/abs/2604.10990"
+  doi: "10.48550/arXiv.2604.10990"
+abstract: >-
+  Scientific claim verification, the task of determining whether claims are entailed by scientific evidence,
+  is fundamental to establishing discoveries in evidence while preventing misinformation. This process involves
+  evaluating each asserted constraint against validated evidence. Under the Closed-World Assumption (CWA), a
+  claim is accepted if and only if all asserted constraints are positively supported. We show that existing
+  verification benchmarks cannot distinguish models enforcing this standard from models applying a simpler
+  shortcut called salient-constraint checking, which applies CWA's rejection criterion only to the most salient
+  constraint and accepts when that constraint is supported. Because existing benchmarks construct infeasible
+  claims by perturbing a single salient element they are insufficient at distinguishing between rigorous claim
+  verification and simple salient-constraint reliance. To separate the two, we construct compositionally
+  infeasible claims where the salient constraint is supported but a non-salient constraint is contradicted.
+  Across model families and modalities, models that otherwise saturate existing benchmarks consistently
+  over-accept these claims, confirming the prevalence of such shortcut reasoning. Via model context
+  interventions, we show that different models and prompting strategies occupy distinct positions on a shared
+  ROC curve, indicating that the gap between model families reflects differences in verification threshold
+  rather than underlying reasoning ability, and that the compositional inference bottleneck is a structural
+  property of current verification behavior that strategy guidance alone cannot overcome.
+bibtex: |
+  @inproceedings{liu2026verification,
+    title={When Verification Fails: How Compositionally Infeasible Claims Escape Rejection},
+    author={Muxin Liu and Delip Rao and Grace Kim and Chris Callison-Burch},
+    booktitle={Conference on Language Modeling ({COLM})},
+    year={2026},
+    address={San Francisco, CA},
+    month={October},
+    url={https://arxiv.org/abs/2604.10990}
+  }
+og_image: "figures/intro_figure.svg"
+---
+
+<h2>1. Introduction</h2>
+
+<p>Claim verification, the task of determining whether claims are entailed by evidence, is fundamental to
+grounding discoveries in evidence while preventing misinformation. Claim verification has been widely studied
+as a natural language inference (NLI) task, with large-scale benchmarks spanning general knowledge verification
+(Thorne et al., 2018; Aly et al., 2021), scientific literature (Wadden et al., 2020; 2022), clinical trials
+(Jullien et al., 2023; Vladika et al., 2024), tables (Chen et al., 2019; Lu et al., 2023), and charts
+(Akhtar et al., 2023; 2024; Masry et al., 2025; Wang et al., 2025). This judgment requires a precise epistemic
+standard: a claim should be accepted if and only if the evidence provides positive support for it, and absence
+of support warrants rejection. This standard is formalized as the Closed-World Assumption (CWA) (Clark, 1977;
+Reiter, 1981). Operationally, this requires checking every constraint the claim asserts (Min et al., 2023),
+including those derived compositionally from multiple evidence units (Si et al., 2021; Zhang et al., 2024a;
+Chen et al., 2024).</p>
+
+<p>We evaluate Large Language Models (LLMs) across three established benchmarks, NLI4CT (Jullien et al., 2023;
+2024) for clinical trial text, SCITAB (Lu et al., 2023) for scientific tables, and SciVer (Wang et al., 2025)
+for charts, and we find that models consistently achieve high accuracy on infeasible claims but lower accuracy
+on feasible ones, as shown in Figure 2. This asymmetry could be interpreted as evidence of conservative,
+closed-world verification, or could reflect a weaker shortcut observed in the literature for other tasks as
+well (Gururangan et al., 2018; McCoy et al., 2019; Liu et al., 2023).</p>
+
+<figure class="fig">
+  <img src="figures/intro_figure.svg" alt="Comparison of CWA verification, which checks all constraints, against salient-constraint checking, on an existing-benchmark infeasible claim and a compositionally infeasible claim">
+  <figcaption><span class="lab">Figure 1.</span> CWA verification checks all constraints; salient-constraint
+  checking only finds the most prominent constraint. On existing benchmarks both agree since violated
+  constraints are always salient. On compositionally infeasible claims, salient-constraint checking accepts
+  while CWA rejects.</figcaption>
+</figure>
+
+<figure class="fig">
+  <img src="figures/plot7b_ablation_hardneg.svg" alt="Bar charts of averaged accuracy across models on NLI4CT, SCITAB and SciVer for standard versus compositional feasible claims and standard versus compositional infeasible claims" style="max-width:70%">
+  <figcaption><span class="lab">Figure 2.</span> Averaged accuracy across models. Compositionally feasible
+  claims score higher ($\uparrow$) than standard positives; compositionally infeasible claims score lower
+  ($\downarrow$). Compositional structure shifts behavior toward acceptance.</figcaption>
+</figure>
+
+<p>The construction of existing benchmarks makes full CWA and a simpler shortcut procedure behaviorally
+indistinguishable. Negative examples in these benchmarks (also called standard negatives) are created by
+perturbing a single salient element, such as flipping a number, reversing a trend, or swapping an entity label.
+This makes the perturbed constraint both the most checkable part of the claim and sufficient for rejection. As
+a result, as shown in Figure 1, a shortcut is sufficient when verifying <strong>Existing Benchmark Infeasible
+Claim</strong>: identify the most salient constraint in the claim, check whether it is supported by the
+evidence, and decide on that basis alone. This salient-constraint checking procedure is an easier, less formal
+approximation of CWA, as it applies CWA's rejection criterion but only to the most prominent constraint,
+skipping the exhaustive check that full CWA requires. It also explains the observed asymmetry. For infeasible
+claims, the salient constraint is violated, so rejection follows directly. For feasible claims, acceptance
+requires the salient constraint to be clearly retrievable, and any uncertainty defaults to rejection instead.
+High negative accuracy together with lower positive accuracy is therefore consistent with both full CWA and
+salient-constraint checking.</p>
+
+<p>To expose the gap between salient-constraint checking and full CWA, we construct claims for which the
+shortcut yields acceptance but CWA requires rejection, as shown in Figure 1, under the <strong>Compositionally
+Infeasible Claim</strong> setting. These claims, which we call compositionally infeasible claims (also called
+adversarial negatives), are designed so that the salient constraint appears supported by the evidence, while
+the violation lies in a non-salient constraint such as a composed relationship across multiple parts of the
+evidence. We create hard negatives using a graph-based corrupt-and-propagate procedure, which preserves the
+salient observations while introducing violations through composing multiple parts of the same evidence source
+such as two sentences in a clinical report, two trends in a chart, or two columns in a table.
+Salient-constraint checking verifies a single constraint and accepts, while full CWA checks all constraints
+including non-salient ones and rejects.</p>
+
+<p>Models that perform strongly on existing benchmarks fail consistently on adversarial examples, as summarized
+in Figure 2: they accept adversarial negatives at higher rates than standard negatives, and this gap persists
+across model families and scales. Models accept claims when the salient constraint appears supported, which
+produces systematic over-acceptance on adversarial negatives.</p>
+
+<p>We further study this failure with test-time guidance toward CWA, including closed-world instructions and
+explicit decomposition. These interventions shift the tradeoff between acceptance and rejection rather than
+improving performance on adversarial negatives overall. This movement along the ROC curve suggests that
+different guidance strategies change how the model applies verification, but do not resolve the underlying
+reasoning bottleneck. To analyze reasoning more directly, we also introduce a rubric-based LLM judge that
+scores how well a model's reasoning trace follows CWA, including whether it checks all constraints the claim
+asserts or terminates early at the salient one. These scores reveal systematic differences across models,
+examples, and interventions, and provide a trace-level analysis of verification reasoning beyond outcome-based
+evaluation.</p>
+
+<p>We make three contributions. First, we identify a structural limitation of existing verification benchmarks:
+single-constraint construction makes salient-constraint checking and full CWA behaviorally indistinguishable.
+Second, we construct compositionally infeasible claims across three modalities that expose this gap, and show
+consistent over-acceptance across model families and scales. Third, we show this failure reflects a reasoning
+bottleneck rather than a strategy choice through both intervention and trace analysis.</p>
+
+<h2>2. Theoretical Framework</h2>
+
+<p>We formalize the verification standards for scientific claim verification, introduce salient-constraint
+checking as a weaker procedure that existing benchmarks cannot distinguish from full CWA, and define
+compositional falsification as the condition that separates the two</p>
+
+<h3>2.1 Closed-World and Open-World Assumptions</h3>
+
+<p>Let $E = \{e_1, \ldots, e_m\}$ be a set of evidence pieces and $c$ a claim asserting constraints
+$\mathcal{C}(c) = \{c_1, \ldots, c_n\}$. Under <strong>CWA</strong>, $c$ is accepted iff every constraint is
+supported:</p>
+
+$$
+\text{CWA}(c, E) = \begin{cases}
+\text{Accept} & \text{if } \forall c_i \in \mathcal{C}(c),\
+               \exists S_i \subseteq E\ \text{s.t.}\
+               \bigwedge_{e \in S_i} e \models c_i \\
+\text{Reject} & \text{otherwise}
+\end{cases}
+\tag{1}
+$$
+
+<p>CWA is inherently <strong>$\forall$-type</strong>: every constraint must be checked. Under the
+<strong>Open-World Assumption (OWA)</strong>, a claim is rejected iff explicitly contradicted:</p>
+
+$$
+\text{OWA}(c, E) = \begin{cases}
+\text{Reject} & \text{if } \exists S \subseteq E\ \text{s.t.}\
+               \bigwedge_{e \in S} e \models \neg c \\
+\text{Accept} & \text{otherwise}
+\end{cases}
+\tag{2}
+$$
+
+<p>OWA is inherently <strong>$\exists$-type</strong>: it searches for any contradiction and accepts by default
+when none is found.</p>
+
+<h3>2.2 Salient-Constraint Checking</h3>
+
+<p><strong>Definition 1 (Salience).</strong> The $\text{salience}(c_i, E)$ of a constraint
+$c_i \in \mathcal{C}(c)$ measures how directly $E$ speaks to $c_i$ without requiring composition across
+multiple evidence units. The most salient constraint is
+$c^* = \arg\max_{c_i \in \mathcal{C}(c)} \text{salience}(c_i, E)$, corresponding operationally to the primary
+subject-predicate assertion verifiable from a single contiguous evidence unit.</p>
+
+<p><strong>Salient-constraint checking</strong> applies the CWA verdict to $c^*$ alone:</p>
+
+$$
+\text{V}_s(c, E) = \begin{cases}
+\text{Accept} & \text{if } \exists e \in E\ \text{s.t.}\ e \models c^* \\
+\text{Reject} & \text{otherwise}
+\end{cases}
+\tag{3}
+$$
+
+<p>$\text{V}_s$ is a hybrid: it inherits CWA's rejection criterion but reduces the $\forall$ over all
+constraints to a $\exists$ over one salient constraint, making it operationally similar to OWA. Let $c^+, c^-$
+denote feasible/infeasible claim. Existing benchmarks construct $c^-$ by perturbing a single salient element,
+ensuring $\exists!\, c^* \in \mathcal{C}(c^-)$ s.t. $e \models \neg c^*$ for some $e \in E$, with
+$\forall c_i \neq c^*$: $\exists e \in E$ s.t. $e \models c_i$. We call it <em>single-constraint regime</em>.</p>
+
+<p><strong>Proposition 1.</strong> <em>In the single-constraint regime, $\text{CWA}$ and $\text{V}_s$ produce
+identical verdicts on both $c^-$ and $c^+$, assuming all constraints of $c^+$ are supported.</em></p>
+
+<p><em>Proof.</em> For $c^-$: both check $c^*$, find it contradicted, and reject. For $c^+$: CWA finds all
+constraints supported; $\text{V}_s$ finds $c^*$ supported. Both accept. $\blacksquare$</p>
+
+<p>Thus, existing benchmark performance cannot distinguish $\text{CWA}$ from $\text{V}_s$.</p>
+
+<h3>2.3 Compositional Falsification</h3>
+
+<p>A <strong>compositionally infeasible claim</strong> $c^\dagger$ satisfies:</p>
+
+$$
+\exists e \in E\ \text{s.t.}\ e \models c^*; \qquad
+\exists\, c_j \neq c^*,\ \exists S_2 \subseteq E\ \text{s.t.}\
+\bigwedge_{e \in S_2} e \models \neg c_j
+\tag{4}
+$$
+
+<p>The violation may be direct ($|S_2|=1$) or compositional ($|S_2|\geq 2$).</p>
+
+<p><strong>Proposition 2.</strong> <em>On compositionally infeasible claims, $\text{V}_s$ accepts and
+$\text{CWA}$ rejects.</em></p>
+
+<p><em>Proof.</em> $\text{V}_s$ finds $c^*$ supported and accepts; CWA finds $c_j$ contradicted and rejects.
+$\blacksquare$</p>
+
+<p><strong>Proposition 3.</strong> <em>Degradation on compositionally infeasible claims relative to
+single-constraint infeasible claims is diagnostic for $\text{V}_s$ as the default. Absence of degradation
+supports $\text{CWA}$.</em></p>
+
+<p>Proposition&nbsp;3 follows from Propositions&nbsp;1&ndash;2. We test this in Section 4.1 and find
+consistent degradation across model families and scales, confirming $\text{V}_s$ as the default verification
+procedure.</p>
+
+<h2>3. Data Generation Method</h2>
+
+<p>A limitation of existing benchmarks is their reliance on surface-level perturbations (e.g., numerical
+flipping, trend reversal) to construct infeasible claims. Such single-constraint violation procedures can be
+detectable from merely a single sentence or a table cell. These correspond to the single-constraint regime
+where salient-constraint checking and CWA are indistinguishable (Section 2.2). Our method instead constructs
+compositionally infeasible claims where the salient constraint remains supported and the violation lies in a
+non-salient constraint, detectable only by combining multiple parts of the same evidence source.</p>
+
+<figure class="fig bordered">
+  <img src="figures/generation_pipeline.png" alt="Three-layer reasoning graph with observation, context and interpretation nodes; corrupting one non-salient node and propagating it yields a compositionally infeasible claim">
+  <figcaption><span class="lab">Figure 3.</span> Graph-based adversarial construction. Observation nodes ground
+  directly retrievable facts; context and interpretation nodes combine them into higher-level conclusions.
+  Corrupting one non-salient node produces a compositionally infeasible claim while preserving all
+  observation-layer support.</figcaption>
+</figure>
+
+<h3>3.1 Graph-Based Adversarial Construction</h3>
+
+<p>Starting from a feasible claim and its evidence source from an existing human-verified benchmark, we build
+a three-layer reasoning graph (Figure 3). The observation layer consists of five nodes, each grounding a
+directly retrievable fact from the evidence without requiring inference. The context layer consists of three
+nodes, each combining at least two observation nodes into an intermediate relationship. The interpretation
+layer consists of three nodes, each combining at least two context nodes into a higher-level conclusion.</p>
+
+<p>To produce a compositionally infeasible claim, we corrupt a single context or interpretation node using
+operations such as scope swapping or overgeneralization. The corruption is propagated through the graph to
+produce an infeasible claim that preserves all observation-layer support, keeping the salient constraint
+intact, while introducing a violation in a non-salient constraint. By preserving all observation-layer nodes,
+the construction ensures retrieval difficulty is matched to standard infeasible claims.</p>
+
+<h3>3.2 Datasets</h3>
+
+<p>We construct adversarial datasets from three existing scientific claim verification benchmarks: NLI4CT,
+SCITAB, and SciVer. For each dataset we sample 200 standard positive and negative claims from the original
+benchmark, then generate a pool of adversarial negatives using our graph-based construction method implemented
+with GPT-5-mini. After human validation to remove ambiguous and accidentally feasible claims, we retain
+approximately 200 adversarial negatives per domain. Full dataset construction details are in Appendix A, human
+annotation details in Appendix B, prompts in Appendix G and generation examples in Appendix I.</p>
+
+<h2>4. Experiments</h2>
+
+<p>We present three experiments that together characterize salient-constraint checking as the default
+verification procedure. Section 4.1 establishes the performance gap under compositional falsification across
+model families and scales. Section 4.2 isolates the failure at the reasoning layer. Section 4.3 tests whether
+the failure reflects a reasoning bottleneck or a strategy choice.</p>
+
+<h3>4.1 Performance Gap under Compositional Falsification</h3>
+
+<p>We evaluate eight proprietary models (GPT-5.4, GPT-5-mini, GPT-o4-mini, GPT-4o-mini, Gemini-3.0-Flash,
+Gemini-2.5-Flash, Claude-Sonnet-4.5, Claude-Haiku-4.5) and the Qwen3 family on NLI4CT, SCITAB, and SciVer,
+using standard and compositionally infeasible claims from Section 3.2. Proprietary models are evaluated at
+temperature&nbsp;1; Qwen3 uses thinking mode at temperature&nbsp;0.6. All evaluations use 200 examples per
+domain; observed gaps exceed sampling uncertainty ($\pm$3% at $n{=}200$).</p>
+
+<p>Table 1 shows a consistent performance gap across all models and domains. Every model shows lower accuracy
+on compositionally infeasible claims than on standard infeasible claims on NLI4CT ($\Delta$ from $-3.0$ to
+$-12.7$), with larger drops on SCITAB and SciVer: Gemini-3.0-Flash falls 15.0 and 26.7 points respectively.
+This pattern is not explained by original-benchmark $F_1$: Gemini-3.0-Flash achieves $F_1 = 0.88$ yet shows
+among the largest drops, while Claude-Sonnet-4.5 has lower $F_1 = 0.82$ with consistently smaller drops. The
+Claude family's robustness is better attributed to safety-induced over-refusal than stronger compositional
+verification (R&ouml;ttger et al., 2024; Huang et al., 2025): their positive accuracy is among the lowest in
+the table, consistent with broad rejection across claim types rather than selective compositional checking.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table 1.</span> Evaluation across three domains. Pos./Neg. = accuracy (%) on
+  standard positive/negative claims; $F_1$ = macro-$F_1$ on standard negatives; Adv Neg. = accuracy (%) on
+  adversarial negatives; $\Delta$ = Adv Neg. $-$ Standard Neg. (%). $\Delta$ values shown as $\downarrow$;
+  <strong>bold</strong> entries indicate substantial drop ($|\Delta|>10\%$).</caption>
+  <thead>
+    <tr>
+      <th rowspan="3" style="text-align:left">Model</th>
+      <th colspan="5">NLI4CT</th>
+      <th colspan="5">SCITAB</th>
+      <th colspan="5">SciVer</th>
+    </tr>
+    <tr>
+      <th colspan="3">Standard</th><th>Adv</th><th rowspan="2">$\boldsymbol{\Delta}$(%)</th>
+      <th colspan="3">Standard</th><th>Adv</th><th rowspan="2">$\boldsymbol{\Delta}$(%)</th>
+      <th colspan="3">Standard</th><th>Adv</th><th rowspan="2">$\boldsymbol{\Delta}$(%)</th>
+    </tr>
+    <tr>
+      <th>Pos.(%)</th><th>Neg.(%)</th><th>$\boldsymbol{F_1}$</th><th>Neg.(%)</th>
+      <th>Pos.(%)</th><th>Neg.(%)</th><th>$\boldsymbol{F_1}$</th><th>Neg.(%)</th>
+      <th>Pos.(%)</th><th>Neg.(%)</th><th>$\boldsymbol{F_1}$</th><th>Neg.(%)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">GPT-5.4</td>
+      <td>80.2</td><td>94.1</td><td>0.86</td><td>88.7</td><td>$\downarrow$5.4</td>
+      <td>75.5</td><td>93.0</td><td>0.83</td><td>91.0</td><td>$\downarrow$2.0</td>
+      <td>55.9</td><td>92.5</td><td>0.68</td><td>87.7</td><td>$\downarrow$4.8</td></tr>
+    <tr><td style="text-align:left">GPT-5-mini</td>
+      <td>83.7</td><td>91.1</td><td>0.87</td><td>84.7</td><td>$\downarrow$6.4</td>
+      <td>79.0</td><td>92.0</td><td>0.84</td><td>82.5</td><td>$\downarrow$9.5</td>
+      <td>78.4</td><td>84.5</td><td>0.81</td><td>73.4</td><td><strong>$\downarrow$11.2</strong></td></tr>
+    <tr><td style="text-align:left">GPT-o4-mini</td>
+      <td>86.1</td><td>91.1</td><td>0.88</td><td>76.8</td><td><strong>$\downarrow$14.2</strong></td>
+      <td>84.0</td><td>88.0</td><td>0.86</td><td>77.0</td><td><strong>$\downarrow$11.0</strong></td>
+      <td>78.9</td><td>87.8</td><td>0.83</td><td>63.4</td><td><strong>$\downarrow$24.4</strong></td></tr>
+    <tr><td style="text-align:left">GPT-4o-mini</td>
+      <td>71.3</td><td>85.1</td><td>0.77</td><td>73.4</td><td><strong>$\downarrow$11.7</strong></td>
+      <td>58.5</td><td>81.0</td><td>0.66</td><td>67.0</td><td><strong>$\downarrow$14.0</strong></td>
+      <td>66.7</td><td>59.2</td><td>0.64</td><td>50.7</td><td>$\downarrow$8.4</td></tr>
+    <tr><td style="text-align:left">Gemini-3.0-Flash</td>
+      <td>86.1</td><td>86.6</td><td>0.86</td><td>73.9</td><td><strong>$\downarrow$12.7</strong></td>
+      <td>87.0</td><td>89.0</td><td>0.88</td><td>74.0</td><td><strong>$\downarrow$15.0</strong></td>
+      <td>75.6</td><td>87.3</td><td>0.80</td><td>60.6</td><td><strong>$\downarrow$26.7</strong></td></tr>
+    <tr><td style="text-align:left">Gemini-2.5-Flash</td>
+      <td>84.2</td><td>91.6</td><td>0.87</td><td>82.3</td><td>$\downarrow$9.3</td>
+      <td>66.5</td><td>91.5</td><td>0.76</td><td>83.5</td><td>$\downarrow$8.0</td>
+      <td>65.3</td><td>90.6</td><td>0.75</td><td>76.1</td><td><strong>$\downarrow$14.5</strong></td></tr>
+    <tr><td style="text-align:left">Claude-Sonnet-4.5</td>
+      <td>75.7</td><td>91.6</td><td>0.82</td><td>86.2</td><td>$\downarrow$5.4</td>
+      <td>75.0</td><td>92.5</td><td>0.82</td><td>89.5</td><td>$\downarrow$3.0</td>
+      <td>52.6</td><td>94.8</td><td>0.67</td><td>83.1</td><td><strong>$\downarrow$11.7</strong></td></tr>
+    <tr><td style="text-align:left">Claude-Haiku-4.5</td>
+      <td>76.2</td><td>91.1</td><td>0.82</td><td>84.7</td><td>$\downarrow$6.4</td>
+      <td>65.5</td><td>90.5</td><td>0.75</td><td>87.5</td><td>$\downarrow$3.0</td>
+      <td>52.6</td><td>91.1</td><td>0.65</td><td>85.9</td><td>$\downarrow$5.1</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Figure 4 shows the gap persists with scale. At small scales, standard negative accuracy rises steeply while
+adversarial negative accuracy lags far behind, consistent with CWA-style rejection without reasoning. As scale
+increases, adversarial negative accuracy improves, but the gap never closes: at 32B, NLI4CT shows a 20-point
+gap (93.6% vs. 73.4%), SCITAB a narrower but persistent gap, and SciVer limited gains throughout. The
+trajectory confirms that scaling sharpens retrieval and direct-falsification rejection but does not resolve
+failures that require compositional inference. These results support Proposition&nbsp;3 across model
+families, scales, and modalities. The consistent pattern of high accuracy on directly falsifiable negatives
+and substantially lower on adversarial negatives is not an artifact of a particular architecture or scale, but
+a structural feature of current verification behavior.</p>
+
+<figure class="fig">
+  <img src="figures/scaling_combined.svg" alt="Line plots of positive, negative and adversarial negative accuracy against Qwen3 model size for NLI4CT, SCITAB and SciVer">
+  <figcaption><span class="lab">Figure 4.</span> Scaling behavior across Qwen3 (VL) model sizes for three
+  domains. Curves show accuracy for positive, negative, and adversarial negative claims.</figcaption>
+</figure>
+
+<h3>4.2 Separating Retrieval from Compositional Reasoning</h3>
+
+<p>Models may apply salient-constraint checking for two distinct reasons. First, they may fail to retrieve the
+non-salient observations that reveal the violation, leaving no basis for checking beyond the salient
+constraint. Second, the relevant observations may be retrievable, but models cannot compose them into the joint
+inference required to detect the violation (Barnett et al., 2024). We design an experiment to distinguish
+between these possibilities.</p>
+
+<p>We evaluate four evidence conditions. In <strong>No graph</strong>, the model receives only the claim and
+the raw document corpus. In <strong>Graph-O</strong>, the model additionally receives isolated atomic
+observations as the relevant evidence pieces without any compositional structure. In
+<strong>Graph-O+C</strong>, the model further receives context nodes explaining how observations compose into
+intermediate relationships. In <strong>Graph-All</strong>, the model receives the full graph including
+interpretation nodes that encode the conclusion reached by composing the context, and the model must identify
+where the infeasible claim diverges from this provided conclusion.</p>
+
+<figure class="fig">
+  <img src="figures/plot6c_graph_bar_mean.svg" alt="Grouped bar chart of adversarial negative accuracy under No graph, Graph-O, Graph-O+C and Graph-All conditions for eight models on three domains">
+  <figcaption><span class="lab">Figure 5.</span> Adversarial negative accuracy under four evidence conditions
+  across eight models. Graph-O provides no consistent improvement over no graph, while Graph-O+C produces
+  intermediate gains and Graph-All approaches ceiling on NLI4CT and SCITAB.</figcaption>
+</figure>
+
+<p>Figure 5 shows an incremental pattern. Graph-O shows no consistent improvement over no-graph: performance
+plateaus on NLI4CT, increases slightly on SCITAB, and drops on SciVer, suggesting retrieval is not the primary
+bottleneck. Graph-O+C produces intermediate gains across all domains, as context nodes provide the intermediate
+compositional relationships between observations without supplying the final conclusion. Graph-All approaches
+ceiling performance on NLI4CT and SCITAB, because interpretation nodes encode the result of full composition
+directly, reducing the task to identifying where the infeasible claim diverges from the provided conclusion;
+on SciVer, Graph-All recovers to baseline rather than exceeding it, likely because natural language
+descriptions interfere with direct visual perception (Sim et al., 2025). The bottleneck lies specifically
+between observation and interpretation: models have the relevant facts and can follow compositional structure
+when provided, but cannot perform the compositional inference step themselves (Sim et al., 2025).</p>
+
+<h3>4.3 Shifting Verification along the OWA&ndash;CWA Axis</h3>
+
+<p>A further question is whether this reflects a reasoning ability limit or a failure to apply the right
+verification strategy. We intervene on Gemini-3.0-Flash with four prompting conditions with different
+positions on the OWA&ndash;CWA axis: <strong>OWA</strong>, <strong>CWA</strong>, and decomposition (DCP)
+variants <strong>DCP+OWA</strong> and <strong>DCP+CWA</strong> that explicitly enumerate subclaims before
+applying the verification rule. Decomposition is included because models prompted with CWA may not actively
+enumerate constraints without explicit instruction (Zhou et al., 2022; Dhuliawala et al., 2024). DCP makes
+this an explicit step, ensuring the $\forall$-type checking CWA demands is actually carried out.</p>
+
+<figure class="fig">
+  <img src="figures/plot4_roc.svg" alt="ROC-space plot of true positive rate against false positive rate for Gemini-3.0-Flash under DCP+OWA, OWA, Baseline, CWA and DCP+CWA prompting, with Sonnet-4.5 reference stars" style="max-width:74%">
+  <img src="figures/plot1_hard_neg_acc.svg" alt="Bar chart of adversarial negative accuracy under each prompting condition with dashed Sonnet-4.5 reference lines" style="max-width:24%">
+  <figcaption><span class="lab">Figure 6.</span> <strong>(a)</strong> Verification trajectories in ROC space
+  (TPR vs. FPR) under different prompting conditions for Gemini-3.0-Flash. Arrows indicate the ordering of
+  prompting variants (DCP+OWA $\to$ OWA $\to$ Baseline $\to$ CWA $\to$ DCP+CWA); stars denote the Sonnet-4.5
+  reference. <strong>(b)</strong> Adversarial negative accuracy under each prompting condition; dashed lines
+  indicate the Sonnet-4.5 reference.</figcaption>
+</figure>
+
+<p>Figure 6(a) shows these conditions produce a smooth trajectory in ROC space ordered from most permissive to
+most strict (DCP+OWA $\to$ OWA $\to$ Baseline $\to$ CWA $\to$ DCP+CWA), with the baseline lying between OWA and
+CWA, which empirically align with Section 2.2 that salient-constraint checking is a hybrid of the two.
+Claude-Sonnet-4.5 lies on the same ROC curve as Gemini-3.0-Flash under intervention, and CWA or DCP+CWA
+prompting moves Gemini-3.0-Flash toward its operating point. This indicates that the performance gap between
+model families reflects differences in default verification threshold and strategy rather than differences in
+underlying reasoning ability. Both models share the same reasoning capability frontier, but apply different
+operating points by default. Claude-Sonnet-4.5's robustness to hard negatives, attributed in Section 4 to
+conservative rejection rather than compositional reasoning, is consistent with this picture, as safety
+alignment shifts its default operating point toward greater conservatism without changing the underlying
+capability frontier.</p>
+
+<p>The trajectory also reveals the limit of strategy alone. Even under DCP+CWA, the strictest condition, hard
+negative accuracy does not reach the level achieved on standard negatives, and Figure 6(b) shows that gains in
+hard negative accuracy come at the cost of feasible claim acceptance. This tradeoff is not resolved by any
+prompting condition: stricter verification reduces over-acceptance of compositionally infeasible claims but
+increases rejection of feasible ones, because models cannot yet reliably distinguish the two through
+compositional reasoning at any threshold. Prompting shifts where models operate on the curve, but the curve
+itself reflects a reasoning bottleneck that verification strategy guidance alone cannot overcome (Arditi et
+al., 2022; Su et al., 2025).</p>
+
+<h2>5. Reasoning Trace Analysis</h2>
+
+<p>To complement our outcome-based evaluation with trace-level evidence (Lightman et al., 2023), we conduct a
+supplementary, single-domain analysis on NLI4CT. We score each reasoning trace using a rubric-based judge
+(Kim et al., 2023) targeting salient-constraint checking versus full CWA verification. Each of four dimensions
+is scored from $-2$ (salient-constraint checking) to $+2$ (full CWA) and aggregated to 0&ndash;100. Higher
+scores indicate reasoning closer to full CWA verification. The complete rubric and human validation results
+are detailed in Appendix E.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table 2.</span> CWA trace scores (0&ndash;100) on NLI4CT. <strong>Correct
+  (TN)</strong> denotes traces where the model successfully rejected the claim (True Negative);
+  <strong>Incorrect (FN)</strong> denotes traces where the model falsely accepted it (False Negative). $+$CWA
+  and $+$OWA are prompt intervention.</caption>
+  <thead>
+    <tr>
+      <th rowspan="2" style="text-align:left"></th>
+      <th colspan="3">Standard Negative</th>
+      <th colspan="3">Adversarial Neg</th>
+    </tr>
+    <tr>
+      <th>Correct (TN)$\uparrow$</th><th>Incorrect (FN)$\uparrow$</th><th>Avg$\uparrow$</th>
+      <th>TN$\uparrow$</th><th>FN$\uparrow$</th><th>Avg$\uparrow$</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">GPT-5-mini</td><td>86.2</td><td>61.7</td><td>84.0</td><td>92.3</td><td>64.3</td><td>88.0</td></tr>
+    <tr><td style="text-align:left">Gemini-3.0-Flash</td><td>83.0</td><td>61.9</td><td>80.1</td><td>91.4</td><td>65.1</td><td>84.9</td></tr>
+    <tr><td style="text-align:left">&nbsp;&nbsp;$+$OWA</td><td>87.7</td><td>59.2</td><td>83.6</td><td>92.0</td><td>63.6</td><td>84.5</td></tr>
+    <tr><td style="text-align:left">&nbsp;&nbsp;$+$OWA</td><td>88.0</td><td>63.2</td><td>85.9</td><td>93.9</td><td>63.4</td><td>87.1</td></tr>
+    <tr><td style="text-align:left">Claude-Sonnet-4.5</td><td>89.1</td><td>71.4</td><td>87.6</td><td>92.1</td><td>70.9</td><td>89.2</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Cross-model comparison.</strong> CWA scores independently recover the robustness ranking from
+Table 1: Gemini-3.0-Flash scores lowest (80.1 standard, 84.9 adversarial), GPT-5-mini intermediate (84.0,
+88.0), and Claude-Sonnet-4.5 highest (87.6, 89.2). The rubric-based ordering matches the accuracy-based
+ordering, confirming that robustness to compositional falsification tracks how thoroughly models check
+constraints in their reasoning traces.</p>
+
+<p><strong>Within-model comparison.</strong> Across all models, average scores on compositionally infeasible
+claims are higher than on standard claims (Gemini-3.0-Flash 84.9 vs. 80.1, GPT-5-mini 88.0 vs. 84.0,
+Claude-Sonnet-4.5 89.2 vs. 87.6), indicating that the compositional nature of these claims induces more
+thorough constraint checking in reasoning traces. The gap between correct and incorrect traces is larger on
+compositionally infeasible claims than on standard ones, because correctly rejecting a compositionally
+infeasible claim requires enumerating and composing non-salient constraints, raising the reasoning bar, while
+failed traces on both claim types reflect a similar pattern of early termination at the salient constraint.</p>
+
+<p><strong>Intervention.</strong> CWA prompting raises correct case scores on standard ($83.0 \to 88.0$) and
+adversarial ($91.4 \to 93.9$) claims, confirming CWA guidance shifts reasoning toward more thorough constraint
+checking. Incorrect adversarial scores remain nearly unchanged ($65.1 \to 63.4$), indicating a reasoning
+threshold below which incorrect verdicts occur. OWA prompting does not consistently lower scores despite
+increasing acceptance rate, confirming the rubric measures constraint coverage in reasoning rather than
+verdict direction.</p>
+
+<h2>6. Discussion</h2>
+
+<p><strong>Verification mode in self-verification.</strong> Scientific claim verification is a form of
+external verification as it evaluates external claims against evidence. Verification also arises internally,
+when models check their own reasoning as a common reasoning strategy. If salient-constraint checking reflects
+a general verification tendency rather than a property specific to external claims, the same failure mode
+should appear in self-verification. Models may accept their own incorrect responses without checking all
+constraints that would reveal the error.</p>
+
+<p>We test this by asking GPT-4o-mini to self-verify its own responses on 200 problems each from AIME
+(Veeraboina, 2023) and GPQA Diamond (Rein et al., 2024) under baseline and CWA/OWA prompt intervention, with a
+stronger model judging both verdict and reasoning validity. As shown in Table 3, baseline performance falls
+between OWA and CWA on both $F_1$ (over valid rejections and valid acceptances) and Precision at Rejection
+(Prec@Rej, defined as the proportion of correct rejections accompanied by faithful reasoning), mirroring the
+ROC trajectory in Section 4.3. OWA underperforms baseline, consistent with increased over-acceptance. CWA
+achieves the highest Prec@Rej, indicating that stricter constraint checking improves not just rejection rate
+but the quality of reasoning behind rejections, which could be a potential direction for fixing confirmation
+bias (Huang et al., 2023; Zhou et al., 2025; Wan et al., 2025).</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table 3.</span> Self-verification on GPQA Diamond and AIME. A rejection is valid
+  if the solver response is incorrect and the verifier reasoning correctly identifies the exact solver error.
+  $F_1$: macro-$F_1$ over valid rejections and valid acceptances. Prec@Rej: precision over valid rejections
+  only. <strong>Bold</strong>: best.</caption>
+  <thead>
+    <tr>
+      <th rowspan="2" style="text-align:left"></th>
+      <th colspan="2">GPQA</th>
+      <th colspan="2">AIME</th>
+    </tr>
+    <tr>
+      <th>$F_1\uparrow$</th><th>Prec@Rej$\uparrow$</th>
+      <th>$F_1\uparrow$</th><th>Prec@Rej$\uparrow$</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">Baseline</td><td>.218</td><td>.253</td><td>.287</td><td>.256</td></tr>
+    <tr><td style="text-align:left">OWA</td><td>.165</td><td>.206</td><td>.238</td><td>.226</td></tr>
+    <tr><td style="text-align:left">CWA</td><td><strong>.262</strong></td><td><strong>.273</strong></td><td><strong>.347</strong></td><td><strong>.290</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Origins of salient-constraint checking.</strong> We hypothesize that salient-constraint checking
+emerges from pretraining on scientific data, where claims are typically supported by directly retrievable
+features and compositional violations rarely appear. In this setting, checking the salient constraint is
+nearly always sufficient, providing little training signal to develop full CWA verification (Dziri et al.,
+2023; Kambhampati et al., 2024). This mismatch between pretraining corpora and the structure of scientific
+misinformation explains both why salient-constraint checking is the default and why prompting can shift but
+not overcome the reasoning bottleneck.</p>
+
+<p><strong>Future work.</strong> This work is primarily diagnostic, as we identify and isolate a failure mode
+in scientific verification. Although our graph-based pipeline yields structured reasoning trajectories suitable
+for post-training (SFT and RLVR), we do not view this as a straightforward solution (Yue et al., 2025). We
+trained Qwen3-8B on compositional examples using both approaches and shifted the decision boundary toward
+broader rejection rather than improving compositional reasoning quality. More fundamentally, most training
+tasks reward $\exists$-type reasoning, where finding any supporting evidence is sufficient for success, leaving
+the $\forall$-type reasoning that full CWA verification requires systematically undertrained (Dziri et al.,
+2023; McCoy et al., 2023). Addressing both the compositional inference bottleneck and this verification
+tendency is likely necessary for genuine progress, and we leave the design of such interventions to future
+work.</p>
+
+<h2>7. Related Work</h2>
+
+<p><strong>Scientific claim verification.</strong> Claim verification benchmarks span general knowledge
+(Thorne et al., 2018; Aly et al., 2021), scientific literature (Wadden et al., 2020; 2022; Lal et al., 2025;
+Kumar et al., 2025), clinical trials (Jullien et al., 2023; 2024), tables (Chen et al., 2019; Lu et al.,
+2023), and charts (Akhtar et al., 2024; Wang et al., 2025). Previous works improve claim verification ability
+of LLM through retrieval (Adjali, 2024; Liu et al., 2024; Chen et al., 2024; Sallami et al., 2025),
+decomposition (Sahu et al., 2024; Lu et al., 2025; Vladika et al., 2025) and reasoning improvement (Wadden et
+al., 2025; Freedman et al., 2025). Models are known to exploit surface heuristics rather than genuine
+reasoning (Gururangan et al., 2018; Clark et al., 2019; Niven &amp; Kao, 2019; McCoy et al., 2019). We
+identify why existing benchmarks cannot detect a specific failure mode, and construct examples that can
+detect it.</p>
+
+<p><strong>Compositional adversarial data construction.</strong> Compositional reasoning benchmarks use
+graph-based methods to generate multi-hop question answering pairs (Yang et al., 2018; Tu et al., 2019; Pan
+et al., 2020; Trivedi et al., 2022). Previous works construct adversarial and counterfactual data to evaluate
+LLMs through human annotation (Gardner et al., 2020; Kiela et al., 2021; Liu et al., 2023), heuristic
+rule-based perturbations (Gan et al., 2024; Waghela et al., 2024), and automated LLM-driven synthetic
+generation (Wu et al., 2024; Bhattacharjee et al., 2024; Zhang et al., 2025). We follow the line of work that
+applies systematic graph perturbations to generate adversarial data (Sharma et al., 2023; Wu et al., 2024;
+Zhang et al., 2024b; Hong et al., 2025; Cheng et al., 2025).</p>
+
+<h2>Appendix A. Benchmark Collection</h2>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table 4.</span> Dataset subsets and annotation outcomes for adversarial
+  hard-negative construction.</caption>
+  <thead>
+    <tr><th style="text-align:left">Dataset</th><th style="text-align:left">Original source</th><th style="text-align:left">Subset used</th><th>Generated</th><th>Validated</th><th style="text-align:left">Notes</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:left"><strong>NLI4CT</strong></td>
+      <td style="text-align:left">Clinical trial claims</td>
+      <td style="text-align:left">Single-trial examples only</td>
+      <td>242</td><td>203</td>
+      <td style="text-align:left">We exclude multi-trial claims and generate hard negatives only from single-trial evidence.</td>
+    </tr>
+    <tr>
+      <td style="text-align:left"><strong>SciTab</strong></td>
+      <td style="text-align:left">Scientific table claims</td>
+      <td style="text-align:left">Randomly selected table subset</td>
+      <td>230</td><td>200</td>
+      <td style="text-align:left">Candidate pool was sufficient to retain 200 validated hard negatives after manual filtering.</td>
+    </tr>
+    <tr>
+      <td style="text-align:left"><strong>SciVer</strong></td>
+      <td style="text-align:left">Scientific figure claims</td>
+      <td style="text-align:left">Single-chart direct-reasoning subset</td>
+      <td>213</td><td>180</td>
+      <td style="text-align:left">SciVer includes multiple reasoning types and multimodal evidence settings (e.g., chart, text, table, or multiple evidence pieces). We restrict to single-chart examples, which yields 213 source items; after validation, fewer than 200 hard negatives remain.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table 5.</span> Benchmark datasets used in this work, including both their
+  original infeasible-claim construction and our compositional hard-negative perturbations.</caption>
+  <thead>
+    <tr><th></th><th style="text-align:left">Evidence</th><th style="text-align:left">Feasible claims</th><th style="text-align:left">Standard infeasible claims</th><th style="text-align:left">Our hard-negative perturbations</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:left"><strong>NLI4CT</strong></td>
+      <td style="text-align:left">Breast cancer clinical trial report excerpts; single section per instance.</td>
+      <td style="text-align:left">Expert-written claims requiring biomedical, numerical, and commonsense reasoning.</td>
+      <td style="text-align:left">Contrast-set perturbations, including numerical, lexical, semantic, and syntactic changes.</td>
+      <td style="text-align:left">Compositional clinical misreadings such as qualifier omission, scope/population shifts, conditional or boundary flips, cross-arm or proxy misattribution, and surfaced assumptions.</td>
+    </tr>
+    <tr>
+      <td style="text-align:left"><strong>SciTab</strong></td>
+      <td style="text-align:left">Scientific tables with captions from NLP/ML papers.</td>
+      <td style="text-align:left">Sentences from the paper grounded in the table; two-annotator verified.</td>
+      <td style="text-align:left">InstructGPT-generated negatives with wrong calculations, value mismatches, and incorrect approximations.</td>
+      <td style="text-align:left">Structural table perturbations such as inconsistent baselines, part&ndash;whole and averaging errors, derived-metric overextension, null-as-zero aggregation, and occasional causal or categorical overreach.</td>
+    </tr>
+    <tr>
+      <td style="text-align:left"><strong>SciVer</strong></td>
+      <td style="text-align:left">Chart screenshots from CS/arXiv papers; direct-reasoning subset only.</td>
+      <td style="text-align:left">Expert-written claims grounded in chart content.</td>
+      <td style="text-align:left">Expert-rewritten negatives with hallucinated values, value misattribution, or relationship reversal.</td>
+      <td style="text-align:left">Structural visual misreadings such as local-to-global overreach, ignored panel or layout boundaries, visual analogy or element conflation, prominence-based over-interpretation, and unsupported comparison classes.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Appendix B. Annotation Details</h2>
+
+<p>Validation for this work is diagnostic rather than benchmark construction. Our goal is to confirm that
+generated hard negatives are not accidentally feasible and do not introduce ambiguous cases, not to establish a
+reusable labeled dataset with publication-grade inter-annotator agreement. In this context, single-annotator
+validation is standard practice as the annotator's role is to apply a well-defined binary judgment (is this
+claim clearly infeasible given the document, or is it ambiguous/accidentally true?) rather than to make
+subjective interpretive assessments.</p>
+
+<p>All generated hard negatives were manually validated by a single author. During annotation, the annotator
+was given the source evidence, the generated reasoning graph, the perturbation logic (including the corrupted
+node), and the final infeasible claim. Each example was judged based on both whether the final claim was
+clearly infeasible with respect to the source and whether the intermediate corruption constituted a valid
+adversarial transformation.</p>
+
+<p>The final acceptance rates were 203/242 (83.9%) for NLI4CT, 200/230 (87.0%) for SciTab, and 180/213
+(84.5%) for SciVer. Most rejected candidates were ambiguous rather than incorrect. They introduced higher-level
+interpretations, external assumptions, or broader statistical conclusions that were not clearly licensed by
+the source, but were also not unambiguously contradicted by it. A smaller portion were genuinely invalid
+generations, typically because an intended overgeneralization remained accidentally compatible with the
+evidence.</p>
+
+<p>Validation was conducted by a single annotator with CS-domain expertise. SCITAB and SciVer draw exclusively
+from CS papers, making the annotator's domain knowledge sufficient and inter-annotator variability is expected
+to be low. For NLI4CT, judgments were grounded in source-document consistency rather than independent clinical
+expertise. The task was to determine whether the generated claim and corruption were supported by the provided
+trial text, not to assess medical validity beyond the evidence. This grounds the judgment in objective textual
+entailment rather than domain-specific interpretation, limiting the role of annotator background knowledge. We
+acknowledge that multi-annotator review with inter-rater agreement reporting would further strengthen label
+quality for future benchmark use, and we intend to address this in future work.</p>
+
+<h2>Appendix C. Decoding Randomness</h2>
+
+<p>To assess whether findings are stable across decoding randomness, we evaluate the Qwen3 family at three
+temperatures: $T=0$, $T=0.6$, and $T=1.0$ on SCITAB. Figure 7 shows accuracy on positive, standard negative,
+and adversarial negative claims across model sizes for each temperature.</p>
+
+<figure class="fig">
+  <img src="figures/plot8_qwen_temperature.svg" alt="Line plots of Qwen3 accuracy on SCITAB positive, standard negative and adversarial negative claims across model sizes at temperatures 0, 0.6 and 1.0">
+  <figcaption><span class="lab">Figure 7.</span> Qwen3 model families performance of SCITAB with decoding at
+  different temperatures</figcaption>
+</figure>
+
+<p>Adversarial negative accuracy is lower than standard negative accuracy at every model size and every
+temperature, confirming that the routing failure is not an artifact of a particular decoding choice. However,
+the magnitude of the gap varies substantially with temperature. At $T=0$, Qwen3-0.6B achieves only 27% on
+adversarial negatives despite 86.5% on standard negatives, a 59.5-point difference, because deterministic
+decoding commits fully to the model's prior, which at small scale is strong acceptance. As scale increases,
+the gap narrows monotonically, reaching $-8.0\%$ at 32B, producing the clearest scaling signal. At $T=1.0$,
+the gap at small scale nearly vanishes: Qwen3-0.6B shows 0% difference, because high-temperature sampling
+occasionally follows lower-probability reasoning paths that accidentally produce correct rejections. This
+stochastic masking makes $T=1.0$ a less reliable diagnostic for the routing failure at small scale. $T=0.6$
+reaches a balance between these extremes, producing stable and monotonically improving adversarial negative
+accuracy across scale without the extreme compression of $T=1.0$ or the floor effects of $T=0$ at small sizes.
+We therefore use $T=0.6$ as our primary evaluation setting for the Qwen3 scaling experiment, and report full
+results across all three temperatures here for completeness.</p>
+
+<h2>Appendix D. Ablation Study</h2>
+
+<p><strong>Surface form.</strong> Compositionally infeasible claims tend to be longer than standard infeasible
+claims due to the compositionality. If surface form rather than compositional structure drives the gap,
+rephrasing standard infeasible claims to match the style of compositionally infeasible claims should produce a
+similar drop. We take a subset of 50 standard infeasible claims from each domain, and rephrase each standard
+infeasible claim into a longer, more formal surface form while preserving the identical factual assertion and
+violation. As shown in Figure 8, rephrased negatives track original standard negatives closely across all
+three domains, which proves that surface form does not explain the gap between standard infeasible and
+compositionally infeasible claims.</p>
+
+<figure class="fig">
+  <img src="figures/plot7c_ablation_longneg_per_model.svg" alt="Per-model bar charts comparing accuracy on standard negatives, rephrased longer negatives and adversarial negatives across three domains">
+  <figcaption><span class="lab">Figure 8.</span> Longer negatives show no improvement or degradation over
+  standard negatives, ruling out surface form as the reason for performance drop on adversarial
+  negatives</figcaption>
+</figure>
+
+<p><strong>Generator-Verifier Bias.</strong> To assess whether evaluation outcomes are affected by the
+stylistic artifacts introduced by the generation pipeline, we compare performance on two claim versions across
+50 adversarial negatives per domain. In the <strong>rephrased</strong> condition, GPT-5-mini-generated claims
+are rephrased by Gemini-3.0-Flash while preserving logical content; in the <strong>original</strong>
+condition, raw GPT-5-mini-generated claims are evaluated without rephrasing. If GPT-5-mini were biased toward
+its own writing style, it should score consistently higher on original claims than on rephrased ones. Table 6
+shows no consistent pattern supporting this. On NLI4CT, both evaluators produce identical scores across
+conditions, showing no effect. On SCITAB, GPT-5-mini scores higher on original claims (82% vs. 74%),
+consistent with a weak stylistic preference. On SciVer, GPT-5-mini scores higher on rephrased claims (66% vs.
+78%), which is opposite to the bias direction. GPT-5-mini appears more sensitive to surface-level style
+changes than Gemini-3.0-Flash, but the inconsistency in direction across domains and evaluators indicates no
+systematic generation-verifier bias. Therefore, the results reported in the main paper for the GPT model family
+are not inflated by stylistic familiarity with the generation pipeline.</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table 6.</span> Hard negative accuracy on Gemini-rephrased claims (rephrased)
+  vs. raw GPT-5-mini-generated claims (original), evaluated by two independent model families. Differences are
+  small and inconsistent in direction, ruling out systematic generation-verifier bias.</caption>
+  <thead>
+    <tr><th style="text-align:left">Domain</th><th style="text-align:left">Evaluator</th><th>Rephrased (%)</th><th>Original (%)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">NLI4CT</td><td style="text-align:left">GPT-5-mini</td><td>86.0</td><td>86.0</td></tr>
+    <tr><td style="text-align:left"></td><td style="text-align:left">Gemini-3.0-Flash</td><td>76.0</td><td>76.0</td></tr>
+    <tr><td style="text-align:left">SCITAB</td><td style="text-align:left">GPT-5-mini</td><td>74.0</td><td>82.0</td></tr>
+    <tr><td style="text-align:left"></td><td style="text-align:left">Gemini-3.0-Flash</td><td>72.0</td><td>70.0</td></tr>
+    <tr><td style="text-align:left">SciVer</td><td style="text-align:left">GPT-5-mini</td><td>78.0</td><td>66.0</td></tr>
+    <tr><td style="text-align:left"></td><td style="text-align:left">Gemini-3.0-Flash</td><td>66.0</td><td>70.0</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Appendix E. LLM Judge Rubrics and Human Agreement</h2>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table 7.</span> Rubric dimensions for scoring reasoning traces on the
+  salient-constraint checking vs. full CWA axis. Each dimension is scored $\{-2,\ldots,+2\}$ with anchored
+  examples.</caption>
+  <thead>
+    <tr><th style="text-align:left">Dimension</th><th style="text-align:left">Salient-constraint checking ($-2$)</th><th style="text-align:left">Full CWA ($+2$)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">Constraint enumeration</td><td style="text-align:left">Checks one prominent constraint</td><td style="text-align:left">Lists all constraints before checking any</td></tr>
+    <tr><td style="text-align:left">Non-salient coverage</td><td style="text-align:left">Stops at salient constraint</td><td style="text-align:left">Checks non-salient and composed constraints</td></tr>
+    <tr><td style="text-align:left">Evidence boundary</td><td style="text-align:left">Accepts on local consistency</td><td style="text-align:left">Rejects when scope exceeds evidence</td></tr>
+    <tr><td style="text-align:left">Verdict warrant</td><td style="text-align:left">Notes gaps but accepts</td><td style="text-align:left">Verdict follows from all gaps</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>To assess the validity of the rubric-based LLM judge, a single annotator with NLP research experience
+independently scored a stratified sample of 50 reasoning traces from NLI4CT, drawn to cover correct rejection
+and incorrect rejections in proportion to their occurrence in the full evaluation set. The annotator scored
+each trace on the same four dimensions ($-2$ to $+2$ per dimension, aggregated to 0&ndash;100) without access
+to the LLM judge's scores. Agreement between the human annotator and LLM judge, measured as Spearman's $\rho$
+on the aggregated 0&ndash;100 scale, was $\rho = 0.43$ for correct traces and $\rho = 0.53$ for incorrect
+traces, yielding a mean of $\rho = 0.47$ across the two models. This indicates moderate agreement between the
+human annotator and the automated judge. The overall pooled correlation is lower due to range restriction, as
+most traces score in a narrow band (75&ndash;90), which compresses rank differences and reduces Spearman's
+sensitivity to genuine agreement. Single-annotator validation is a limitation of this study. Multi-annotator
+validation with formal inter-annotator agreement reporting remains an important direction for future work.</p>
+
+<h2>Appendix F. Self-Verification Experiment Details</h2>
+
+<p><strong>Task and Dataset Selection.</strong> We evaluate on GPQA Diamond (Rein et al., 2024) and AIME
+(Veeraboina, 2023). Both datasets require multi-step reasoning where a correct solution must satisfy multiple
+constraints simultaneously, making them natural analogues to the compositional verification setting in the
+main paper. We select GPT-4o-mini as the solver because it achieves non-trivial but imperfect accuracy on both
+tasks, producing a mix of correct and incorrect responses suitable for studying self-verification behavior. A
+model that always succeeds provides no incorrect responses to verify; a model that always fails provides no
+correct responses to accept. GPT-4o-mini's accuracy in the range of 25&ndash;35% on these tasks provides
+sufficient signal in both directions.</p>
+
+<p><strong>Experiments.</strong> For each problem, GPT-4o-mini first produces a solution in a single forward
+pass. The same model then self-verifies its own response under one of three prompting conditions: baseline,
+CWA-instructed, or OWA-instructed, using the prompts similar to Appendix G. The self-verification step
+receives the problem statement and the model's own solution and must output (1) accept or reject (2)
+reasoning.</p>
+
+<p>Ground truth verdicts and reasoning quality are assessed by GPT-5-mini, which achieves over 90% accuracy on
+both benchmarks and serves as a reliable judge. The judge evaluates two things independently: (1) whether the
+solver's accept/reject answer is correct, and (2) whether the verifier's reasoning correctly identifies the
+source of error when rejecting.</p>
+
+<p><strong>Evaluation Metrics.</strong> we define the following case taxonomy:</p>
+
+<div class="table-wrap">
+<table class="data">
+  <caption><span class="lab">Table 8.</span> Case taxonomy for self-verification evaluation.</caption>
+  <thead>
+    <tr><th style="text-align:left">Solver</th><th style="text-align:left">Verifier</th><th style="text-align:left">Reasoning</th><th style="text-align:left">Label</th><th style="text-align:left">Description</th><th style="text-align:left">Count as</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">Incorrect</td><td style="text-align:left">Reject</td><td style="text-align:left">Valid</td><td style="text-align:left">TP</td><td style="text-align:left">Verifier correctly identifies the actual error</td><td style="text-align:left">True Positive</td></tr>
+    <tr><td style="text-align:left">Correct</td><td style="text-align:left">Accept</td><td style="text-align:left">&mdash;</td><td style="text-align:left">TN</td><td style="text-align:left">Verifier correctly accepts a correct solution</td><td style="text-align:left">True Negative</td></tr>
+    <tr><td style="text-align:left">Incorrect</td><td style="text-align:left">Reject</td><td style="text-align:left">Invalid</td><td style="text-align:left">Lucky Catch</td><td style="text-align:left">Verifier rejects but for wrong/unrelated reason</td><td style="text-align:left">False Positive</td></tr>
+    <tr><td style="text-align:left">Correct</td><td style="text-align:left">Reject</td><td style="text-align:left">&mdash;</td><td style="text-align:left">FP</td><td style="text-align:left">Verifier incorrectly rejects a correct solution</td><td style="text-align:left">False Positive</td></tr>
+    <tr><td style="text-align:left">Incorrect</td><td style="text-align:left">Accept</td><td style="text-align:left">&mdash;</td><td style="text-align:left">FN</td><td style="text-align:left">Verifier incorrectly accepts an incorrect solution</td><td style="text-align:left">False Negative</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>We report macro-F1 and Precision at Rejection (Prec@Rej) defined as TP / (TP + lucky_catch), measuring what
+fraction of rejections reflect genuine constraint checking rather than incidental rejection.</p>
+
+<h3>Results</h3>
+
+<div class="table-wrap">
+<table class="data">
+  <thead>
+    <tr><th style="text-align:left">Dataset</th><th style="text-align:left">Variant</th><th>n</th><th>Acc</th><th>F1</th><th>TP</th><th>TN</th><th>FP</th><th>FN</th><th>Prec@Rej</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">GPQA</td><td style="text-align:left">baseline</td><td>198</td><td>0.313</td><td>0.218</td><td>19</td><td>43</td><td>82</td><td>54</td><td>19/75 $\approx$ 0.253</td></tr>
+    <tr><td style="text-align:left"></td><td style="text-align:left">CWA</td><td>198</td><td><strong>0.318</strong></td><td><strong>0.262</strong></td><td>24</td><td>39</td><td>94</td><td>41</td><td><strong>24/88 $\approx$ 0.273</strong></td></tr>
+    <tr><td style="text-align:left"></td><td style="text-align:left">OWA</td><td>198</td><td>0.283</td><td>0.165</td><td>14</td><td>42</td><td>81</td><td>61</td><td>14/68 $\approx$ 0.206</td></tr>
+    <tr><td style="text-align:left">AIME</td><td style="text-align:left">baseline</td><td>200</td><td>0.255</td><td>0.287</td><td>30</td><td>21</td><td>93</td><td>56</td><td>30/117 $\approx$ 0.256</td></tr>
+    <tr><td style="text-align:left"></td><td style="text-align:left">CWA</td><td>200</td><td><strong>0.285</strong></td><td><strong>0.347</strong></td><td>38</td><td>19</td><td>101</td><td>42</td><td><strong>38/131 $\approx$ 0.290</strong></td></tr>
+    <tr><td style="text-align:left"></td><td style="text-align:left">OWA</td><td>200</td><td>0.230</td><td>0.238</td><td>24</td><td>22</td><td>87</td><td>67</td><td>24/106 $\approx$ 0.226</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The ordering CWA $>$ baseline $>$ OWA on both F1 and Prec@Rej mirrors the ROC trajectory observed in the
+main paper, with the baseline lying between OWA and CWA. This replicates the external verification pattern in
+an internal setting, consistent with salient-constraint checking being a general verification tendency rather
+than a property specific to external evidence evaluation.</p>
+
+<p>CWA prompting improves Prec@Rej on both datasets, indicating that stricter constraint checking improves not
+just rejection rate but the quality of reasoning behind rejections. The real catch rate under CWA (0.273 on
+GPQA, 0.290 on AIME) exceeds the baseline (0.253, 0.256), confirming that CWA guidance produces more genuine
+error identification rather than merely more rejections.</p>
+
+<p>However, the absolute F1 values remain low across all conditions. This reflects the same reasoning
+bottleneck identified that prompting shifts the operating point but cannot overcome the underlying
+compositional reasoning limitation. The high false positive counts under CWA (94 on GPQA, 101 on AIME)
+indicate that stricter verification causes over-rejection of correct solutions, consistent with the tradeoff
+between acceptance and rejection accuracy observed in the external verification setting.</p>
+
+<h2>Appendix G. Prompts for Data Generation</h2>
+
+<p style="text-align:center"><strong>Graph Generation Prompt</strong></p>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p>Build a reasoning graph for claim verification. You are given:</p>
+<ul>
+  <li><span style="color:#006663">clinical trial: a full document, a target excerpt, and a feasible claim</span></li>
+  <li><span style="color:#b85c00">table: a table and a feasible claim</span></li>
+  <li><span style="color:#800080">chart: an image and a feasible claim</span></li>
+</ul>
+<p>The claim is the surface. Your job is to write TRUE context beneath it so later we can create subtle
+misinformation by mischaracterizing that context. Write three layers:</p>
+<hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
+<p><strong>LAYER 1 &mdash; OBSERVATIONS</strong>&nbsp;&nbsp;<em>(CLAIM-ANCHORING O1..O5: elements related to or
+directly supporting the claim)</em></p>
+<ul>
+  <li><span style="color:#006663">clinical trial: include numerical values, cohort/arm labels, outcome definitions, denominators, eligibility criteria, measurement definitions, timeframes.</span></li>
+  <li><span style="color:#b85c00">table: describe structural regions or bindings (rows, columns, headers); focus on distributions, hierarchy, or constraints; avoid isolated cells unless they define outliers.</span></li>
+  <li><span style="color:#800080">chart: describe visible anchors (legend, axes, ticks, panels, marks); include positions, scales, labels, and annotated elements.</span></li>
+</ul>
+<p><em>Rules:</em> all observations must be literal and directly present in the input; no arithmetic,
+comparison, or inference.</p>
+<p><strong>LAYER 2 &mdash; CONTEXT</strong>&nbsp;&nbsp;<em>(describe how observations relate structurally)</em></p>
+<ul>
+  <li><span style="color:#006663">clinical trial: connect observations to broader trial structure.</span></li>
+  <li><span style="color:#b85c00">table: describe structural relationships (ordering, gaps, trends, scope boundaries).</span></li>
+  <li><span style="color:#800080">chart: describe structural relationships (ordering, gaps, trends, scope boundaries).</span></li>
+</ul>
+<p><em>Rules:</em> each context step must cite $\geq$2 observations; must be directly supported by the input;
+do NOT restate the claim.</p>
+<p><strong>LAYER 3 &mdash; INTERPRETATION</strong>&nbsp;&nbsp;<em>(explain what the contextual structure implies)</em></p>
+<ul>
+  <li><span style="color:#006663">clinical trial: ground in full document; focus on population, endpoints, conditions, or applicability.</span></li>
+  <li><span style="color:#b85c00">table: focus on ranking scope, comparison validity, ordering, representativeness.</span></li>
+  <li><span style="color:#800080">chart: focus on trends, generalization, stability, or what values represent.</span></li>
+</ul>
+<p><em>Rules:</em> each interpretation step must cite $\geq$2 context steps; must remain grounded in the
+input; do NOT restate the claim.</p>
+</div>
+
+<p style="text-align:center"><strong>Infeasible Claim Generation Prompt</strong></p>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p><strong>Input.</strong> Generate a plausible-but-false (<strong>infeasible</strong>) claim. You are given:
+<span style="color:#006663">clinical trial: full document, target excerpt, source claim;</span>
+<span style="color:#b85c00">table: table, source claim;</span>
+<span style="color:#800080">chart: image, source claim;</span>
+and a reasoning graph with nodes <strong>O</strong> (observations: concrete facts), <strong>C</strong>
+(context: structural relationships), and <strong>I</strong> (interpretation: how structure supports
+conclusions).</p>
+<p><strong>Core idea.</strong> <em>Preserve observations:</em> keep all entities, values, labels, and visible
+evidence unchanged; the claim must remain grounded in the same observations as the source claim.
+<em>Corrupt reasoning:</em> introduce a minimal but incorrect structural interpretation; the error must come
+from how evidence is combined, not what is observed; the claim should remain locally plausible.</p>
+<p><strong>Structural falsifiability.</strong> The claim must (1) not be falsifiable by checking a single
+value, cell, or sentence; (2) only be falsifiable by combining multiple pieces of evidence; and (3) require
+integrating different regions, passages, or structures.</p>
+<p><strong>Domain-specific corruption.</strong>
+<span style="color:#006663">Clinical trial: errors arise from scope, conditions, populations, or trial structure.</span>
+<span style="color:#b85c00">Table: errors arise from structural relationships such as grouping, units, or aggregation, and should involve multiple regions (e.g., row group + footnote + column).</span>
+<span style="color:#800080">Chart: errors arise from visual structure such as scope, trend, grouping, or segmentation, and should involve multiple regions or patterns in the figure.</span></p>
+<p><strong>What to do.</strong> (A) Choose exactly one context (<strong>C</strong>) or interpretation
+(<strong>I</strong>) node to corrupt. (B) Write <code>corrupted_node_text</code> as a minimal change to the
+original structure; keep observations unchanged and make the error subtle and plausible. (C) Write
+<code>propagation_notes</code> in 1&ndash;2 sentences explaining how the corrupted structure leads to the
+false claim. (D) Write <code>infeasible_claim</code> in natural, domain-appropriate language; reuse the same
+observations as the source claim; do not mention counterevidence; do not rely on exact numeric
+contradictions.</p>
+<p><strong>Self-check (required).</strong> The claim must be (1) locally plausible using the same evidence as
+the source claim; (2) not falsifiable from a single observation or sentence; (3) refutable only by combining
+multiple pieces of evidence; (4) free of new entities, values, or external knowledge; and (5) not obviously
+false or ambiguous to a careful reader. If any condition fails, revise.</p>
+<p><strong>Disallowed.</strong> Changing or fabricating observations; explicit contradictions (numeric flip,
+label swap); causal or normative claims; external knowledge not in the input; trivial or single-step
+falsification.</p>
+</div>
+
+<h2>Appendix H. Prompts for CWA/OWA Intervention</h2>
+
+<p style="text-align:center"><strong>Evaluation Prompt</strong></p>
+
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 18px;">
+<p>Determine whether a claim is <strong>FEASIBLE</strong> or <strong>INFEASIBLE</strong> given evidence.</p>
+<p>You are given:</p>
+<ul>
+  <li><span style="color:#006663">clinical: full trial + target excerpt</span></li>
+  <li><span style="color:#b85c00">table: table context</span></li>
+  <li><span style="color:#800080">chart: image (+ optional context)</span></li>
+  <li>claim</li>
+</ul>
+<hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
+<p><strong>Type 1: Baseline</strong></p>
+<p>Use the evidence to decide whether the claim is supported.</p>
+<p><strong>Type 2: OWA</strong></p>
+<p>You are under open-world assumption. Use the evidence to decide whether the claim is supported. Do not
+reject a claim based on missing evidence alone.</p>
+<p><strong>Type 3: CWA</strong></p>
+<p>You are under closed-world assumption.</p>
+<ul>
+  <li><strong>FEASIBLE</strong> only if all parts of the claim are explicitly supported.</li>
+  <li><strong>INFEASIBLE</strong> if any part is unsupported or contradicted.</li>
+</ul>
+<p>Absence of supporting evidence counts as <strong>INFEASIBLE</strong>.</p>
+<p><strong>Type 4: DCP+OWA</strong></p>
+<p>You are under open-world assumption with decomposition.</p>
+<p><strong>STEP 1 &mdash; DECOMPOSE</strong><br>Break the claim into minimal subclaims required for it to hold.</p>
+<p><strong>STEP 2 &mdash; CHECK CONTRADICTION</strong><br>For each subclaim:</p>
+<ul>
+  <li>mark <strong>INFEASIBLE</strong> only if explicitly contradicted</li>
+  <li>absence of evidence does not invalidate it</li>
+</ul>
+<p><strong>STEP 3 &mdash; VERDICT</strong></p>
+<ul>
+  <li><strong>FEASIBLE</strong>: no subclaim is contradicted</li>
+  <li><strong>INFEASIBLE</strong>: at least one subclaim is contradicted</li>
+</ul>
+<p><strong>Type 5: DCP+CWA</strong></p>
+<p>You are under closed-world assumption with decomposition.</p>
+<p><strong>STEP 1 &mdash; DECOMPOSE</strong><br>Break the claim into minimal subclaims required for it to hold.</p>
+<p><strong>STEP 2 &mdash; CHECK SUPPORT</strong><br>For each subclaim:</p>
+<ul>
+  <li>it must be fully supported by the evidence</li>
+  <li>unsupported or contradicted subclaims fail</li>
+</ul>
+<p><strong>STEP 3 &mdash; VERDICT</strong></p>
+<ul>
+  <li><strong>FEASIBLE</strong>: all subclaims are supported</li>
+  <li><strong>INFEASIBLE</strong>: any subclaim is not supported</li>
+</ul>
+<p><strong>Output format</strong></p>
+<ul>
+  <li>(<code>DCP+OWA</code> and <code>DCP+CWA</code>) <code>Subclaims</code>: list</li>
+  <li><code>Reason</code>: brief explanation grounded in evidence</li>
+  <li><code>Verdict</code>: <strong>FEASIBLE</strong> or <strong>INFEASIBLE</strong></li>
+</ul>
+</div>
+
+<h2>Appendix I. Data Generation Examples</h2>
+
+<figure class="fig">
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 12px; text-align:left;">
+<p><strong>Clinical trial example (NLI4CT).</strong></p>
+<p><strong>Source.</strong> Eligibility criteria from a breast cancer clinical trial: histologically or
+cytologically confirmed primary invasive breast cancer; primary tumor $>2$ cm; HER2
+overexpression/amplification confirmed; no prior breast-cancer therapy; <em>only Japanese women are
+eligible</em>.</p>
+<p><strong>Feasible claim.</strong> Patients must have histologically or cytologically confirmed HER2-positive
+invasive breast cancer, with a primary tumor larger than 2 cm in diameter, to participate in the trial.</p>
+<p><strong>Adversarial negative.</strong> To participate in this trial for HER2-positive invasive breast
+cancer, women with a primary tumor larger than 2 cm in diameter are eligible for enrollment regardless of
+their geographic or ethnic background.</p>
+<p><strong>Reasoning graph.</strong></p>
+<div class="table-wrap">
+<table class="data">
+  <tbody>
+    <tr><td style="text-align:left; vertical-align:top"><strong>O</strong></td><td style="text-align:left">
+      O1: Primary invasive breast cancer is required.<br>
+      O2: Primary tumor must be larger than 2 cm.<br>
+      O3: HER2 overexpression/amplification is required.<br>
+      O4: No prior breast-cancer therapy.<br>
+      O5: <em>Only Japanese women are eligible.</em></td></tr>
+    <tr><td style="text-align:left; vertical-align:top"><strong>C</strong></td><td style="text-align:left">
+      C1: The trial requires invasive breast cancer together with HER2-positive status.<br>
+      C2: The size threshold and no-prior-therapy criterion define a treatment-naive population.<br>
+      <strong>C3 (original):</strong> Eligibility is restricted to Japanese women with primary invasive breast cancer.<br>
+      <strong>C3 (corrupted):</strong> Eligibility is open to women with primary invasive breast cancer regardless of nationality.</td></tr>
+    <tr><td style="text-align:left; vertical-align:top"><strong>I</strong></td><td style="text-align:left">
+      I1: The trial targets HER2-positive tumors receiving HER2-directed therapy.<br>
+      I2: The displayed eligibility constraints characterize who may enroll in the study.</td></tr>
+  </tbody>
+</table>
+</div>
+<p><strong>Edit type.</strong> <strong>Population/scope shift.</strong> The corruption preserves the salient
+disease and tumor-size constraints but removes the nationality restriction encoded in O5 and C3, yielding a
+globally broader eligibility claim that the source does not support.</p>
+</div>
+<figcaption><span class="lab">Figure 9.</span> Illustrative hard-negative generation for NLI4CT. A single
+graph node is corrupted while the surface claim remains locally plausible.</figcaption>
+</figure>
+
+<figure class="fig">
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 12px; text-align:left;">
+<p><strong>Scientific table example (SciTab).</strong></p>
+<p><strong>Source.</strong> Table 3 from <em>Sparse and Structured Visual Attention</em>.</p>
+<div class="table-wrap">
+<table class="data">
+  <thead>
+    <tr><th style="text-align:left"></th><th>Att. to image</th><th>Att. to boxes</th><th>TD Y/N</th><th>TD Num</th><th>TD Other</th><th>TD Overall</th><th>TS Y/N</th><th>TS Num</th><th>TS Other</th><th>TS Overall</th></tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align:left">softmax</td><td>$\checkmark$</td><td></td><td>83.08</td><td>42.65</td><td>55.74</td><td>65.52</td><td>83.55</td><td>42.68</td><td>56.01</td><td>65.97</td></tr>
+    <tr><td style="text-align:left">sparsemax</td><td>$\checkmark$</td><td></td><td>83.08</td><td>43.19</td><td>55.79</td><td>65.60</td><td>83.33</td><td>42.99</td><td>56.06</td><td>65.94</td></tr>
+    <tr><td style="text-align:left">soft-TVmax</td><td>$\checkmark$</td><td></td><td>83.13</td><td>43.53</td><td>56.01</td><td>65.76</td><td>83.63</td><td>43.24</td><td>56.10</td><td>66.11</td></tr>
+    <tr><td style="text-align:left">sparse-TVmax</td><td>$\checkmark$</td><td></td><td>83.10</td><td>43.30</td><td>56.14</td><td>65.79</td><td>83.66</td><td>43.18</td><td>56.21</td><td>66.17</td></tr>
+    <tr><td style="text-align:left">softmax</td><td></td><td>$\checkmark$</td><td>85.14</td><td>49.59</td><td>58.72</td><td>68.57</td><td>85.56</td><td>49.54</td><td>59.11</td><td>69.04</td></tr>
+    <tr><td style="text-align:left">sparsemax</td><td></td><td>$\checkmark$</td><td>85.40</td><td>50.87</td><td>58.67</td><td>68.79</td><td>85.80</td><td>50.18</td><td>59.08</td><td>69.19</td></tr>
+    <tr><td style="text-align:left">softmax</td><td>$\checkmark$</td><td>$\checkmark$</td><td>85.33</td><td>50.49</td><td>58.88</td><td>68.82</td><td>85.58</td><td>50.42</td><td>59.18</td><td>69.17</td></tr>
+    <tr><td style="text-align:left">sparse-TVmax</td><td>$\checkmark$</td><td>$\checkmark$</td><td>85.35</td><td>50.52</td><td>59.15</td><td>68.96</td><td>85.72</td><td>50.66</td><td>59.22</td><td>69.28</td></tr>
+  </tbody>
+</table>
+</div>
+<p><strong>Feasible claim.</strong> Moreover, the model using TVMAX in the final attention layer achieves the
+highest accuracy, showing that features obtained using the TVMAX transformation are a better complement to
+bounding box features.</p>
+<p><strong>Adversarial negative.</strong> The automatic evaluation on VQA-2.0 demonstrates that utilizing the
+TVmax transformation in the final attention layer consistently yields the highest Test-Standard Overall
+accuracy across all experimental configurations, regardless of whether the model utilizes attention to images,
+bounding boxes, or both simultaneously.</p>
+<p><strong>Reasoning graph.</strong></p>
+<div class="table-wrap">
+<table class="data">
+  <tbody>
+    <tr><td style="text-align:left; vertical-align:top"><strong>O</strong></td><td style="text-align:left">
+      O1: The <em>sparse-TVmax</em> row with both image and bounding-box attention has the highest Test-Standard Overall score (69.28).<br>
+      O2: The <em>soft-TVmax</em> row also uses TVmax, but only with image attention, and scores 66.11.<br>
+      O3: The <em>softmax</em> row with both image and bounding-box attention scores 69.17.<br>
+      O4: The caption states that <em>sparse-TVmax</em> and <em>soft-TVmax</em> differ in the self-attention mechanism paired with TVmax.<br>
+      O5: The attention columns specify whether each row uses image attention, bounding-box attention, or both.</td></tr>
+    <tr><td style="text-align:left; vertical-align:top"><strong>C</strong></td><td style="text-align:left">
+      C1: Within the both-attention setting, <em>sparse-TVmax</em> slightly outperforms <em>softmax</em>.<br>
+      C2: TVmax rows are not directly interchangeable because they differ in both self-attention pairing and input setting.<br>
+      C3: The highest score is achieved by one specific TVmax-based configuration, not by every TVmax configuration.</td></tr>
+    <tr><td style="text-align:left; vertical-align:top"><strong>I</strong></td><td style="text-align:left">
+      <strong>I2 (original):</strong> A configuration using TVmax in the final attention layer achieves the highest accuracy among the listed configurations.<br>
+      <strong>I2 (corrupted):</strong> Configurations using TVmax in the final attention layer consistently achieve the highest accuracy across all attention settings.</td></tr>
+  </tbody>
+</table>
+</div>
+<p><strong>Edit type.</strong> <strong>Configuration-to-general overreach.</strong> A configuration-specific
+best result is promoted into a universal claim about all TVmax settings.</p>
+</div>
+<figcaption><span class="lab">Figure 10.</span> Illustrative hard-negative generation for SciTab. The evidence
+table is shown in full, followed by the reasoning graph and the single-node corruption that turns a
+configuration-specific conclusion into an unsupported generalization.</figcaption>
+</figure>
+
+<figure class="fig">
+<div style="border:1px solid var(--border); border-radius:8px; padding:14px 18px; background:var(--faint); margin:0 0 12px; text-align:left;">
+<p><strong>Scientific chart example (SciVer).</strong></p>
+<p><strong>Source.</strong></p>
+<p style="text-align:center"><img src="figures/sciver_example_figure.png" alt="Line chart of mAP against noise level for a baseline model and a rot10_std5_prob0.5 model" style="max-width:60%"></p>
+<p><strong>Feasible claim.</strong> At noise level_3, the <code>rot10_std5_prob0.5</code> model reaches an mAP
+of approximately 0.37, which is about 0.15 higher than the baseline's mAP of around 0.22.</p>
+<p><strong>Reasoning graph.</strong></p>
+<div class="table-wrap">
+<table class="data">
+  <tbody>
+    <tr><td style="text-align:left; vertical-align:top"><strong>O</strong></td><td style="text-align:left">
+      O1: The legend identifies the <code>rot10_std5_prob0.5</code> series and the <code>baseline</code> series.<br>
+      O2: The x-axis shows noise levels <code>level_0</code> through <code>level_8</code>, and the y-axis reports mAP.<br>
+      O3: At <code>level_3</code>, the <code>rot10_std5_prob0.5</code> point is around 0.36&ndash;0.37.<br>
+      O4: At <code>level_3</code>, the <code>baseline</code> point is around 0.21&ndash;0.22.<br>
+      O5: The vertical separation between the two points at <code>level_3</code> is visually substantial.</td></tr>
+    <tr><td style="text-align:left; vertical-align:top"><strong>C</strong></td><td style="text-align:left">
+      C1: Using the legend and axis labels, the chart supports a direct local comparison between the two models at <code>level_3</code>.<br>
+      C2: At <code>level_3</code>, <code>rot10_std5_prob0.5</code> is clearly above <code>baseline</code> by roughly 0.15 mAP.<br>
+      C3: This evidence directly supports a pointwise statement about <code>level_3</code>, but does not by itself establish the same relation across the full noise axis.</td></tr>
+    <tr><td style="text-align:left; vertical-align:top"><strong>I</strong></td><td style="text-align:left">
+      <strong>I1 (original):</strong> The chart supports a local claim that <code>rot10_std5_prob0.5</code> substantially outperforms <code>baseline</code> at <code>level_3</code>.<br>
+      <strong>I1 (corrupted):</strong> The chart supports treating the substantial advantage observed at <code>level_3</code> as representative of performance across most of the plotted noise spectrum.</td></tr>
+  </tbody>
+</table>
+</div>
+<p><strong>Adversarial negative.</strong> Across the plotted noise spectrum, the <code>rot10_std5_prob0.5</code>
+model maintains a substantial and consistent mAP advantage over the baseline similar to the gap observed at
+<code>level_3</code>, and thus <code>rot10_std5_prob0.5</code> outperforms the baseline across most noise
+levels shown.</p>
+<p><strong>Edit type.</strong> <strong>Local-to-global overreach.</strong> A valid local comparison at one
+noise level is promoted into a broader claim about performance across most of the figure, without sufficient
+visual support.</p>
+</div>
+<figcaption><span class="lab">Figure 11.</span> Illustrative hard-negative generation for SciVer. A single
+interpretation-node corruption turns a supported local reading at <code>level_3</code> into an unsupported
+global claim about performance across the plotted noise spectrum.</figcaption>
+</figure>
+
+<section class="references">
+<h2>References</h2>
+<ol>
+  <li id="ref-adjali2024exploring">Omar Adjali. 2024. Exploring retrieval augmented generation for real-world claim verification. In <em>Proceedings of the Seventh Fact Extraction and VERification Workshop (FEVER)</em>, pages 113&ndash;117.</li>
+  <li id="ref-akhtar2023reading">Mubashara Akhtar, Oana Cocarascu, and Elena Simperl. 2023. Reading and reasoning over chart images for evidence-based automated fact-checking. In <em>Findings of the Association for Computational Linguistics: EACL 2023</em>, pages 399&ndash;414.</li>
+  <li id="ref-akhtar2024chartcheck">Mubashara Akhtar, Nikesh Subedi, Vivek Gupta, Sahar Tahmasebi, Oana Cocarascu, and Elena Simperl. 2024. ChartCheck: Explainable fact-checking over real-world chart images. In <em>Findings of the Association for Computational Linguistics: ACL 2024</em>, pages 13921&ndash;13937.</li>
+  <li id="ref-aly2021fact">Rami Aly, Zhijiang Guo, Michael Schlichtkrull, James Thorne, Andreas Vlachos, Christos Christodoulopoulos, Oana Cocarascu, and Arpit Mittal. 2021. The fact extraction and VERification over unstructured and structured information (FEVEROUS) shared task. In <em>Proceedings of the Fourth Workshop on Fact Extraction and VERification (FEVER)</em>, pages 1&ndash;13.</li>
+  <li id="ref-arditi2022refusal">Andy Arditi, Oscar Obeso, Aaquib Syed, Daniel Paleka, Nina Panickssery, Wes Gurnee, and Neel Nanda. 2022. <a href="https://arxiv.org/abs/2406.11717">Refusal in language models is mediated by a single direction</a>. arXiv preprint arXiv:2406.11717.</li>
+  <li id="ref-barnett2024seven">Scott Barnett, Stefanus Kurniawan, Srikanth Thudumu, Zach Brannelly, and Mohamed Abdelrazek. 2024. Seven failure points when engineering a retrieval augmented generation system. In <em>Proceedings of the IEEE/ACM 3rd International Conference on AI Engineering-Software Engineering for AI</em>, pages 194&ndash;199.</li>
+  <li id="ref-bhattacharjee2024zero">Amrita Bhattacharjee, Raha Moraffah, Joshua Garland, and Huan Liu. 2024. Zero-shot LLM-guided counterfactual generation: A case study on NLP model evaluation. In <em>2024 IEEE International Conference on Big Data (BigData)</em>, pages 1243&ndash;1248.</li>
+  <li id="ref-chen2024complex">Jifan Chen, Grace Kim, Aniruddh Sriram, Greg Durrett, and Eunsol Choi. 2024. Complex claim verification with evidence retrieved in the wild. In <em>Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers)</em>, pages 3569&ndash;3587.</li>
+  <li id="ref-chen2019tabfact">Wenhu Chen, Hongmin Wang, Jianshu Chen, Yunkai Zhang, Hong Wang, Shiyang Li, Xiyou Zhou, and William Yang Wang. 2019. <a href="https://arxiv.org/abs/1909.02164">TabFact: A large-scale dataset for table-based fact verification</a>. arXiv preprint arXiv:1909.02164.</li>
+  <li id="ref-cheng2025understanding">Furui Cheng, Vilém Zouhar, Robin Shing Moon Chan, Daniel Fürst, Hendrik Strobelt, and Mennatallah El-Assady. 2025. Understanding large language model behaviors through interactive counterfactual generation and analysis. <em>IEEE Transactions on Visualization and Computer Graphics</em>.</li>
+  <li id="ref-clark1977negation">Keith L Clark. 1977. Negation as failure. In <em>Logic and data bases</em>, pages 293&ndash;322. Springer.</li>
+  <li id="ref-dhuliawala2024chain">Shehzaad Dhuliawala, Mojtaba Komeili, Jing Xu, Roberta Raileanu, Xian Li, Asli Celikyilmaz, and Jason Weston. 2024. Chain-of-verification reduces hallucination in large language models. In <em>Findings of the Association for Computational Linguistics: ACL 2024</em>, pages 3563&ndash;3578.</li>
+  <li id="ref-dziri2023faith">Nouha Dziri, Ximing Lu, Melanie Sclar, Xiang Lorraine Li, Liwei Jiang, Bill Yuchen Lin, Sean Welleck, Peter West, Chandra Bhagavatula, Ronan Le Bras, et al. 2023. Faith and fate: Limits of transformers on compositionality. <em>Advances in Neural Information Processing Systems</em>, 36:70293&ndash;70332.</li>
+  <li id="ref-freedman2025argumentative">Gabriel Freedman, Adam Dejl, Deniz Gorur, Xiang Yin, Antonio Rago, and Francesca Toni. 2025. Argumentative large language models for explainable and contestable claim verification. In <em>Proceedings of the AAAI Conference on Artificial Intelligence</em>, volume 39, pages 14930&ndash;14939.</li>
+  <li id="ref-gan2024reasoning">Esther Gan, Yiran Zhao, Liying Cheng, Mao Yancan, Anirudh Goyal, Kenji Kawaguchi, Min-Yen Kan, and Michael Shieh. 2024. Reasoning robustness of LLMs to adversarial typographical errors. In <em>Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing</em>, pages 10449&ndash;10459.</li>
+  <li id="ref-gardner2020evaluating">Matt Gardner, Yoav Artzi, Victoria Basmov, Jonathan Berant, Ben Bogin, Sihao Chen, Pradeep Dasigi, Dheeru Dua, Yanai Elazar, Ananth Gottumukkala, et al. 2020. Evaluating models' local decision boundaries via contrast sets. In <em>Findings of the Association for Computational Linguistics: EMNLP 2020</em>, pages 1307&ndash;1323.</li>
+  <li id="ref-gururangan2018annotation">Suchin Gururangan, Swabha Swayamdipta, Omer Levy, Roy Schwartz, Samuel Bowman, and Noah A Smith. 2018. Annotation artifacts in natural language inference data. In <em>Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 2 (Short Papers)</em>, pages 107&ndash;112.</li>
+  <li id="ref-hong2025evaluating">Pengfei Hong, Navonil Majumder, Deepanway Ghosal, Somak Aditya, Rada Mihalcea, and Soujanya Poria. 2025. Evaluating LLMs' mathematical and coding competency through ontology-guided interventions. In <em>Findings of the Association for Computational Linguistics: ACL 2025</em>, pages 22811&ndash;22849.</li>
+  <li id="ref-huang2023large">Jie Huang, Xinyun Chen, Swaroop Mishra, Huaixiu Steven Zheng, Adams Wei Yu, Xinying Song, and Denny Zhou. 2023. <a href="https://arxiv.org/abs/2310.01798">Large language models cannot self-correct reasoning yet</a>. arXiv preprint arXiv:2310.01798.</li>
+  <li id="ref-huang2025safety">Tiansheng Huang, Sihao Hu, Fatih Ilhan, Selim Furkan Tekin, Zachary Yahn, Yichang Xu, and Ling Liu. 2025. <a href="https://arxiv.org/abs/2503.00555">Safety tax: Safety alignment makes your large reasoning models less reasonable</a>. arXiv preprint arXiv:2503.00555.</li>
+  <li id="ref-jullien2023nli4ct">Mael Jullien, Marco Valentino, Hannah Frost, Paul O'Regan, Dónal Landers, and Andre Freitas. 2023. NLI4CT: Multi-evidence natural language inference for clinical trial reports. In <em>Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing</em>, pages 16745&ndash;16764.</li>
+  <li id="ref-jullien2024semeval">Maël Jullien, Marco Valentino, and André Freitas. 2024. SemEval-2024 task 2: Safe biomedical natural language inference for clinical trials. In <em>Proceedings of the 18th International Workshop on Semantic Evaluation (SemEval-2024)</em>, pages 1947&ndash;1962.</li>
+  <li id="ref-kambhampati2024position">Subbarao Kambhampati, Karthik Valmeekam, Lin Guan, Mudit Verma, Kaya Stechly, Siddhant Bhambri, Lucas Paul Saldyt, and Anil B Murthy. 2024. Position: LLMs can't plan, but can help planning in LLM-modulo frameworks. In <em>Forty-first International Conference on Machine Learning</em>.</li>
+  <li id="ref-kiela-etal-2021-dynabench">Douwe Kiela, Max Bartolo, Yixin Nie, Divyansh Kaushik, Atticus Geiger, Zhengxuan Wu, Bertie Vidgen, Grusha Prasad, Amanpreet Singh, Pratik Ringshia, Zhiyi Ma, Tristan Thrush, Sebastian Riedel, Zeerak Waseem, Pontus Stenetorp, Robin Jia, Mohit Bansal, Christopher Potts, and Adina Williams. 2021. <a href="https://doi.org/10.18653/v1/2021.naacl-main.324">Dynabench: Rethinking Benchmarking in NLP</a>. In <em>Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</em>, pages 4110&ndash;4124.</li>
+  <li id="ref-kim2023prometheus">Seungone Kim, Jamin Shin, Yejin Cho, Joel Jang, Shayne Longpre, Hwaran Lee, Sangdoo Yun, Seongjin Shin, Sungdong Kim, James Thorne, et al. 2023. Prometheus: Inducing fine-grained evaluation capability in language models. In <em>The Twelfth International Conference on Learning Representations</em>.</li>
+  <li id="ref-kumar2025sciclaimhunt">Sujit Kumar, Anshul Sharma, Siddharth Hemant Khincha, Gargi Shroff, Sanasam Ranbir Singh, and Rahul Mishra. 2025. SciClaimHunt: A large dataset for evidence-based scientific claim verification. In <em>2025 International Joint Conference on Neural Networks (IJCNN)</em>, pages 1&ndash;10.</li>
+  <li id="ref-lal2025musciclaims">Yash Kumar Lal, Manikanta Bandham, Mohammad Saqib Hasan, Apoorva Kashi, Mahnaz Koupaee, and Niranjan Balasubramanian. 2025. MuSciClaims: Multimodal Scientific Claim Verification. In <em>Proceedings of the 14th International Joint Conference on Natural Language Processing and the 4th Conference of the Asia-Pacific Chapter of the Association for Computational Linguistics</em>, pages 3285&ndash;3307.</li>
+  <li id="ref-lightman2023let">Hunter Lightman, Vineet Kosaraju, Yuri Burda, Harrison Edwards, Bowen Baker, Teddy Lee, Jan Leike, John Schulman, Ilya Sutskever, and Karl Cobbe. 2023. Let's verify step by step. In <em>The Twelfth International Conference on Learning Representations</em>.</li>
+  <li id="ref-liu2024retrieval">Hao Liu, Ali Soroush, Jordan G Nestor, Elizabeth Park, Betina Idnay, Yilu Fang, Jane Pan, Stan Liao, Marguerite Bernard, Yifan Peng, et al. 2024. Retrieval augmented scientific claim verification. <em>JAMIA Open</em>, 7(1):ooae021.</li>
+  <li id="ref-liu2023evaluating">Nelson F Liu, Tianyi Zhang, and Percy Liang. 2023. Evaluating verifiability in generative search engines. In <em>Findings of the Association for Computational Linguistics: EMNLP 2023</em>, pages 7001&ndash;7025.</li>
+  <li id="ref-lu2023scitab">Xinyuan Lu, Liangming Pan, Qian Liu, Preslav Nakov, and Min-Yen Kan. 2023. SCITAB: A challenging benchmark for compositional reasoning and claim verification on scientific tables. In <em>Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing</em>, pages 7787&ndash;7813.</li>
+  <li id="ref-lu2025optimizing">Yining Lu, Noah Ziems, Hy Dang, and Meng Jiang. 2025. Optimizing decomposition for optimal claim verification. In <em>Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)</em>, pages 5095&ndash;5114.</li>
+  <li id="ref-masry2025chartqapro">Ahmed Masry, Mohammed Saidul Islam, Mahir Ahmed, Aayush Bajaj, Firoz Kabir, Aaryaman Kartha, Md Tahmid Rahman Laskar, Mizanur Rahman, Shadikur Rahman, Mehrad Shahmohammadi, et al. 2025. ChartQAPro: A more diverse and challenging benchmark for chart question answering. In <em>Findings of the Association for Computational Linguistics: ACL 2025</em>, pages 19123&ndash;19151.</li>
+  <li id="ref-mccoy2019right">R Thomas McCoy, Ellie Pavlick, and Tal Linzen. 2019. Right for the wrong reasons: Diagnosing syntactic heuristics in natural language inference. In <em>Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics</em>, pages 3428&ndash;3448.</li>
+  <li id="ref-mccoy2023embers">R Thomas McCoy, Shunyu Yao, Dan Friedman, Matthew Hardy, and Thomas L Griffiths. 2023. <a href="https://arxiv.org/abs/2309.13638">Embers of autoregression: Understanding large language models through the problem they are trained to solve</a>. arXiv preprint arXiv:2309.13638.</li>
+  <li id="ref-min2023factscore">Sewon Min, Kalpesh Krishna, Xinxi Lyu, Mike Lewis, Wen-tau Yih, Pang Koh, Mohit Iyyer, Luke Zettlemoyer, and Hannaneh Hajishirzi. 2023. FActScore: Fine-grained atomic evaluation of factual precision in long form text generation. In <em>Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing</em>, pages 12076&ndash;12100.</li>
+  <li id="ref-pan-etal-2020-semantic">Liangming Pan, Yuxi Xie, Yansong Feng, Tat-Seng Chua, and Min-Yen Kan. 2020. <a href="https://doi.org/10.18653/v1/2020.acl-main.135">Semantic Graphs for Generating Deep Questions</a>. In <em>Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</em>, pages 1463&ndash;1475.</li>
+  <li id="ref-rein2024gpqa">David Rein, Betty Li Hou, Asa Cooper Stickland, Jackson Petty, Richard Yuanzhe Pang, Julien Dirani, Julian Michael, and Samuel R Bowman. 2024. GPQA: A graduate-level Google-proof Q&amp;A benchmark. In <em>First Conference on Language Modeling</em>.</li>
+  <li id="ref-reiter1981closed">Raymond Reiter. 1981. On closed world data bases. In <em>Readings in artificial intelligence</em>, pages 119&ndash;140. Elsevier.</li>
+  <li id="ref-rottger2024xstest">Paul Röttger, Hannah Kirk, Bertie Vidgen, Giuseppe Attanasio, Federico Bianchi, and Dirk Hovy. 2024. XSTest: A test suite for identifying exaggerated safety behaviours in large language models. In <em>Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers)</em>, pages 5377&ndash;5400.</li>
+  <li id="ref-sahu2024pelican">Pritish Sahu, Karan Sikka, and Ajay Divakaran. 2024. Pelican: Correcting hallucination in vision-LLMs via claim decomposition and program of thought verification. In <em>Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing</em>, pages 8228&ndash;8248.</li>
+  <li id="ref-sallami2025claimveragents">Dorsaf Sallami, Sabrine Amri, and Esma Aïmeur. 2025. ClaimVerAgents: A multi-agent retrieval-augmented claim verification framework. In <em>2025 IEEE/ACS 22nd International Conference on Computer Systems and Applications (AICCSA)</em>, pages 1&ndash;6.</li>
+  <li id="ref-sharma2023temporal">Kartik Sharma, Rakshit Trivedi, Rohit Sridhar, and Srijan Kumar. 2023. Temporal dynamics-aware adversarial attacks on discrete-time dynamic graph models. In <em>Proceedings of the 29th ACM SIGKDD Conference on Knowledge Discovery and Data Mining</em>, pages 2023&ndash;2035.</li>
+  <li id="ref-si2021topic">Jiasheng Si, Deyu Zhou, Tongzhe Li, Xingyu Shi, and Yulan He. 2021. Topic-aware evidence reasoning and stance-aware aggregation for fact verification. In <em>Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers)</em>, pages 1612&ndash;1622.</li>
+  <li id="ref-sim2025can">Mong Yuan Sim, Wei Emma Zhang, Xiang Dai, and Biaoyan Fang. 2025. Can VLMs actually see and read? a survey on modality collapse in vision-language models. In <em>Findings of the Association for Computational Linguistics: ACL 2025</em>, pages 24452&ndash;24470.</li>
+  <li id="ref-su2025ai">Zhe Su, Xuhui Zhou, Sanketh Rangreji, Anubha Kabra, Julia Mendelsohn, Faeze Brahman, and Maarten Sap. 2025. AI-LieDar: Examine the trade-off between utility and truthfulness in LLM agents. In <em>Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers)</em>, pages 11867&ndash;11894.</li>
+  <li id="ref-thorne2018fever">James Thorne, Andreas Vlachos, Christos Christodoulopoulos, and Arpit Mittal. 2018. FEVER: a large-scale dataset for fact extraction and VERification. In <em>Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long Papers)</em>, pages 809&ndash;819.</li>
+  <li id="ref-trivedi-etal-2022-musique">Harsh Trivedi, Niranjan Balasubramanian, Tushar Khot, and Ashish Sabharwal. 2022. <a href="https://doi.org/10.1162/tacl_a_00475">MuSiQue: Multihop Questions via Single-hop Question Composition</a>. <em>Transactions of the Association for Computational Linguistics</em>, 10:539&ndash;554.</li>
+  <li id="ref-tu-etal-2019-multi">Ming Tu, Guangtao Wang, Jing Huang, Yun Tang, Xiaodong He, and Bowen Zhou. 2019. <a href="https://doi.org/10.18653/v1/P19-1260">Multi-hop Reading Comprehension across Multiple Documents by Reasoning over Heterogeneous Graphs</a>. In <em>Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics</em>, pages 2704&ndash;2713.</li>
+  <li id="ref-aime_1983_2024">Hemish Veeraboina. 2023. <a href="https://www.kaggle.com/datasets/hemishveeraboina/aime-problem-set-1983-2024">AIME Problem Set 1983–2024</a>. Kaggle.</li>
+  <li id="ref-vladika2024healthfc">Juraj Vladika, Phillip Schneider, and Florian Matthes. 2024. HealthFC: Verifying health claims with evidence-based medical fact-checking. In <em>Proceedings of the 2024 Joint International Conference on Computational Linguistics, Language Resources and Evaluation (LREC-COLING 2024)</em>, pages 8095&ndash;8107.</li>
+  <li id="ref-vladika2025step">Juraj Vladika, Ivana Hacajova, and Florian Matthes. 2025. Step-by-step fact verification system for medical claims with explainable reasoning. In <em>Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 2: Short Papers)</em>, pages 805&ndash;816.</li>
+  <li id="ref-wadden2020fact">David Wadden, Shanchuan Lin, Kyle Lo, Lucy Lu Wang, Madeleine van Zuylen, Arman Cohan, and Hannaneh Hajishirzi. 2020. Fact or fiction: Verifying scientific claims. In <em>Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>, pages 7534&ndash;7550.</li>
+  <li id="ref-wadden2022scifact">David Wadden, Kyle Lo, Bailey Kuehl, Arman Cohan, Iz Beltagy, Lucy Lu Wang, and Hannaneh Hajishirzi. 2022. SciFact-open: Towards open-domain scientific claim verification. In <em>Findings of the Association for Computational Linguistics: EMNLP 2022</em>, pages 4719&ndash;4734.</li>
+  <li id="ref-wadden2025sciriff">David Wadden, Kejian Shi, Jacob Morrison, Alan Li, Aakanksha Naik, Shruti Singh, Nitzan Barzilay, Kyle Lo, Tom Hope, Luca Soldaini, et al. 2025. SciRIFF: A resource to enhance language model instruction-following over scientific literature. In <em>Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing</em>, pages 6083&ndash;6120.</li>
+  <li id="ref-waghela2024adversarial">Hetvi Waghela, Jaydip Sen, Sneha Rakshit, and Subhasis Dasgupta. 2024. Adversarial text generation with dynamic contextual perturbation. In <em>2024 IEEE Calcutta Conference (CALCON)</em>, pages 1&ndash;6.</li>
+  <li id="ref-wan2025unveiling">Yue Wan, Xiaowei Jia, and Xiang Lorraine Li. 2025. Unveiling confirmation bias in chain-of-thought reasoning. In <em>Findings of the Association for Computational Linguistics: ACL 2025</em>, pages 3788&ndash;3804.</li>
+  <li id="ref-wang2025sciver">Chengye Wang, Yifei Shen, Zexi Kuang, Arman Cohan, and Yilun Zhao. 2025. SciVer: Evaluating Foundation Models for Multimodal Scientific Claim Verification. In <em>Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)</em>, pages 8562&ndash;8579.</li>
+  <li id="ref-wu2024reasoning">Zhaofeng Wu, Linlu Qiu, Alexis Ross, Ekin Akyürek, Boyuan Chen, Bailin Wang, Najoung Kim, Jacob Andreas, and Yoon Kim. 2024. Reasoning or reciting? exploring the capabilities and limitations of language models through counterfactual tasks. In <em>Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers)</em>, pages 1819&ndash;1862.</li>
+  <li id="ref-yang2018hotpotqa">Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Bengio, William Cohen, Ruslan Salakhutdinov, and Christopher D Manning. 2018. HotpotQA: A dataset for diverse, explainable multi-hop question answering. In <em>Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing</em>, pages 2369&ndash;2380.</li>
+  <li id="ref-yue2025does">Yang Yue, Zhiqi Chen, Rui Lu, Andrew Zhao, Zhaokai Wang, Shiji Song, and Gao Huang. 2025. <a href="https://arxiv.org/abs/2504.13837">Does reinforcement learning really incentivize reasoning capacity in LLMs beyond the base model?</a> arXiv preprint arXiv:2504.13837.</li>
+  <li id="ref-zhang2024causal">Congzhi Zhang, Linhai Zhang, and Deyu Zhou. 2024. Causal walk: Debiasing multi-hop fact verification with front-door adjustment. In <em>Proceedings of the AAAI Conference on Artificial Intelligence</em>, volume 38, pages 19533&ndash;19541.</li>
+  <li id="ref-zhang2024darg">Zhehao Zhang, Jiaao Chen, and Diyi Yang. 2024. DARG: Dynamic evaluation of large language models via adaptive reasoning graph. <em>Advances in Neural Information Processing Systems</em>, 37:135904&ndash;135942.</li>
+  <li id="ref-zhang2025falsereject">Zhehao Zhang, Weijie Xu, Fanyou Wu, and Chandan K Reddy. 2025. <a href="https://arxiv.org/abs/2505.08054">FalseReject: A resource for improving contextual safety and mitigating over-refusals in LLMs via structured reasoning</a>. arXiv preprint arXiv:2505.08054.</li>
+  <li id="ref-zhou2022least">Denny Zhou, Nathanael Schärli, Le Hou, Jason Wei, Nathan Scales, Xuezhi Wang, Dale Schuurmans, Claire Cui, Olivier Bousquet, Quoc Le, et al. 2022. <a href="https://arxiv.org/abs/2205.10625">Least-to-most prompting enables complex reasoning in large language models</a>. arXiv preprint arXiv:2205.10625.</li>
+  <li id="ref-zhou2025variation">Yefan Zhou, Austin Xu, Yilun Zhou, Janvijay Singh, Jiang Gui, and Shafiq Joty. 2025. <a href="https://arxiv.org/abs/2509.17995">Variation in verification: Understanding verification dynamics in large language models</a>. arXiv preprint arXiv:2509.17995.</li>
+</ol>
+</section>
