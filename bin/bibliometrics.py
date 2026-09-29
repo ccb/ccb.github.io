@@ -99,9 +99,29 @@ def top_n(items_with_count, n):
 def main():
     pubs = {p["id"]: p for p in (yaml.safe_load(open(PUB_PATH)) or [])
             if isinstance(p, dict) and p.get("id")}
+    skipped = {pid for pid, p in pubs.items() if p.get("skip_scholar")}
 
     gs = yaml.safe_load(open(GS_PATH)) or {} if GS_PATH.exists() else {}
     s2 = yaml.safe_load(open(S2_PATH)) or {} if S2_PATH.exists() else {}
+
+    def dedupe_by(cache, key_field):
+        """Keep one entry per external cluster id. When duplicates exist (Scholar
+        merging near-identical titles), prefer the one whose pub_id sorts first
+        for determinism. Pubs without a cluster id pass through unchanged."""
+        by_key, kept = {}, {}
+        for pid, e in sorted(cache.items()):
+            if pid in skipped:
+                continue
+            k = e.get(key_field)
+            if not k:
+                kept[pid] = e
+            elif k not in by_key:
+                by_key[k] = pid
+                kept[pid] = e
+        return kept
+
+    gs = dedupe_by(gs, "scholar_cluster_id")
+    s2 = dedupe_by(s2, "s2_paper_id")
 
     # Build (id, title, count) lists
     gs_items = []

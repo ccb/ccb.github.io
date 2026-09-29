@@ -1,4 +1,138 @@
 -
+   title: Artificial Intelligence
+   number: CIS 5210 - Penn Engineering Online
+   institution: University of Pennsylvania
+   term: Summer
+   year: 2026
+   description: 
+   url: 
+   enrollment: 108
+   instructor_rating: 3.60
+   course_rating: 3.40
+   online_degree: True
+-
+   title: Natural Language Processing
+   number: CIS 5300 - Penn Engineering Online
+   institution: University of Pennsylvania
+   term: Summer
+   year: 2026
+   description: 
+   url: 
+   enrollment: 181
+   instructor_rating: 3.61
+   course_rating: 3.36
+   online_degree: True
+-
+   title: Intro to Artificial Intelligence
+   number: CIS 2210 
+   institution: University of Pennsylvania
+   term: Spring
+   year: 2026
+   description: 
+   url: 
+   enrollment: 71
+   instructor_rating: 3.38
+   course_rating: 3.08
+   online_degree: False
+-
+   title: Natural Language Processing
+   number: CIS 5300 
+   institution: University of Pennsylvania
+   term: Spring
+   year: 2026
+   description: 
+   url: 
+   enrollment: 251
+   instructor_rating: 3.61
+   course_rating: 3.37
+   online_degree: True
+
+-
+   title: AI Studio
+   number: CIS 8000 
+   institution: University of Pennsylvania
+   term: Spring
+   year: 2026
+   description: 
+   url: 
+   enrollment: 4
+   instructor_rating: 4
+   course_rating: 4
+   online_degree: False
+   voluntary_overload: True
+-
+   title: Artificial Intelligence
+   number: CIS 5210 
+   institution: University of Pennsylvania
+   term: Fall
+   year: 2025
+   description: 
+   url: 
+   enrollment: 386
+   instructor_rating: 3.21
+   course_rating: 3.0
+   online_degree: False
+-
+   title: Artificial Intelligence
+   number: CIS 5210 - Penn Engineering Online
+   institution: University of Pennsylvania
+   term: Fall
+   year: 2025
+   description: 
+   url: 
+   enrollment: 286
+   instructor_rating: 3.47
+   course_rating: 3.26
+   online_degree: True
+-
+   title: Artificial Intelligence
+   number: CIS 5210 - Penn Engineering Online
+   institution: University of Pennsylvania
+   term: Summer
+   year: 2025
+   description: 
+   url: 
+   enrollment: 114
+   instructor_rating: 3.50
+   course_rating: 3.28
+   online_degree: True
+-
+   title: Natural Language Processing
+   number: CIS 5300 - Penn Engineering Online
+   institution: University of Pennsylvania
+   term: Summer
+   year: 2025
+   description: 
+   url: 
+   enrollment: 120
+   instructor_rating: 3.57
+   course_rating: 3.46
+   online_degree: True
+-
+   title: Intro to Artificial Intelligence
+   number: CIS 3990
+   institution: University of Pennsylvania
+   term: Spring
+   year: 2025
+   description: 
+   url: 
+   enrollment: 57
+   instructor_rating:
+   course_rating:
+   online_degree: False
+-
+   title: Natural Language Processing
+   number: CIS 5300 - Penn Engineering Online
+   institution: University of Pennsylvania
+   term: Spring
+   year: 2025
+   description: 
+   url: 
+   enrollment: 237
+   instructor_rating: 3.65
+   course_rating: 3.44
+   online_degree: True
+-
    title: Research Practicum
    number: CIS 8000
    institution: University of Pennsylvania
@@ -32,6 +166,30 @@
    enrollment: 159
    instructor_rating: 3.49
    course_rating: 3.28
+   online_degree: True
+-
+   title: Natural Language Processing
+   number: CIS 5300 - Penn Engineering Online
+   institution: University of Pennsylvania
+   term: Summer
+   year: 2024
+   description: 
+   url: 
+   enrollment: 131
+   instructor_rating: 3.74
+   course_rating: 3.51
+   online_degree: True
+-
+   title: Artificial Intelligence
+   number: CIS 5210 - Penn Engineering Online
+   institution: University of Pennsylvania
+   term: Summer
+   year: 2024
+   description: 
+   url: 
+   enrollment: 115
+   instructor_rating: 3.43
+   course_rating: 3.14
    online_degree: True
 -
    title: Interactive Fiction and Text Generation

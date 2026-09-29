@@ -132,14 +132,12 @@ According to Google Scholar, [my publications have been cited more than 25,000 t
 
 
   {{ publication.year }}.
-        {% if publication.page_count < 8  %}
-		{% if publication.venue == "ACL" or publication.venue == "NAACL" or publication.venue == "EMNLP" or publication.venue == "EACL" %}
-       			{% if publication.type == "demo" %}
+        {% if publication.venue == "ACL" or publication.venue == "NAACL" or publication.venue == "EMNLP" or publication.venue == "EACL" %}
+		{% if publication.type == "demo" %}
 				Demo papers.
-			{% else %}
+			{% elsif publication.page_count < 8 %}
 				Short papers.
 			{% endif %}
-		{% endif %}
 	{% endif %}
 
 </a>

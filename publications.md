@@ -7,7 +7,7 @@ active_tab: publications
 
 <table class="table"> 
 <tbody>
-  {% for year in (2000..2025) reversed %}
+  {% for year in (2000..2026) reversed %}
     <tr><td>
 	<a name="{{year}}"></a><h1>{{year}}</h1>
     </td><td></td></tr>
@@ -25,20 +25,16 @@ active_tab: publications
 	{% endif %}
 	{{ publication.authors }}.
 	{{ publication.venue }}  {{ publication.year }}.
-    {% if publication.page_count < 8  %}
-			{% if publication.venue == "ACL" or publication.venue == "NAACL" or publication.venue == "EMNLP" or publication.venue == "EACL" %}
-       			{% if publication.type == "demo" %}
-							Demo papers.
-						{% else %}
-							Short papers.
-						{% endif %}
-			{% endif %}
+    {% if publication.venue == "ACL" or publication.venue == "NAACL" or publication.venue == "EMNLP" or publication.venue == "EACL" %}
+			{% if publication.type == "demo" %}
+						Demo papers.
+					{% elsif publication.page_count < 8 %}
+						Short papers.
+					{% endif %}
 		{% endif %}
     {% if publication.type == "preprint" %}
 				Unpublished preprint.
 		{% endif %}
-
-
 
 	{% if publication.press %}
 	<!-- press button -->

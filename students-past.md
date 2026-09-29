@@ -10,8 +10,14 @@ active_tab: students
   <div class="row">
   {% for student in site.data.students_graduated %}
       <div class="col-lg-4 col-md-6 col-xs-12" style="margin-bottom: 20px">
+        {% assign student_link = student.homepage | default: student.linkedin %}
+        {% if student_link %}
+        <a href="{{ student_link }}"><img src="assets/img/students/{{student.pic}}"  class="img-circle" style="height: 100%; width: 100%; max-height: 250px; max-width: 250px"/></a><br />
+         <b><a href="{{ student_link }}">{{ student.name }}</a></b><br />
+        {% else %}
 	<img src="assets/img/students/{{student.pic}}"  class="img-circle" style="height: 100%; width: 100%; max-height: 250px; max-width: 250px"/><br />
          <b>{{ student.name }}</b><br />
+        {% endif %}
         Graduated from {{ student.institution }},  {{ student.graduation_date }}<br /> 
 
 	{% if student.thesis_link %}
@@ -43,7 +49,7 @@ active_tab: students
         <a href="{{ postdoc.homepage }}"><img src="assets/img/students/{{postdoc.pic}}"  class="img-circle" style="height: 100%; width: 100%; max-height: 250px; max-width: 250px"/></a><br />
          <b><a href="{{ postdoc.homepage }}">{{ postdoc.name }}</a></b><br />
         {% else %}
-	<img src="assets/img/students/{{student.pic}}"  class="img-circle" style="height: 100%; width: 100%; max-height: 250px; max-width: 250px"/><br />
+	<img src="assets/img/students/{{postdoc.pic}}"  class="img-circle" style="height: 100%; width: 100%; max-height: 250px; max-width: 250px"/><br />
          <b>{{ postdoc.name }}</b><br />         
         {% endif %}
 	{% if postdoc.current_position and postdoc.current_employer %}
@@ -66,7 +72,7 @@ active_tab: students
         <a href="{{ visitor.homepage }}"><img src="assets/img/students/{{visitor.pic}}"  class="img-circle" style="height: 100%; width: 100%; max-height: 250px; max-width: 250px"/></a><br />
          <b><a href="{{ visitor.homepage }}">{{ visitor.name }}</a></b><br />
         {% else %}
-  <img src="assets/img/students/{{student.pic}}"  class="img-circle" style="height: 100%; width: 100%; max-height: 250px; max-width: 250px"/><br />
+  <img src="assets/img/students/{{visitor.pic}}"  class="img-circle" style="height: 100%; width: 100%; max-height: 250px; max-width: 250px"/><br />
          <b>{{ visitor.name }}</b><br />         
         {% endif %}
   {% if visitor.institution %}

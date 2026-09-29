@@ -30,7 +30,7 @@ Jekyll will pick it up on the next build.
 
 | Script | Purpose |
 |---|---|
-| `update_citations.py` | Google Scholar citation counts via SerpAPI. Caches to `_data/citation_cache.yaml`. |
+| `update_citations.py` | Google Scholar citation counts via SerpAPI. Caches to `_data/citation_cache.yaml`. Papers with a cached `scholar_cluster_id` are refreshed by cluster lookup (deterministic, 1 credit); others by title search with a quoted-title retry. A refresh never replaces a high-confidence record with a weaker match (the log shows `high*` and the entry gets a `refresh_note`). `--retry-weak` re-tries only entries whose cached match is not high-confidence. |
 | `update_citations_s2.py` | Semantic Scholar citation counts via S2 Graph API. Lookup priority: DOI → arXiv → title. Caches to `_data/citation_cache_s2.yaml`. |
 | `extract_dois.py` | Mines DOIs and ACL Anthology IDs from existing bibtex/URLs, then S2 cache, then Crossref. Writes `_data/doi_review.yaml`. |
 | `apply_dois.py` | Inserts the DOIs from `doi_review.yaml` into `publications.yaml` as new top-level fields. |
@@ -136,6 +136,15 @@ For Liquid display, hide pending DOIs:
 ```liquid
 {% if pub.doi and pub.doi != "pending" %}…{% endif %}
 ```
+
+## Why title search alone is not enough (Sept 2026)
+
+Google Scholar's ranking for a bare-title query drifts. A full refresh in September
+2026 that trusted the top result turned 43 high-confidence matches into wrong papers
+(Moses went from 7,534 to 6; a 184-citation decoding paper matched a 5,914-citation
+chain-of-thought paper). Hence the cluster-id fast path and the keep-previous rule
+above. If a paper has no cluster id yet, check its first match by hand once; after
+that the cluster id carries it.
 
 ## Fixing a wrong citation match
 

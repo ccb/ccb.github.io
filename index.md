@@ -10,13 +10,15 @@ caption: |
 active_tab: main_page 
 keep_sidebar: true 
 ---
-Chris Callison-Burch is the Raj and Neera Singh Professor of Artificial Intelligence at the University of Pennsylvania. His course on Artificial Intelligence has one of the highest enrollments at the university with over 500 students taking the class each Fall. 
+Chris Callison-Burch is the Raj and Neera Singh Professor of Artificial Intelligence in the Department of Computer and Information Science at the University of Pennsylvania.
 
-He is best known for his research into natural language processing.  His current research is focused on applications of large language models to long-standing challenges in artificial intelligence.
+His research is in natural language processing. His group currently works on using large language models to verify scientific claims, on measuring bias and framing in news coverage at scale, and on synthetic data for training and evaluating open models. He is the principal investigator of the DARPA SciFy program at Penn and co-chairs the Human-AI Symbiosis working group of the [NSF AI Institute for Human-AI Cooperation](https://www.nsf.gov/awardsearch/show-award/?AWD_ID=2433450). His work has also been funded by IARPA and by faculty research awards from Google, Microsoft, Amazon, Meta, and Roblox. He was a visiting research scientist at the Allen Institute for AI in 2023 and 2024.
 
-Prof Callison-Burch has more than 200 publications, which have been cited over 35,000 times. He is a Sloan Research Fellow, and he has received faculty research awards from Google, Microsoft, Amazon, Facebook, and Roblox, in addition to funding from DARPA, IARPA, and the NSF. 
+He teaches Penn's Artificial Intelligence course, which enrolled more than 600 students across its on-campus and online sections in Fall 2025. In 2026 he received the Lindback Award for Distinguished Teaching, the university's highest teaching honor, following the Lutron Spira Award for Excellence in Teaching and Advising and two Ford Motor Company Awards for Faculty Advising.
 
-In 2023, Prof. Callison-Burch [testified before congress](https://www.youtube.com/playlist?list=PL0S5TKwqfRKKUNWzp7rEe5uuLV-o9VC2f) about the relationship of generative AI and Copyright Law.
+Fifteen PhD students have graduated from his lab. They hold faculty positions at Brown, Carnegie Mellon, and Drexel, research positions at Google, Amazon, Bloomberg, and the Johns Hopkins Human Language Technology Center of Excellence, and have founded several companies.
+
+He has published more than 250 papers, which have been cited over 40,000 times. He is a Sloan Research Fellow, served as General Chair of ACL 2017 and Program Co-Chair of EMNLP 2015, and was the ACL's Sponsorship Director from 2020 to 2025. In 2023 he [testified before Congress](https://www.youtube.com/playlist?list=PL0S5TKwqfRKKUNWzp7rEe5uuLV-o9VC2f) on generative AI and copyright law.
 
 <!--
 <b>Promotion Materials</b>

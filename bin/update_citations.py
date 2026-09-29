@@ -74,12 +74,25 @@ def clean_title(title):
     return title.replace("&colon;", ":").strip().strip('"').strip()
 
 
-def query_scholar(title, api_key):
-    params = {"engine": "google_scholar", "q": title, "api_key": api_key}
+CONF_RANK = {"high": 2, "low": 1, "none": 0, None: -1}
+
+
+def query_scholar(title, api_key, exact=False):
+    q = f'"{title}" Callison-Burch' if exact else title
+    params = {"engine": "google_scholar", "q": q, "num": 20, "api_key": api_key}
     url = SERPAPI_URL + "?" + urllib.parse.urlencode(params)
     with urllib.request.urlopen(url, timeout=REQUEST_TIMEOUT_SEC) as resp:
         body = resp.read().decode("utf-8")
     return json.loads(body)
+
+
+def query_cluster(cluster_id, api_key):
+    """Fetch the 'all versions' page for a Scholar cluster; its first result carries
+    the cluster's current cited-by total. Deterministic, unlike a title search."""
+    params = {"engine": "google_scholar", "cluster": cluster_id, "api_key": api_key}
+    url = SERPAPI_URL + "?" + urllib.parse.urlencode(params)
+    with urllib.request.urlopen(url, timeout=REQUEST_TIMEOUT_SEC) as resp:
+        return json.loads(resp.read().decode("utf-8"))
 
 
 def compute_match_confidence(pub_title, pub_authors, top):
@@ -106,6 +119,27 @@ def compute_match_confidence(pub_title, pub_authors, top):
     return level, round(sim, 3), has_ccb
 
 
+def pick_best(title, pub_authors, results, cached_cluster_id):
+    """Choose the result that best matches this publication.
+
+    Preference order: the result whose cited-by cluster id equals the one cached
+    from an earlier high-confidence match; otherwise the highest confidence level,
+    ties broken by title similarity, then by citation count.
+    """
+    scored = []
+    for r in results:
+        conf, sim, _ = compute_match_confidence(title, pub_authors, r)
+        cited_by = (r.get("inline_links") or {}).get("cited_by") or {}
+        count = cited_by.get("total", 0) if "total" in cited_by else (0 if cited_by else None)
+        cluster = cited_by.get("cites_id")
+        anchor = 1 if (cached_cluster_id and cluster == cached_cluster_id) else 0
+        scored.append(((anchor, CONF_RANK[conf], sim, count or 0), r, conf, sim, count, cluster))
+    scored.sort(key=lambda t: t[0], reverse=True)
+    _, top, conf, sim, count, cluster = scored[0]
+    anchored = bool(scored[0][0][0])
+    return top, conf, sim, count, cluster, anchored
+
+
 def process_one(pub, cache, api_key, force, dry_run):
     """Return dict of status info for logging."""
     pub_id = pub.get("id")
@@ -114,6 +148,8 @@ def process_one(pub, cache, api_key, force, dry_run):
 
     if not pub_id or not title:
         return {"status": "skip", "reason": "missing id or title"}
+    if pub.get("skip_scholar"):
+        return {"status": "skip", "reason": "skip_scholar set"}
 
     entry = cache.get(pub_id) or {}
     if not force and entry.get("citation_count_updated"):
@@ -126,6 +162,37 @@ def process_one(pub, cache, api_key, force, dry_run):
                 "citation_count": entry.get("citation_count"),
                 "confidence": entry.get("match_confidence"),
             }
+
+    # Fast path: a previous high-confidence match recorded the Scholar cluster id.
+    # Re-read the count straight from that cluster instead of re-searching by title.
+    cached_cluster = entry.get("scholar_cluster_id")
+    if cached_cluster and entry.get("match_confidence") == "high":
+        try:
+            cdata = query_cluster(cached_cluster, api_key)
+            for r in cdata.get("organic_results") or []:
+                cb = (r.get("inline_links") or {}).get("cited_by") or {}
+                if str(cb.get("cites_id")) == str(cached_cluster):
+                    conf, sim, _ = compute_match_confidence(title, pub.get("authors"), r)
+                    new_entry = dict(entry)
+                    new_entry.update({
+                        "citation_count": cb.get("total", 0),
+                        "citation_count_updated": datetime.now(timezone.utc)
+                        .replace(microsecond=0).isoformat(),
+                        "scholar_result_id": r.get("result_id"),
+                        "scholar_result_title": r.get("title"),
+                        "title_similarity": sim,
+                        "match_confidence": "high",
+                        "refresh_method": "cluster",
+                    })
+                    new_entry.pop("refresh_note", None); new_entry.pop("refresh_attempted", None)
+                    if not dry_run:
+                        cache[pub_id] = new_entry
+                    return {"status": "fetched", "citation_count": cb.get("total", 0),
+                            "confidence": "high", "similarity": sim,
+                            "scholar_title": r.get("title"), "calls": 1}
+            time.sleep(REQUEST_DELAY_SEC)  # cluster gone (merged?); fall back to title search
+        except Exception:
+            pass
 
     try:
         data = query_scholar(title, api_key)
@@ -149,14 +216,57 @@ def process_one(pub, cache, api_key, force, dry_run):
             cache[pub_id] = new_entry
         return {"status": "no_results", "citation_count": None, "confidence": "none"}
 
-    top = results[0]
-    confidence, sim, has_ccb = compute_match_confidence(title, pub.get("authors"), top)
-
-    cited_by = (top.get("inline_links") or {}).get("cited_by") or {}
-    count = cited_by.get("total", 0) if "total" in cited_by else (
-        0 if cited_by else None
+    top, confidence, sim, count, cluster_id, anchored = pick_best(
+        title, pub.get("authors"), results, cached_cluster
     )
-    cluster_id = cited_by.get("cites_id")
+    calls = 1
+    if confidence != "high" and not anchored:
+        # Scholar's ranking for a bare title query drifts; retry with the exact title.
+        try:
+            time.sleep(REQUEST_DELAY_SEC)
+            data2 = query_scholar(title, api_key, exact=True)
+            calls += 1
+            results2 = data2.get("organic_results") or []
+            if results2:
+                top2, conf2, sim2, count2, cl2, anch2 = pick_best(
+                    title, pub.get("authors"), results2, cached_cluster
+                )
+                if (anch2, CONF_RANK[conf2], sim2) > (anchored, CONF_RANK[confidence], sim):
+                    top, confidence, sim, count, cluster_id, anchored = (
+                        top2, conf2, sim2, count2, cl2, anch2
+                    )
+        except Exception:
+            pass
+
+    old_conf = entry.get("match_confidence")
+    old_count = entry.get("citation_count")
+    # Scholar counts only grow, so a previously good match whose count collapses by more
+    # than half under a different cluster is a mis-match (usually a proceedings volume or a
+    # duplicate entry), not a real drop.
+    collapsed = (
+        old_conf == "high" and old_count and count is not None
+        and count < 0.5 * old_count and str(cluster_id) != str(entry.get("scholar_cluster_id"))
+    )
+    if old_count is not None and (CONF_RANK[confidence] < CONF_RANK[old_conf] or collapsed):
+        # Keep the earlier, better-matched record rather than overwrite it with noise.
+        kept = dict(entry)
+        kept["refresh_attempted"] = (
+            datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+        )
+        kept["refresh_note"] = (
+            f"refresh returned {confidence} match ({top.get('title')!r}, count={count}); "
+            f"kept previous {old_conf} match"
+        )
+        if not dry_run:
+            cache[pub_id] = kept
+        return {
+            "status": "fetched",
+            "citation_count": kept.get("citation_count"),
+            "confidence": f"{old_conf}*",
+            "similarity": kept.get("title_similarity") or 0.0,
+            "scholar_title": kept.get("scholar_result_title"),
+            "calls": calls,
+        }
 
     new_entry = {
         "citation_count": count,
@@ -168,7 +278,10 @@ def process_one(pub, cache, api_key, force, dry_run):
         "scholar_result_title": top.get("title"),
         "match_confidence": confidence,
         "title_similarity": sim,
+        "refresh_method": "title",
     }
+    if entry.get("notes"):
+        new_entry["notes"] = entry["notes"]
     if not dry_run:
         cache[pub_id] = new_entry
     return {
@@ -177,6 +290,7 @@ def process_one(pub, cache, api_key, force, dry_run):
         "confidence": confidence,
         "similarity": sim,
         "scholar_title": top.get("title"),
+        "calls": calls,
     }
 
 
@@ -190,7 +304,11 @@ def main():
     parser.add_argument("--api-key", help="SerpAPI key (else SERPAPI_KEY env var)")
     parser.add_argument("--verbose", action="store_true", help="Print full top result")
     parser.add_argument("--seed", type=int, default=None, help="Random seed for --sample")
+    parser.add_argument("--retry-weak", action="store_true",
+                        help="Only papers whose cached match is not high-confidence (implies --force)")
     args = parser.parse_args()
+    if args.retry_weak:
+        args.force = True
 
     api_key = args.api_key or os.environ.get("SERPAPI_KEY")
     if not api_key:
@@ -215,6 +333,8 @@ def main():
         pubs = pubs[: args.limit]
 
     cache = load_cache()
+    if args.retry_weak:
+        pubs = [p for p in pubs if (cache.get(p["id"]) or {}).get("match_confidence") != "high"]
 
     total = len(pubs)
     if total == 0:
@@ -230,11 +350,11 @@ def main():
         result = process_one(pub, cache, api_key, args.force, args.dry_run)
         status = result["status"]
         if status == "fetched":
-            need_api += 1
+            need_api += result.get("calls", 1)
             print(
                 f"[{i:3}/{total}] {pub_id:45} "
                 f"count={result['citation_count']!s:>6} "
-                f"conf={result['confidence']:<4} "
+                f"conf={result['confidence']:<5} "
                 f"sim={result['similarity']:.2f}  "
                 f"{short_title}"
             )

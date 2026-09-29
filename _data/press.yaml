@@ -1,3 +1,59 @@
+- title: "As A.I. Majors Grow, Universities Race to Keep Curricula Relevant"
+  source: Observer
+  by_line: Eric Berger
+  date: August 18, 2026
+  url: https://observer.com/2026/08/university-ai-degree-adapting-advancing-technology/
+  year: 2026
+  summary: |
+    Observer reports on the rapid growth of undergraduate A.I. degree programs—at least 70 U.S. colleges now offer A.I. majors and 90 offer minors, up from just five majors five years ago—and the challenge of teaching a field that changes as fast as it is being taught. Chris Callison-Burch notes that this is familiar territory for computer scientists: "In computer science, we are fairly used to technology that changes rapidly." He describes overhauling roughly 40 percent of his natural language processing course during the most recent academic year to accommodate "all the breakthroughs in the large language models that have happened." On the job market, he acknowledges student anxiety—"The worry among many undergraduates is that the entry-level jobs that they normally would have found at a big tech company like Google or Amazon can now be done by A.I. agents"—but remains optimistic about Penn graduates' prospects: "The amount of software being created is growing at such a huge rate that my strong belief is there is going to be strong demand for people who understand A.I. and people who understand computer science. But those jobs may be spread across a much wider range of employers than they were before." The article also features Carnegie Mellon's Reid Simmons on grounding the first U.S. undergraduate A.I. degree in mathematics and statistics.
+- title: "Study examines AI chat bot bias, how it responds to prompts"
+  source: ABC 6 Action News WPVI-TV Philadelphia
+  by_line: Christie Ileto
+  date: July 23, 2026
+  url: https://6abc.com/post/study-examines-ai-chat-bot-bias-how-responds-prompts/19564010/
+  year: 2026
+  summary: |
+    ABC 6 Action News reports on a study, highlighted by The Washington Post, examining whether AI chatbots provide factual answers or reflect political bias. Researchers evaluated ChatGPT, Gemini, and Claude using benchmarks and political prompts on topics like the death penalty and gun control, instructing the models to answer in 30 words without personalization settings. Gemini scored highest for presenting multiple viewpoints (93% of responses), Claude maintained neutrality 57% of the time, and ChatGPT was found to be left-leaning 80% of the time. Chris Callison-Burch demonstrated responses from Claude and ChatGPT using a prompt about affirmative action, noting both chatbots treated it as a contested policy question with multiple perspectives: "Here it's saying this is a contested policy question, so it's saying it has multiple perspectives, not just one." He explained that chatbots are trained on vast amounts of internet data and can reflect the behavior and preferences of their users. Despite concerns about bias, he said there is no need for alarm because people ultimately make their own decisions rather than relying on a chatbot to decide for them, while urging users to remain aware of AI's limitations.
+- title: "Can AI Detectors Be Trusted?"
+  source: Communications of the ACM
+  by_line: Samuel Greengard
+  date: June 23, 2026
+  url: https://cacm.acm.org/news/can-ai-detectors-be-trusted/
+  year: 2026
+  summary: |
+    Communications of the ACM examines the unreliability of AI text detectors, which have flagged works including Macbeth, the U.S. Constitution, and the Book of Genesis as machine-generated. Chris Callison-Burch, Raj and Nira Singh Professor of Artificial Intelligence at the University of Pennsylvania, explains a core flaw: because LLMs are trained on human prose, professional writers who adopt clean, measured styles get penalized—"Straightforward syntax, varied rhythm, strong transitions, and a measured tone get flagged as machine-generated." He recounts serving as an expert witness in a College of Charleston case where a student received a failing grade from a single detector score with "no conversation," and the student's father sued and prevailed. The article also features PhD student Liam Dugan, who co-developed the RAID (Robust AI Detection) benchmark of 10 million documents; testing 12 detectors found simple modifications pushed error rates above 95%. Callison-Burch argues detectors should never be the sole basis for sanctioning someone: "You catch lazy cheaters—and potentially innocent people. The smartest cheaters will beat your detector," and "If you adopt a no-AI policy and a detector flags text, the next step is to have a conversation with the person. Otherwise, you will accuse innocent people of cheating."
+- title: "Living with AI: How artificial intelligence could impact the job market"
+  source: ABC 6 Action News WPVI-TV Philadelphia
+  by_line: Christie Ileto
+  date: March 5, 2026
+  url: https://6abc.com/post/living-ai-how-artificial-intelligence-could-impact-job-market/18680334/
+  year: 2026
+  summary: |
+    ABC 6 Action News reports on AI's impact on the job market, featuring Chris Callison-Burch discussing which jobs are most exposed: "Interestingly, they're things like writers and coders and mathematicians, and people who do research and write survey articles." He offers a balanced perspective, noting "a real possibility that it could lead to widespread layoffs in many, many different industries" while also encouraging people to embrace the technology: "It's also a great time to go out and be an entrepreneur and to build your own company. And you could create something like we never would have been able to in the past."
+- title: "I trusted AI with daily decisions. The way it dived in, experts say, raises flags."
+  source: The Christian Science Monitor
+  by_line: Caitlin Babcock
+  date: March 3, 2026
+  url: https://www.csmonitor.com/USA/Society/2026/0303/artificial-intelligence-daily-tasks
+  year: 2026
+  summary: |
+    A Christian Science Monitor reporter describes a week-long experiment letting ChatGPT make everyday decisions for her, revealing issues of AI sycophancy, overconfidence, and assumption-making. Chris Callison-Burch is quoted on the challenge of aligning AI to human values: "One of the tricky things about trying to align AI systems to human values is a broader question of, Whose values are we representing?" He also explains that ChatGPT's tendency to "overshare" with unsolicited advice could result from people preferring longer answers during training.
+- title: "Hyper Text"
+  source: The Pennsylvania Gazette
+  by_line: Trey Popp
+  date: February 27, 2026
+  url: https://thepenngazette.com/hyper-text/
+  year: 2026
+  summary: |
+    The Pennsylvania Gazette examines how generative AI is reshaping higher education at Penn four years after ChatGPT's debut. Chris Callison-Burch, who teaches a graduate-level introductory AI course to about 650 students, describes discovering an "illusion of understanding" among students who rely on chatbots for homework: after seeding an exam with questions that should have been easy for anyone who did the work the old-fashioned way, two-thirds of the class got one question wrong and 80 percent flubbed another. "I don't necessarily attribute that to malice or cheating," he says. "I think there's an illusion of understanding that can happen by virtue of using these chatbots. Even if you are doing it conscientiously, it can be tricky." The article also covers how Callison-Burch is rethinking his teaching, experimenting with AI-powered question generators and second-chance testing, and designing a new introductory AI class, guided by his philosophy of "A's for all, as time and interest allow."
+- title: "AI agents could change your life — if they don't ruin it first"
+  source: Vox
+  by_line: Adam Clark Estes
+  date: February 5, 2026
+  url: https://www.vox.com/technology/477977/chatgpt-claude-code-moltbook-ai-agent
+  year: 2026
+  summary: |
+    Vox explores the rise of agentic AI tools like Claude Code, Claude Cowork, OpenClaw, and Moltbook, examining both their transformative potential and security risks. Chris Callison-Burch, a professor of computer and information science at the University of Pennsylvania, is quoted extensively throughout, calling it "an incredibly exciting time to use computers" and comparing agentic AI to the Star Trek computer: "To just type into my command line what I want to happen makes it feel like the Star Trek computer. That's how computers work in science fiction, and now that's how computers work in reality, and it's really mind-blowing." He also urges caution about the risks of giving AI agents control of personal data and accounts, emphasizing "Be cautious, be cautious, be cautious."
 - title: "A bots-only social network triggers fears of an AI uprising"
   source: The Washington Post
   by_line: Tatum Hunter
@@ -113,7 +169,7 @@
   source: Axios
   by_line: Megan Morrone
   date: September 3, 2024
-  url: https://www.axios.com/2024/09/03/ai-text-detectors-school-cheating
+  url: https://www.axios.com/2024/09/03/teachers-still-cant-trust-ai-text-checkers
   year: 2024
   summary: Axios back-to-school piece cites Callison-Burch’s RAID study and quotes him calling detector accuracy claims "too good to be true" and urging professors to rethink assessment rather than penalize students on detector scores alone.
 - title: Detecting Machine-Generated Text&colon; An Arms Race With the Advancements of Large Language Models

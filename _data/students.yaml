@@ -1,4 +1,57 @@
 -
+   name: Grace Kim
+   degree: PhD Student
+   pic: grace_kim.png
+   institution: University of Pennsylvania
+   start_year: 2025
+   expected_graduation_date: Summer 2030
+   homepage: https://graceyekim.github.io/
+   gender: female
+-
+   name: Maxine Liu
+   degree: PhD Student
+   pic: maxine_liu.png
+   institution: University of Pennsylvania
+   start_year: 2025
+   expected_graduation_date: Summer 2030
+   homepage: https://www.linkedin.com/in/maxine-liu-60577422a
+   linkedin: https://www.linkedin.com/in/maxine-liu-60577422a
+   gender: female
+-
+   name: Elliot Pickens
+   coadvisor: Duncan Watts
+   degree: PhD Student
+   pic: elliot_pickens.png
+   institution: University of Pennsylvania
+   start_year: 2025
+   expected_graduation_date: Summer 2029
+   homepage: https://epickens.github.io
+   gender: male
+   advisors: Chris Callison-Burch and Duncan Watts
+-
+   name: Josh Magnus Ludan
+   coadvisor: Mark Yatskar
+   degree: PhD Student
+   pic: josh_ludan.jpg
+   institution: University of Pennsylvania
+   start_year: 2025
+   expected_graduation_date: Spring 2030
+   homepage: https://www.jmrludan.com
+   gender: male
+   advisors: Chris Callison-Burch and Mark Yatskar
+-
+   name: Sameer Bhatti
+   coadvisor: Kevin Johnson
+   degree: PhD Student
+   pic: sameer_bhatti.jpg
+   institution: University of Pennsylvania
+   start_year: 2024
+   expected_graduation_date: Summer 2029
+   homepage: https://www.linkedin.com/in/sameer-bhatti/
+   linkedin: https://www.linkedin.com/in/sameer-bhatti/
+   gender: male
+   advisors: Chris Callison-Burch and Kevin Johnson
+-
    name: Delip Rao
    degree: PhD Student
    pic: delip_rao.jpg
@@ -17,69 +70,11 @@
    homepage: https://zhu.codes
    gender: male
 -
-   name: Artemis Panagopoulou
-   coadvisor: Mark Yatskar
-   degree: PhD Student
-   pic: artemis_panagopoulou.jpg
-   institution: University of Pennsylvania
-   start_year: 2021
-   expected_graduation_date: Summer 2026
-   homepage: https://artemisp.github.io
-   gender: female
--
    name: Liam Dugan 
    degree: PhD Student
    pic: liam_dugan.jpg
    institution: University of Pennsylvania
    start_year: 2021
-   expected_graduation_date: Summer 2026
+   expected_graduation_date: Fall 2026
    homepage: http://liamdugan.com
-   gender: male
--
-   name: Ajay Patel 
-   degree: PhD Student
-   pic: ajay_patel.jpg
-   institution: University of Pennsylvania
-   start_year: 2020
-   expected_graduation_date: Summer 2025
-   homepage: https://ajayp.app
-   gender: male
--
-   name: Bryan Li
-   degree: PhD Student
-   pic: bryan_li.jpg
-   institution: University of Pennsylvania
-   start_year: 2020
-   expected_graduation_date: Summer 2025
-   homepage: 
-   gender: male
--
-   name: Samar Haider
-   coadvisor: Duncan Watts
-   degree: PhD Student
-   pic: samar_haider.jpg
-   institution: University of Pennsylvania
-   start_year: 2020
-   expected_graduation_date: Summer 2025
-   homepage: 
-   gender: male
--
-   name: Yue Yang
-   coadvisor: Mark Yatskar
-   degree: PhD Student
-   pic: yue_yang.png
-   institution: University of Pennsylvania
-   start_year: 2020
-   expected_graduation_date: Summer 2025
-   homepage: https://yueyang1996.github.io
-   gender: male
--
-   name: Aditya Kashyap 
-   coadvisor: Mary Regina Boland
-   degree: PhD Student
-   pic: aditya_kashyap.jpg
-   institution: University of Pennsylvania
-   start_year: 2019
-   expected_graduation_date: Spring 2025
-   homepage: 
    gender: male

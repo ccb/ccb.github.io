@@ -1,4 +1,24 @@
 -
+   name: Ahmed Muharram
+   degree: Masters in Computer and Information Science
+   institution: University of Pennsylvania
+   advisors: Chris Callison-Burch
+   graduation_date: May 2026
+   thesis_title: How Underspecified Prompts Shape Tool-Calling LLM Agents in Scientific Workflows
+   thesis_link: masters-theses/Ahmed-Muharram-masters-thesis-2026.pdf
+   thesis_slides: masters-theses/Ahmed-Muharram-masters-thesis-2026.pptx
+   defense_video: https://www.youtube.com/watch?v=atXx9LYXkus
+   gender: male
+-
+   name: Sebin Lee
+   degree: Masters in Computer and Information Science
+   institution: University of Pennsylvania
+   advisors: Artemis Panagopoulou and Chris Callison-Burch and
+   graduation_date: May 2025
+   thesis_title: Automatic Synthesis of Safe Counterfactuals for Harmful Images Using LLMs and Diffusion Models
+   thesis_link: masters-theses/Sebin-Lee-masters-thesis-2025.pdf
+   gender: female
+-
    name: Yifei Li
    degree: Masters in Data Science 
    institution: University of Pennsylvania 

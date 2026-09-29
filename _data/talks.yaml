@@ -1,7 +1,98 @@
 -
+   venue: 25th Annual Isaac Asimov Memorial Debate at the American Museum of Natural History, moderated by Neil deGrasse Tyson
+   title: "AI: Promises, Pitfalls, & Perils"
+   date: March 17, 2026
+   url: https://www.youtube.com/watch?v=eYUYdpG4UT8
+-
+   venue: The 2026 University of Pennsylvania MLK Symposium
+   title: AI and the Dream
+   date: January 28, 2026 
+   url: https://www.youtube.com/watch?v=iwXxA2JWB1o
+-
+   venue: JHU AITC Conference on Large Language Models and Large Foundational Models
+   title: A Brief History, But Long Impact of LLMs
+   date: November 20, 2025 
+   url:
+-
+   venue: Perry World House conference on The Future of Artificial Intelligence Governance and International Politics
+   title: Panel on AI, Chips, and U.S.-China Competition
+   date: October 7, 2025 
+   url:
+-
+   venue: USLI
+   title: What is AI, and will it take your job?
+   date: September 9, 2025
+   url:
+-
+   venue: The Haverford Trust Company
+   title: Automation and its Implications on the Rising Workforce
+   date: July 13, 2025
+   url: https://vimeo.com/1109834403
+   alt_url: https://www.linkedin.com/feed/update/urn%3Ali%3Aactivity%3A7356322941837406210/?midToken=AQF5DXqe62D0SQ&midSig=1T8djfFueF3XU1&trk=eml-email_notification_single_mentioned_you_in_this_01-hero_notification_cta-0-1ep~cta&trkEmail=eml-email_notification_single_mentioned_you_in_this_01-hero_notification_cta-0-1ep~cta-null-6wuhsb~mdroqcl4~jd-null-null&eid=6wuhsb-mdroqcl4-jd
+-
+   venue: Wharton Executive Education session for LIMRA and LOMA
+   title: Generative AI
+   date: June 19, 2025
+   url:
+-
+   venue: WorldQuant Bridgestone
+   title: Large Language Models and Generative AI
+   date: May 13, 2025
+   url:
+-
+   venue: Penn Conference on AI Infrastructure&colon; Foundations for Energy Efficiency and Scalability
+   title: AI, Energy, and Sustainability
+   date: April 14, 2025
+   url: https://events.wharton.upenn.edu/events-hq/a1WHq00000PFiI0/
+-
+   venue: AIRFoundry Annual Meeting
+   title: Harnessing Artificial Intelligence and Language Modeling  for Enhancing Innovation and Evaluating Research Claims
+   date: March 31, 2025
+   url:
+-
+   venue: Cleaver Magazine Workshop
+   title: Demystifying AI&colon; Threat or Tool?
+   date: March 30, 2025
+   url:
+-
+   venue: James Brister Society Spring Conference
+   title: History of NLP + Intro to Large Language Models
+   date: March 28, 2025
+   url:
+-
+   venue: Penn Dental Medicine
+   title: Ask an Expert About ChatGPT and Generative AI 
+   date: February 4, 2025
+   url:
+-
+   venue: Learning Analytics M.S.Ed. Online at UPenn GSE
+   title: Undetectable AI&Colon; Risks, Challenges, and Policy Implications
+   date: November 14, 2024
+   url:
+-
+   venue: Penn State NLP - Communication and Intelligence conference
+   title: Using Large Language Models to Build Explainable Classifiers
+   date: November 1, 2024
+   url:
+-
+   venue: UChicago - Communication and Intelligence conference
+   title: Using Large Language Models to Build Explainable Classifiers
+   date: October 18, 2024
+   url:
+-
+   venue: Penn Alumni Association Event in Texas
+   title: Is AI coming for our jobs?
+   date: October 16, 2024
+   url:
+-
+   venue: William Penn Foundation
+   title: Ask an Expert About ChatGPT and Generative AI 
+   date: September 26, 2024
+   url:
+-
    venue: Global Conference on Frontier AI at the Brookings Instituion
    title: Undetectable AI&colon; Risks, Challenges, and Policy Implications
-   date: September 16 2024
+   date: September 16, 2024
    url:
 -
    venue: Informatics in the Round podcast
@@ -9,10 +100,43 @@
    date: August 28, 2024
    url: https://www.youtube.com/watch?v=YGGbAgWv4-E
 -
+   venue: Summer Institutes in Computational Social Science
+   title: Large Language Models
+   date: July 11, 2024
+   url:
+-
+   venue: Bi-annual Conference at the Philadelphia Fed
+   title: A Primer on Large Language Models
+   date: June 27, 2024
+   url:
+
+-
+   venue: Penn Law School
+   title: Fundamentals of AI for Regulators
+   date: June 6, 2024
+   url:
+
+-
+   venue: Penn Engineering - AI for Executives 
+   title: A Primer on Large Language Models
+   date: May 30, 2024
+   url:
+-
+   venue: Penn IT Staff Convention
+   title: Ask an Expert About ChatGPT and Generative AI 
+   date: May 23, 2024
+   url:
+-
+   venue: NRT Soft AE Annual Symposium
+   title: State of the Art in Large Language Models
+   date: May 2, 2024
+   url:
+-
    venue: Penn Engineering Podcast
    title: Exploring AI in Engineering
    date: April 24, 2024
    url: https://www.youtube.com/watch?v=8NJH4NySlCk
+
 -
    venue: Howard University NLP Course
    title: Using Large Language Models to Build Explainable Classifiers

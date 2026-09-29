@@ -171,6 +171,8 @@ def process_one(pub, cache, api_key, force, dry_run):
     title = clean_title(pub.get("title") or "")
     if not pub_id or not title:
         return {"status": "skip", "reason": "missing id or title"}
+    if pub.get("skip_scholar"):
+        return {"status": "skip", "reason": "skip_scholar set"}
 
     entry = cache.get(pub_id) or {}
     if not force and entry.get("citation_count_updated"):

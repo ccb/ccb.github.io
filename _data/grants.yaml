@@ -1,4 +1,35 @@
 -
+   title: IARPA BENGAL&colon; TIGER&colon; Trustable Information Generation and Explanation Resilience
+   awarding_body: IARPA
+   amount: $4m
+   start_date: 2026
+   end_date: 2027
+   status: current
+   PI_info: René Vidal (UPenn - PI), Chris Callison-Burch, Hamed Hassani, Mark Yaskar and Eric Wong, Rama Chellappa (JHU) and Vishal Patel (JHU)
+   url:
+   abstract:
+-
+   title: NSF AI Institute for Human-AI Cooperation (NSF HAIC)
+   awarding_body: NSF
+   amount: $21.5m
+   start_date: 2026
+   end_date: 2031
+   status: current
+   PI_info: Cathy Wu (University of Delaware - PI and Director), Austin Brockmeier (UDel), Eric Eaton (Penn PI and Managing Director), Joel Harley (UF), Hacene Boukari (DSU), Chris Callison-Burch (Penn, co-chair of the Human-AI Symbiosis working group), and others. Cooperative Agreement No. 2433450.
+   url: https://www.nsf.gov/awardsearch/show-award/?AWD_ID=2433450
+   abstract: |
+     The NSF AI Institute for Human-AI Cooperation promotes national leadership in artificial intelligence by transforming AI into an adaptive teammate allowing human users and AI systems to interact in dynamic collaboration. The Institute will build a new synergistic framework for the development of robust intelligent agents that users can rely upon in human-centered personalized decision-making, with compelling impact in dynamic rehabilitation settings. Led by the University of Delaware with partners at Penn, the University of Florida, Princeton, and Delaware State University, NSF HAIC is the 30th NSF national AI institute.
+-
+   title: DARPA SciFy&colon; Harnessing Artificial Intelligence and Language Modeling for Enhancing Innovation and Evaluating Research Claims (HAILMEIER-C)
+   awarding_body: DARPA
+   amount: $6m (Penn's portion is $3.8m)
+   start_date: 2024
+   end_date: 2027
+   status: current
+   PI_info: Chris Callison-Burch - PI, Andrew Head, Eric Wong, Duncan Watts, Mark Yatskar, Chinedum Osuji, Peter Jansen (University of Arizona), Yulia Tsvetkov (University of Washington), Hanna Hajishirzi (University of Washington)
+   url:
+   abstract: 
+-
    title: Research Gift
    awarding_body: Roblox
    is_company: True
@@ -35,10 +66,10 @@
 -
    title: IARPA HIATUS&colon; PAUSIT&colon; Privacy protection and Authorship attribution Using Style-based Interpretable Transfer
    awarding_body: IARPA
-   amount: $7m (Penn's portion is $3.1m)
+   amount: $5.6m 
    start_date: 2022
-   end_date: 2026
-   status: current
+   end_date: 2025
+   status: past
    PI_info: Chris Callison-Burch - PI, Marianna Apidianaki - co-PI, Kathleen McKeown (Columbia), Smaranda Muresan (Columbia), Owen Rambow (Stony Brook University), Niranjan Balasubramanian (Stony Brook University), Andy Schwartz (Stony Brook University)
    url:
    abstract: 
