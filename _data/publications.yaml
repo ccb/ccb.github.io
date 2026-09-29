@@ -2820,6 +2820,37 @@
          caption: A visualization of our SAP technique extracting high-quality translations from mT5. In the zero-shot setting, the examples used in the prompt are synthetic examples retrieved in a fully unsupervised manner.
 
 -
+   title: RESIN-11&colon; Schema-guided Event Prediction for 11 Newsworthy Scenarios
+   authors: Xinya Du, Zixuan Zhang, Sha Li, Ziqi Wang, Pengfei Yu, Hongwei Wang, Tuan Lai, Xudong Lin, Iris Liu, Ben Zhou, Haoyang Wen, Manling Li, Darryl Hannan, Jie Lei, Hyounghun Kim, Rotem Dror, Haoyu Wang, Michael Regan, Qi Zeng, Qing Lyu, Charles Yu, Carl Edwards, Xiaomeng Jin, Yizhu Jiao, Ghazaleh Kazeminejad, Zhenhailong Wang, Chris Callison-Burch, Carl Vondrick, Mohit Bansal, Dan Roth, Jiawei Han, Shih-Fu Chang, Martha Palmer, Heng Ji
+   venue: NAACL
+   type: demo
+   year: 2022
+   url: https://aclanthology.org/2022.naacl-demo.7.pdf
+   page_count: 10
+   id: resin-11
+   doi: 10.18653/v1/2022.naacl-demo.7
+   anthology_id: 2022.naacl-demo.7
+   featured: false
+   award:
+   data:
+   code: https://github.com/RESIN-KAIROS/RESIN-11
+   website:
+   press:
+   abstract: |
+     We introduce RESIN-11, a new schema-guided event extraction and prediction framework that can be applied to a large variety of newsworthy scenarios. The framework consists of two parts: (1) an open-domain end-to-end multimedia multilingual information extraction system with weak-supervision and zero-shot learning-based techniques. (2) schema matching and schema-guided event prediction based on our curated schema library. We build a demo website based on our dockerized system and schema library publicly available for installation. We also include a video demonstrating the system.
+   bibtex: |
+      @inproceedings{du2022resin11,
+        title={{RESIN-11}: Schema-guided Event Prediction for 11 Newsworthy Scenarios},
+        author={Du, Xinya and Zhang, Zixuan and Li, Sha and Wang, Ziqi and Yu, Pengfei and Wang, Hongwei and Lai, Tuan and Lin, Xudong and Liu, Iris and Zhou, Ben and Wen, Haoyang and Li, Manling and Hannan, Darryl and Lei, Jie and Kim, Hyounghun and Dror, Rotem and Wang, Haoyu and Regan, Michael and Zeng, Qi and Lyu, Qing and Yu, Charles and Edwards, Carl and Jin, Xiaomeng and Jiao, Yizhu and Kazeminejad, Ghazaleh and Wang, Zhenhailong and Callison-Burch, Chris and Vondrick, Carl and Bansal, Mohit and Roth, Dan and Han, Jiawei and Chang, Shih-Fu and Palmer, Martha and Ji, Heng},
+        booktitle={Proceedings of the 2022 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies: System Demonstrations},
+        pages={54--63},
+        year={2022},
+        address={Hybrid: Seattle, Washington + Online},
+        publisher={Association for Computational Linguistics},
+        doi={10.18653/v1/2022.naacl-demo.7},
+        url={https://aclanthology.org/2022.naacl-demo.7}
+      }
+-
    title: Low-Resource Authorship Style Transfer with In-Context Learning
    authors: Ajay Patel, Nicholas Andrews, Chris Callison-Burch
    venue: arXiv
@@ -6431,6 +6462,35 @@
        }
        
 -
+   title: Hallucinated N-Best Lists for Discriminative Language Modeling
+   authors: Kenji Sagae, Maider Lehr, Emily Prud'hommeaux, Puyang Xu, Nathan Glenn, Damianos Karakos, Sanjeev Khudanpur, Brian Roark, Murat Saraçlar, Izhak Shafran, Daniel Bikel, Chris Callison-Burch, Yuan Cao, Keith Hall, Eva Hasler, Philipp Koehn, Adam Lopez, Matt Post, Darcey Riley
+   venue: ICASSP
+   type: conference
+   year: 2012
+   url: https://doi.org/10.1109/ICASSP.2012.6289043
+   page_count: 4
+   id: hallucinated-n-best-lists
+   doi: 10.1109/ICASSP.2012.6289043
+   anthology_id: null
+   featured: false
+   award:
+   data:
+   code:
+   website:
+   press:
+   abstract:
+   bibtex: |
+      @inproceedings{sagae2012hallucinated,
+        title={Hallucinated N-Best Lists for Discriminative Language Modeling},
+        author={Sagae, Kenji and Lehr, Maider and Prud'hommeaux, Emily and Xu, Puyang and Glenn, Nathan and Karakos, Damianos and Khudanpur, Sanjeev and Roark, Brian and Sara{\c{c}}lar, Murat and Shafran, Izhak and Bikel, Daniel and Callison-Burch, Chris and Cao, Yuan and Hall, Keith and Hasler, Eva and Koehn, Philipp and Lopez, Adam and Post, Matt and Riley, Darcey},
+        booktitle={2012 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+        pages={5001--5004},
+        year={2012},
+        address={Kyoto, Japan},
+        publisher={IEEE},
+        doi={10.1109/ICASSP.2012.6289043}
+      }
+-
    title: Findings of the 2012 Workshop on Statistical Machine Translation
    authors: Chris Callison-Burch, Philipp Koehn, Christof  Monz, Matt Post, Radu Soricut, and Lucia Specia
    venue: WMT
@@ -9999,6 +10059,35 @@
        }
        
 -
+   title: Method and Apparatus for Providing Multilingual Translation over a Network
+   authors: Jeffrey Chin, Chris Callison-Burch, Raymond Flournoy, Pria Hidisyan, Rina Horiuchi, Yannick Kassum, Kevin Lee, Nicholas Lee, David Lowsky, Thomas Ritter, David Weinstein
+   venue: U.S. Patent Application 2001/0029455 A1
+   type: patent
+   year: 2001
+   url: https://patents.google.com/patent/US20010029455A1/en
+   page_count:
+   id: multilingual-translation-over-a-network-patent
+   doi: null
+   anthology_id: null
+   featured: false
+   award:
+   data:
+   code:
+   website:
+   press:
+   abstract: |
+     A patent application filed by Amikai, Inc. on April 2, 2001 (priority date March 31, 2000) and published October 11, 2001, describing a system for real-time multilingual communication over a network. Source language text is received as an input to an electronic language translator and translated at the time of submission into one or more target language texts, which are delivered to the recipients in their own languages. The application was later abandoned.
+   bibtex: |
+      @misc{chin2001multilingual,
+        title={Method and Apparatus for Providing Multilingual Translation over a Network},
+        author={Chin, Jeffrey and Callison-Burch, Chris and Flournoy, Raymond and Hidisyan, Pria and Horiuchi, Rina and Kassum, Yannick and Lee, Kevin and Lee, Nicholas and Lowsky, David and Ritter, Thomas and Weinstein, David},
+        howpublished={U.S. Patent Application 2001/0029455 A1 (application no. 09/825,437)},
+        year={2001},
+        month={October},
+        note={Assignee: Amikai, Inc. Filed April 2, 2001},
+        url={https://patents.google.com/patent/US20010029455A1/en}
+      }
+-
    title: Upping the Ante for "Best of Breed" Machine Translation Providers
    authors: Chris Callison-Burch
    venue: ASLIB Translating and the Computer
@@ -10101,6 +10190,35 @@
          year =                {2001},
        }
        
+-
+   title: Reconciling User Expectations and Translation Technology to Create a Useful Real-World Application
+   authors: Raymond S. Flournoy, Chris Callison-Burch
+   venue: Translating and the Computer 22
+   type: conference
+   year: 2000
+   url: https://aclanthology.org/2000.tc-1.6.pdf
+   page_count:
+   id: reconciling-user-expectations-and-translation-technology
+   doi: null
+   anthology_id: 2000.tc-1.6
+   featured: false
+   award:
+   data:
+   code:
+   website:
+   press:
+   abstract:
+   bibtex: |
+      @inproceedings{flournoy2000reconciling,
+        title={Reconciling User Expectations and Translation Technology to Create a Useful Real-World Application},
+        author={Flournoy, Raymond S. and Callison-Burch, Chris},
+        booktitle={Proceedings of Translating and the Computer 22},
+        year={2000},
+        month={November},
+        address={London, UK},
+        publisher={Aslib},
+        url={https://aclanthology.org/2000.tc-1.6}
+      }
 -
    title: A Computer Model of a Grammar for English Questions
    authors: Chris Callison-Burch

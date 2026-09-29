@@ -1938,6 +1938,22 @@ gun-violence-db:
   s2_paper_id: aeeb84820e23896ca37f904627517b3df2b4e72a
   s2_venue: AAAI Conference on Human Computation & Crowdsourcing
   s2_year: 2015
+hallucinated-n-best-lists:
+  citation_count: 28
+  citation_count_updated: '2026-09-29T14:40:53+00:00'
+  external_ids:
+    CorpusId: 16120257
+    DBLP: conf/icassp/SagaeLPXGKKRSSBCCHHKLPR12
+    DOI: 10.1109/ICASSP.2012.6289043
+    MAG: '2121642367'
+  influential_citation_count: 0
+  lookup_method: doi
+  match_confidence: high
+  s2_match_score: null
+  s2_match_title: Hallucinated n-best lists for discriminative language modeling
+  s2_paper_id: 51e5e7093e0183feab61b00ca6c3df61cd8c46de
+  s2_venue: IEEE International Conference on Acoustics, Speech, and Signal Processing
+  s2_year: 2012
 hallucinating-phrase-translations:
   citation_count: 25
   citation_count_updated: '2026-09-29T13:20:16+00:00'
@@ -3611,6 +3627,21 @@ reasoning-about-goals-with-wikihow:
   s2_paper_id: 498c525afce5be80951babc666d865b86a38bdcc
   s2_venue: Conference on Empirical Methods in Natural Language Processing
   s2_year: 2020
+reconciling-user-expectations-and-translation-technology:
+  citation_count: 15
+  citation_count_updated: '2026-09-29T14:41:13+00:00'
+  external_ids:
+    ACL: 2000.tc-1.6
+    CorpusId: 41742913
+  influential_citation_count: 0
+  lookup_method: title
+  match_confidence: high
+  s2_match_score: 277.66162
+  s2_match_title: Reconciling User Expectations and Translation Technology to Create
+    a Useful Real-World Application
+  s2_paper_id: ddf2be7766af4a8dc05d58e65ad32b507edda4fc
+  s2_venue: TC
+  s2_year: 2000
 recursive-multi-agent-llms:
   citation_count: 6
   citation_count_updated: '2026-09-29T13:14:25+00:00'
@@ -3733,6 +3764,21 @@ reranking-bilingually-extracted-paraphrases-using-monolingual-distributional-sim
   s2_paper_id: 135ecd32a3a569efc7c7f24c9a95abc415b878f2
   s2_venue: GEometrical Models of Natural Language Semantics
   s2_year: 2011
+resin-11:
+  citation_count: 39
+  citation_count_updated: '2026-09-29T14:40:44+00:00'
+  external_ids:
+    ACL: 2022.naacl-demo.7
+    CorpusId: 249010869
+    DOI: 10.18653/v1/2022.naacl-demo.7
+  influential_citation_count: 2
+  lookup_method: doi
+  match_confidence: high
+  s2_match_score: null
+  s2_match_title: 'RESIN-11: Schema-guided Event Prediction for 11 Newsworthy Scenarios'
+  s2_paper_id: 396833983f6d7d77957e12c3839e5da05feb053a
+  s2_venue: North American Chapter of the Association for Computational Linguistics
+  s2_year: 2022
 resolving-pronouns-in-twitter-streams:
   citation_count: 2
   citation_count_updated: '2026-09-29T13:18:22+00:00'

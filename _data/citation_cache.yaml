@@ -1199,6 +1199,17 @@ gun-violence-db:
   scholar_result_id: HuBRnaLxMAsJ
   scholar_result_title: Extracting structured information via automatic+ human computation
   title_similarity: 0.992
+hallucinated-n-best-lists:
+  citation_count: 33
+  citation_count_updated: '2026-09-29T14:41:42+00:00'
+  match_confidence: high
+  notes: count taken from the Scholar author profile export (2026-09-29); title search
+    returns the sibling paper "Hallucinating system outputs"
+  refresh_method: profile
+  scholar_cluster_id: null
+  scholar_result_id: nv-MV58AAAAJ:bFI3QPDXJZMC
+  scholar_result_title: Hallucinated n-best lists for discriminative language modeling
+  title_similarity: 1.0
 hallucinating-phrase-translations:
   citation_count: 29
   citation_count_updated: '2026-09-29T13:45:40+00:00'
@@ -1848,6 +1859,18 @@ multilingual-rag-benchmark:
   scholar_result_title: 'Multilingual retrieval augmented generation for culturally-sensitive
     tasks: A benchmark for cross-lingual robustness'
   title_similarity: 1.0
+multilingual-translation-over-a-network-patent:
+  citation_count: 682
+  citation_count_updated: '2026-09-29T14:41:42+00:00'
+  match_confidence: high
+  notes: patent application; count taken from the Scholar author profile export (2026-09-29);
+    title search does not find patents
+  refresh_method: profile
+  scholar_cluster_id: null
+  scholar_result_id: nv-MV58AAAAJ:lSLTfruPkqcC
+  scholar_result_title: Method and apparatus for providing multilingual translation
+    over a network
+  title_similarity: 1.0
 new-data-for-text-simplification:
   citation_count: 656
   citation_count_updated: '2026-09-29T13:45:00+00:00'
@@ -2183,6 +2206,16 @@ reasoning-about-goals-with-wikihow:
   scholar_result_id: FxdRmYSmtJkJ
   scholar_result_title: Reasoning about goals, steps, and temporal ordering with WikiHow
   title_similarity: 1.0
+reconciling-user-expectations-and-translation-technology:
+  citation_count: 27
+  citation_count_updated: '2026-09-29T14:41:10+00:00'
+  match_confidence: high
+  refresh_method: title
+  scholar_cluster_id: '14199676628412371762'
+  scholar_result_id: MpPvEaliD8UJ
+  scholar_result_title: Reconciling user expectations and translation technology to
+    create a useful real-world application
+  title_similarity: 1.0
 recursive-multi-agent-llms:
   citation_count: 15
   citation_count_updated: '2026-09-29T13:34:47+00:00'
@@ -2254,6 +2287,18 @@ reranking-bilingually-extracted-paraphrases-using-monolingual-distributional-sim
   scholar_result_id: dXwM7jqdeVAJ
   scholar_result_title: Reranking bilingually extracted paraphrases using monolingual
     distributional similarity
+  title_similarity: 1.0
+resin-11:
+  citation_count: 50
+  citation_count_updated: '2026-09-29T14:40:41+00:00'
+  match_confidence: high
+  notes: title match sim=1.0; author list truncated by Scholar so author check failed;
+    verified by hand 2026-09-29
+  refresh_method: title
+  scholar_cluster_id: '4181660151705401097'
+  scholar_result_id: CXfOqcA9CDoJ
+  scholar_result_title: 'RESIN-11: Schema-guided event prediction for 11 newsworthy
+    scenarios'
   title_similarity: 1.0
 resolving-pronouns-in-twitter-streams:
   citation_count: 6
