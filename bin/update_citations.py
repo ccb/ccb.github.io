@@ -23,6 +23,7 @@ import difflib
 import json
 import os
 import random
+import re
 import sys
 import time
 import urllib.parse
@@ -109,6 +110,13 @@ def compute_match_confidence(pub_title, pub_authors, top):
         ]
     ).lower()
     has_ccb = "callison" in author_blob
+
+    # Titles that differ only by a year (e.g. the yearly WMT "Findings" papers) score
+    # near-identical similarity; treat a year mismatch as a different paper.
+    pub_years = set(re.findall(r"\b(?:19[89]\d|20[0-3]\d)\b", pub_title))
+    top_years = set(re.findall(r"\b(?:19[89]\d|20[0-3]\d)\b", top_title))
+    if pub_years and top_years and pub_years != top_years:
+        return "none", round(sim, 3), has_ccb
 
     if sim >= TITLE_MATCH_STRONG and has_ccb:
         level = "high"

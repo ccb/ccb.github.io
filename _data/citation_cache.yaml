@@ -1038,16 +1038,17 @@ fill-in-the-blank-LMs:
     and Fill-in-the-Blank
   title_similarity: 1.0
 findings-of-the-wmt09-shared-tasks:
-  citation_count: 887
-  citation_count_updated: '2026-09-29T13:51:06+00:00'
+  citation_count: 1
+  citation_count_updated: '2026-09-29T13:56:37+00:00'
   match_confidence: high
   notes: Google Scholar clusters WMT Findings papers by title-minus-year; the 2014
     cluster dominates. Citation count must be set manually.
   refresh_method: title
-  scholar_cluster_id: '15626587704708279775'
-  scholar_result_id: 362fZrnK3NgJ
-  scholar_result_title: Findings of the 2011 workshop on statistical machine translation
-  title_similarity: 0.969
+  scholar_cluster_id: '7537051488034911325'
+  scholar_result_id: XXQmNmX8mGgJ
+  scholar_result_title: Proceedings of the Fourth Workshop on Statistical Machine
+    Translation
+  title_similarity: 0.857
 findings-of-the-wmt11-shared-tasks:
   citation_count: 862
   citation_count_updated: '2026-04-23T20:22:27+00:00'
@@ -1073,16 +1074,16 @@ findings-of-the-wmt12-shared-tasks:
     Translation
   title_similarity: 0.851
 findings-of-the-wmt13-shared-tasks:
-  citation_count: 887
-  citation_count_updated: '2026-09-29T13:46:34+00:00'
-  match_confidence: high
+  citation_count: null
+  citation_count_updated: '2026-09-29T13:56:43+00:00'
+  match_confidence: low
   notes: Google Scholar clusters WMT Findings papers by title-minus-year; the 2014
     cluster dominates. Citation count must be set manually.
   refresh_method: title
-  scholar_cluster_id: '15626587704708279775'
-  scholar_result_id: 362fZrnK3NgJ
-  scholar_result_title: Findings of the 2011 workshop on statistical machine translation
-  title_similarity: 0.984
+  scholar_cluster_id: null
+  scholar_result_id: a6cpFe5NQyMJ
+  scholar_result_title: The Geometry of Statistical Machine Translation
+  title_similarity: 0.721
 findings-of-wmt10-and-metrics-matr:
   citation_count: 276
   citation_count_updated: '2026-09-29T13:49:55+00:00'
