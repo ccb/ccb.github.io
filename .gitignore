@@ -16,3 +16,8 @@ publications/dissertations/courtney-napoles-thesis-draft-20180613-ccb-comments.p
 .jekyll-cache/*
 module5-games-and-adversarial-search.md
 Gemfile.lock
+
+# Files over GitHub's 100 MB limit, kept locally but not committed (2026-10-06).
+# The defense video is on YouTube; link to it rather than serving it from here.
+publications/masters-theses/*.mp4
+publications/dissertations/yue-yang-thesis-slides.pptx
