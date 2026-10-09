@@ -33,12 +33,12 @@
       }
 -
    title: Building Auditable AI Text Detectors with Sparse Autoencoders
-   authors: Liam Dugan, Callum Stuart McDougall, Matthew Denton, Philip Pham, Christine Kaeser-Chen, Chris Callison-Burch
+   authors: Liam Dugan, Callum Stuart McDougall, Matthew Denton, Phillip Pham, Christine Kaeser-Chen, Chris Callison-Burch
    venue: EMNLP
    type: conference
    year: 2026
-   url: https://openreview.net/forum?id=6uk8iny9FB
-   page_count:
+   url: https://www.cis.upenn.edu/~ccb/publications/auditable-ai-text-detectors.pdf
+   page_count: 50
    id: auditable-ai-text-detectors
    doi: null
    anthology_id: null
@@ -53,7 +53,7 @@
    bibtex: |
       @inproceedings{dugan2026auditable,
         title={Building Auditable AI Text Detectors with Sparse Autoencoders},
-        author={Liam Dugan and Callum Stuart McDougall and Matthew Denton and Philip Pham and Christine Kaeser-Chen and Chris Callison-Burch},
+        author={Liam Dugan and Callum Stuart McDougall and Matthew Denton and Phillip Pham and Christine Kaeser-Chen and Chris Callison-Burch},
         booktitle={Proceedings of the 2026 Conference on Empirical Methods in Natural Language Processing ({EMNLP})},
         year={2026},
         address={Budapest, Hungary},
