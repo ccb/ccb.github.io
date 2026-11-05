@@ -1,3 +1,11 @@
+- title: "Your writing was flagged as AI. What does that actually mean?"
+  source: NPR
+  by_line: Windsor Johnston
+  date: October 31, 2026
+  url: https://www.npr.org/2026/10/31/nx-s1-5963520/ai-writing-detectors-pangram
+  year: 2026
+  summary: |
+    NPR examines what happens when AI detection tools falsely flag human-written work, opening with ghostwriter Sally McGraw, who lost a book-proposal job after a prospective client ran her writing sample through several detectors. The story covers editors overwhelmed by AI-generated submissions, such as Clarkesworld's Neil Clarke, and a study finding that different detectors can reach very different verdicts on the same text. Chris Callison-Burch explains why previously published writing is especially prone to false positives: "Many AI detectors work by asking a large language model how predictable a passage is. The catch is that the language models also tend to find text from their training data unusually predictable." That could explain why a detector gave 98.7% confidence that a passage from Janelle Shane's 2019 book was machine-generated. He notes that unpublished drafts can still be flagged based on stylistic patterns, such as the word "delve," frequent em dashes, ideas grouped in threes, sentences opening with "notably" or "crucially," or a question immediately followed by its answer, but that detectors weigh patterns across a whole piece, so no single em dash or word means a bot was used.
 - title: "As A.I. Majors Grow, Universities Race to Keep Curricula Relevant"
   source: Observer
   by_line: Eric Berger
