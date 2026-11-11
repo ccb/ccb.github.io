@@ -866,7 +866,7 @@ function render() {
   const ck = alias[id] || id, make = id === "1.2" && sub === 0 ? null : cards[ck];
   setCard(make ? (ck === "6.3" ? "6.2" : ck) : "", make ? make() : "", id === "4.4" ? 1300 : 0);
 
-  $("hud").textContent = "beat " + id + (subsOf(cur) > 1 ? "  step " + (sub + 1) + " of " + subsOf(cur) : "") + "  (" + (cur + 1) + "/" + BEATS.length + ")";
+  $("hud").textContent = (cur + 1) + "/" + BEATS.length; $("hud").dataset.beat = id + (subsOf(cur) > 1 ? " step " + (sub + 1) + " of " + subsOf(cur) : "");
   if (!MIRROR) sendState();
 }
 
