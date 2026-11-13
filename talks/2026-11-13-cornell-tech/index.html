@@ -66,6 +66,9 @@
   #pvStage, #pvNext { color: #9fb0d4; font-size: 18px; margin-top: 20px; }
   #pvNext b { color: #cfd8ee; }
   #pvHelp { margin-top: 18px; font-size: 14px; color: #6f7fa3; }
+  #pvFs { margin-left: auto; align-self: center; font: 600 16px "Helvetica Neue", Arial, sans-serif; color: #eef1f7; background: #24345a; border: 1px solid #4a5d8a; border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+  #pvFs:hover { background: #2f4372; }
+  #pvFsMsg { margin-top: 10px; font-size: 15px; color: #ffcf7a; min-height: 1.3em; }
 </style>
 </head>
 <body>
@@ -75,8 +78,9 @@
 <div id="pv">
   <div id="pvLeft">
     <iframe id="pvFrame" title="Current slide"></iframe>
-    <div id="pvTop"><span id="pvClock">0:00</span><span id="pvWhere"></span></div>
-    <div id="pvHelp">Right arrow, space or Page Down: next. Left arrow or Page Up: back. 1 to 9 and 0: jump to a scene. R: reset the clock. Keys work in this window and in the slide window.</div>
+    <div id="pvTop"><span id="pvClock">0:00</span><span id="pvWhere"></span><button id="pvFs" type="button">Full screen slides (F)</button></div>
+    <div id="pvFsMsg"></div>
+    <div id="pvHelp">Right arrow, space or Page Down: next. Left arrow or Page Up: back. 1 to 9 and 0: jump to a scene. R: reset the clock. F: put the slide window in full screen. Keys work in this window and in the slide window.</div>
   </div>
   <div id="pvRight">
     <div id="pvSay"></div>
@@ -899,7 +903,7 @@ function key(e) {
   else if (k === "Home") jump(0);
   else if (/^[0-9]$/.test(k)) jump(ix((k === "0" ? 10 : +k) + ".1"));
   else if (k === "p" && !PRESENTER) pw = window.open(location.href.split("?")[0] + "?presenter", "presenter", "width=1320,height=820");
-  else if (k === "f" && !PRESENTER) toggleFullscreen();
+  else if (k === "f") { if (PRESENTER) fsSlides(); else toggleFullscreen(); }
   else if (k === "h") $("hud").classList.toggle("off");
   else if (/^g$/i.test(k)) { if (PRESENTER) toMain({ type: "detour" }); else takeDetour(); }
   else if (/^[abc]$/i.test(k)) { const i = "abc".indexOf(k.toLowerCase()); if (PRESENTER) toMain({ type: "pop", i }); else togglePop(i); }
@@ -919,12 +923,30 @@ function nav(d) { if (PRESENTER) toMain({ type: "nav", d }); else go(cur + d); }
 function jump(n) { if (PRESENTER) toMain({ type: "goto", n }); else go(n); }
 /* the slide window and the presenter window talk directly (postMessage), with BroadcastChannel as a fallback */
 let pw = null;
-function sendState() { const msg = { type: "state", cur, sub, pop: openPop }; if (pw && !pw.closed) pw.postMessage(msg, "*"); else if (chan) chan.postMessage(msg); }
+function sendState() { const msg = { type: "state", cur, sub, pop: openPop, fs: !!fsEl() }; if (pw && !pw.closed) pw.postMessage(msg, "*"); else if (chan) chan.postMessage(msg); }
 function toMain(msg) { if (window.opener && !window.opener.closed) window.opener.postMessage(msg, "*"); else if (chan) chan.postMessage(msg); }
 document.addEventListener("keydown", key);
 
 /* ---------- presenter view ---------- */
 let t0 = null;
+/* Full screen for the slide window, asked for from the presenter window. A browser only allows full screen in answer to a
+   click or key press in the same window. Chrome and Edge let this window hand its click over to the slide window
+   ("capability delegation", the delegate option on postMessage); Safari counts the click for both windows, so there we
+   ask directly. If neither works (for example when the page is opened as a file), we say what to do instead. */
+let slidesFs = false;
+function fsSlides() {
+  const o = window.opener, say = (m) => { $("pvFsMsg").textContent = m; }, want = !slidesFs;
+  const check = () => setTimeout(() => { if (slidesFs !== want) say("The browser wouldn't allow that from this window. Click the slide window once and press F."); }, 1500);
+  say("");
+  if (!o || o.closed) return say("The slide window isn't open. Open this view with P from the slides.");
+  try { o.postMessage({ type: "fs", on: want }, { targetOrigin: location.origin, delegate: "fullscreen" }); } catch (e) {}
+  try {
+    const d = o.document, el = d.documentElement, isFs = !!(d.fullscreenElement || d.webkitFullscreenElement);
+    const f = want ? (el.requestFullscreen || el.webkitRequestFullscreen) : (d.exitFullscreen || d.webkitExitFullscreen);
+    if (f && isFs !== want) { const q = f.call(want ? el : d); if (q && q.catch) q.catch(() => {}); }
+  } catch (e) {}
+  check();
+}
 function pvRender() {
   const id = BEATS[cur], sc = +id.split(".")[0], n = NOTES[id] || {}, nx = DETOURS[id] ? DETOURS[id].skipTo : BEATS[cur + 1], nn = NOTES[nx] || {};
   let before = 0; for (let i = 0; i < sc; i++) before += SCENE_SEC[i];
@@ -938,10 +960,11 @@ function pvRender() {
 if (PRESENTER) {
   document.body.classList.add("presenter");
   $("pvFrame").src = location.href.split("?")[0] + "?mirror";
-  const onState = (d) => { if (!d || d.type !== "state") return; if (d.cur > 0 && t0 === null) t0 = Date.now(); cur = d.cur; sub = d.sub || 0; openPop = d.pop || null; pvRender(); const w = $("pvFrame").contentWindow; if (w) w.postMessage(d, "*"); };
+  const onState = (d) => { if (!d || d.type !== "state") return; if (d.cur > 0 && t0 === null) t0 = Date.now(); cur = d.cur; sub = d.sub || 0; openPop = d.pop || null; pvRender(); slidesFs = !!d.fs; $("pvFs").textContent = slidesFs ? "Exit full screen (F)" : "Full screen slides (F)"; const w = $("pvFrame").contentWindow; if (w) w.postMessage(d, "*"); };
   window.addEventListener("message", (e) => { if (e.data && e.data.type === "hello") { toMain({ type: "hello" }); } else onState(e.data); });
   if (chan) chan.onmessage = (e) => onState(e.data);
   toMain({ type: "hello" });
+  $("pvFs").addEventListener("click", () => { fsSlides(); $("pvFs").blur(); });
   setInterval(() => { const s = t0 ? Math.floor((Date.now() - t0) / 1000) : 0; $("pvClock").textContent = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }, 500);
   pvRender();
 } else if (MIRROR) { /* the small copy of the slide inside the presenter window: follows, never animates */
@@ -951,7 +974,7 @@ if (PRESENTER) {
   fwd = false; render();
   if (window.parent !== window) window.parent.postMessage({ type: "hello" }, "*");
 } else {
-  const onMsg = (d) => { if (!d) return; if (d.type === "nav") go(cur + d.d); else if (d.type === "goto") go(d.n); else if (d.type === "pop") togglePop(d.i); else if (d.type === "detour") takeDetour(); else if (d.type === "hello") sendState(); };
+  const onMsg = (d) => { if (!d) return; if (d.type === "nav") go(cur + d.d); else if (d.type === "goto") go(d.n); else if (d.type === "pop") togglePop(d.i); else if (d.type === "detour") takeDetour(); else if (d.type === "fs") { if (!!fsEl() !== !!d.on) toggleFullscreen(); } else if (d.type === "hello") sendState(); };
   window.addEventListener("message", (e) => onMsg(e.data));
   if (chan) chan.onmessage = (e) => onMsg(e.data);
   if (still) { stage.classList.add("still"); sub = subsOf(cur) - 1; }
@@ -959,6 +982,7 @@ if (PRESENTER) {
   const fsBtn = $("fs"), canFs = document.fullscreenEnabled || document.webkitFullscreenEnabled;
   if (!canFs || still) fsBtn.classList.add("off"); /* iPhones have no full screen for web pages, so the button hides there */
   fsBtn.addEventListener("click", () => { toggleFullscreen(); fsBtn.blur(); });
+  ["fullscreenchange", "webkitfullscreenchange"].forEach((ev) => document.addEventListener(ev, sendState)); /* keeps the presenter window's button label right */
   /* phones and tablets: swipe left for next, right for back; a tap still advances */
   let tx = null, swiped = false;
   stage.addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; swiped = false; }, { passive: true });

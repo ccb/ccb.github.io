@@ -7,6 +7,7 @@
     <title>{{ page.title }}</title>
 
     <!-- CSS -->
+    {% if page.base %}<base href="{{ page.base }}">{% endif %}
     <link href="./dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/css/class.css" rel="stylesheet">   
     <link href="assets/css/syntax.css" rel="stylesheet">

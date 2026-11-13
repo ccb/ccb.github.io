@@ -1,0 +1,44 @@
+---
+title: Talks
+layout: default
+active_tab: talks
+base: ../
+---
+
+{% comment %}
+Talks come from _data/talks.yaml. They are sorted here by date, newest first,
+so an entry can be added anywhere in that file.
+{% endcomment %}
+{% assign keys = "" | split: "" %}
+{% for talk in site.data.talks %}
+  {% assign day = talk.date | remove: "." | strip | date: "%Y%m%d" %}
+  {% assign idx = forloop.index0 | plus: 1000 %}
+  {% capture key %}{{ day }}|{{ idx }}{% endcapture %}
+  {% assign keys = keys | push: key %}
+{% endfor %}
+{% assign keys = keys | sort | reverse %}
+
+<h1>Invited Talks and Panels</h1>
+
+{% assign current_year = "" %}
+{% for key in keys %}
+  {% assign parts = key | split: "|" %}
+  {% assign idx = parts[1] | minus: 1000 %}
+  {% assign talk = site.data.talks[idx] %}
+  {% assign year = parts[0] | slice: 0, 4 %}
+  {% if year != current_year %}
+    {% unless forloop.first %}</ul>{% endunless %}
+<a name="{{ year }}"></a><h2>{{ year }}</h2>
+<ul>
+    {% assign current_year = year %}
+  {% endif %}
+  <li>
+    {% assign last_char = talk.title | strip | slice: -1 %}
+    {% if talk.url %}<a href="{{ talk.url }}"><b>{{ talk.title }}</b></a>{% else %}<b>{{ talk.title }}</b>{% endif %}{% unless last_char == "?" or last_char == "!" or last_char == "." %}.{% endunless %}
+    {{ talk.venue }}. {{ talk.date | remove: "." | strip }}.
+    {% if talk.slides %}[<a href="{{ talk.slides }}">slides</a>]{% endif %}
+    {% if talk.video %}[<a href="{{ talk.video }}">video</a>]{% endif %}
+    {% if talk.alt_url %}[<a href="{{ talk.alt_url }}">alternate link</a>]{% endif %}
+  </li>
+{% endfor %}
+</ul>
